@@ -1,0 +1,1 @@
+from .staticData import gtex
