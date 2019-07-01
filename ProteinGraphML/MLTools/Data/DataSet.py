@@ -42,3 +42,4 @@ class BinaryLabel(Data):
 		self.labelColumn = labelColumn
 		self.labels = self.data[self.labelColumn]
 		self.features = self.data.drop([self.labelColumn],axis=1)
+

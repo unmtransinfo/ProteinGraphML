@@ -1,16 +1,18 @@
 
 
-from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV, GridSearchCV, cross_val_predict,StratifiedShuffleSplit
+from sklearn.linear_model import LogisticRegression
+
 import xgboost as xgb
 
 from sklearn.naive_bayes import GaussianNB
+#from sklearn.model_selection import cross_val_score,
 
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import roc_auc_score #.roc_auc_score(y_true, y_score, average='macro', sample_weight=None, max_fpr=None)
-
+from sklearn.metrics import accuracy_score,auc,confusion_matrix,classification_report
+from sklearn.metrics import roc_auc_score,roc_curve #.roc_auc_score(y_true, y_score, average='macro', sample_weight=None, max_fpr=None)
 
 # this model system will hopefully make a simple API for dealing with large data 
-
+import matplotlib.pyplot as plt
 # iterating on our platform across domains 
 
 class Result:
@@ -26,6 +28,18 @@ class Result:
 		return Output("ACC",accuracy_score(self.data.labels,self.predictions))
 	def roc(self):
 		return Output("AUCROC",roc_auc_score(self.data.labels,self.predictions))
+
+	def ConfusionMatrix(self):
+		return ConfusionMatrix(self.data.labels,self.predictions)
+
+	def rocCurve(self):
+		 #fpr, tpr, threshold = metrics.roc_curve(y_test, preds)
+
+		fpr, tpr, threshold = roc_curve(self.data.labels,self.predictions)
+		return RocCurve("rocCurve",fpr, tpr)
+	
+	def report(self):
+		return Report(self.data.labels,self.predictions)
 
 class Output: # base output...
 	data = None
@@ -45,6 +59,43 @@ class Output: # base output...
 	def printOutput(self):
 		print(self.textOutput())
 
+class LabelOutput(Output):
+	def __init__(self,labels,predictions):
+		self.labels = labels
+		self.predictions = predictions
+
+class ConfusionMatrix(LabelOutput):
+	def printOutput(self):
+		return confusion_matrix(self.labels,self.predictions)
+
+class Report(LabelOutput):
+	def printOutput(self):
+		print(classification_report(self.labels,self.predictions))
+
+class RocCurve(Output):
+	fpr = None 
+	tpr = None
+	def __init__(self,type,fpr,tpr):
+		#self.data = modelOutput
+		self.stringType = type
+		self.fpr = fpr
+		self.tpr = tpr
+
+	def printOutput(self):
+
+		#fpr, tpr, threshold = metrics.roc_curve(y_test, preds)
+		roc_auc = auc(self.fpr, self.tpr)
+		# method I: plt
+		
+		plt.title('Receiver Operating Characteristic')
+		plt.plot(self.fpr, self.tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
+		plt.legend(loc = 'lower right')
+		plt.plot([0, 1], [0, 1],'r--')
+		plt.xlim([0, 1])
+		plt.ylim([0, 1])
+		plt.ylabel('True Positive Rate')
+		plt.xlabel('False Positive Rate')
+		plt.show()
 
 class BaseModel:
 
@@ -59,7 +110,21 @@ class BaseModel:
 		else:
 			return iter(resultList)
 
-
+class SkModel(BaseModel):
+	m = None
+	
+	def train(self,trainData,param=None):
+		clf = LogisticRegression(random_state=0, solver='lbfgs',multi_class='multinomial')#.fit(X, y)
+		self.m = clf.fit(trainData.features,trainData.labels)
+	
+	def predict(self,testData,outputTypes):
+		#inputData = xgb.DMatrix(testData.features)
+		predictions = self.m.predict(testData.features)
+		return self.createResultObjects(testData,outputTypes,predictions)
+	
+	def cross_val_predict(self,testData,outputTypes):
+		predictions = cross_val_predict(self.m,testData.features,y=testData.labels,cv=10)
+		return self.createResultObjects(testData,outputTypes,predictions)
 
 class XGBoostModel(BaseModel):
 	m = None
@@ -102,3 +167,4 @@ class XGBoostModel(BaseModel):
 		a = random_search.fit(totalData.features, totalData.labels)
 
 		return a
+

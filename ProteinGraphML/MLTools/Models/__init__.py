@@ -1,1 +1,1 @@
-from .models import XGBoostModel
+from .models import XGBoostModel,SkModel
