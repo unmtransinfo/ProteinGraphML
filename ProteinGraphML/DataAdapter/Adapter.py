@@ -62,9 +62,8 @@ class OlegDB(Adapter):
 
 	GTD = None
 	mouseToHumanAssociation = None
-	geneToDisease = None
-	 
-
+	geneToDisease = None 
+	childParentDict = None
 
 	db = None
 
@@ -185,6 +184,16 @@ class OlegDB(Adapter):
 		parentHierarchy.setDirected()
 		
 		self.phenotypeHierarchy = parentHierarchy
+
+		# this child dict saves parents in reverse order, so that you can look them up directly 
+		childParentDict = {}  
+		for fval,val in zip(self.phenotypeHierarchy.data["mp_term_id"],self.phenotypeHierarchy.data["parent_id"]):
+		    if fval not in childParentDict.keys():
+		        childParentDict[fval] = set([val])
+		    else:
+		        childParentDict[fval].add(val)
+
+		self.childParentDict = childParentDict
 
 
 
