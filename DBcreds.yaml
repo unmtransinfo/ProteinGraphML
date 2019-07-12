@@ -1,4 +1,4 @@
-user: "<USER>"
-password: ""
-host: ""
-database: ""  
+user: "jjyang"
+password: "assword"
+host: "localhost"
+database: "metap"
