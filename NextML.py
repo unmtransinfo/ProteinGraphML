@@ -17,41 +17,6 @@ currentGraph = ProteinDiseaseAssociationGraph.load("CURRENT_GRAPH_H")
 
 from ProteinGraphML.MLTools.MetapathFeatures import metapathFeatures,ProteinInteractionNode,KeggNode,ReactomeNode,GoNode,InterproNode
 
-
-# what did we grab:: 
-
-# metapathFeatures - the main function that assembles our metapath features
-
-
-# ProteinInteractionNode
-# KeggNode
-# ReactomeNode
-# GoNode
-# InterproNode
-
-# each of these nodes has instructions/function for how to compute their type of metapath,
-# IE: for ProteinInteractionNode the metapath is P1 <-> P2 -> Disease but for others there is a middle node like: 
-# P1 -> KEGG_pathway <- P2 -> Disease
-
-# features we want, and a disease we want to analyse  
-# may change "ProteinInteractionNode" .. to "DattrainDataaType"... these aren't really "nodes"
-nodes = [ProteinInteractionNode,KeggNode,ReactomeNode,GoNode,InterproNode]
-Disease = "MP_0000180"
-
-# empty array is static features resolving bugs and then will add to this function
-
-
-'''
-we are ready to make data!... this will build a pandas frame with labels, 
-labeling metapaths where a protein is connected through another
-
-# NOTE::
-label is true if protein on the edge of the path to a disease has a true association to it
-and label is false, if protein on the edge of path to the disease has a false association to it 
-
-
-# this function will build training set by default, but can build test set as well with test=True
-'''
 diseaseList = currentGraph.getDiseaseList()
 
 from ProteinGraphML.MLTools.MetapathFeatures import getMetapaths
@@ -66,10 +31,13 @@ print(len(finalSet))
 
 print(currentGraph.loadNames("MP_ontology",finalSet).head())
 
-print(currentGraph.loadNames("MP_ontology",finalSet).shape)
+
+nodes = [ProteinInteractionNode,KeggNode,ReactomeNode,GoNode,InterproNode]
+Disease = "MP_0000180"
+
 trainData = metapathFeatures(Disease,currentGraph,nodes,[]).fillna(0)
 
-trainData.shape # looks good 
+#trainData.shape # looks good 
 
 from ProteinGraphML.MLTools.Data import BinaryLabel
 
@@ -80,25 +48,8 @@ from ProteinGraphML.MLTools.Data import BinaryLabel
 d = BinaryLabel()
 d.loadData(trainData)
 
-'''
-d - is now our data set, if we split it we get new BinaryLabel objects, and the ProteinGraphML.MLTools.Models
-can parse out the labels / features automatically
 
-if the label isn't Y, you can use: 
-
-d.loadData(trainData,labelColumn='mylabel')
-
-'''
-
-
-#READY FOR XGBOOST: Here are some parameters
-
-param = {'n_estimators':7,'learning_rate':0.02,'max_depth':7, 'eta':0.1,'subsample':0.9,'silent':0,'min_child_weight':5, 'objective':'binary:logistic'}
-
-
-# NOTE!!!! THIS EXAMPLE WON'T SAVE THE MODEL(s) TRAINED !!!  THIS IS JUST TO DEMONSTRATE THE API 
-
-# you can access the package xgboost directly to save the model using XGBoostModel.m
+#param = {'n_estimators':7,'learning_rate':0.02,'max_depth':7, 'eta':0.1,'subsample':0.9,'silent':0,'min_child_weight':5, 'objective':'binary:logistic'}
 
 
 from ProteinGraphML.MLTools.Models import XGBoostModel
@@ -107,6 +58,17 @@ from ProteinGraphML.MLTools.Models import XGBoostModel
 
 # this version works as well, we split the data with 10 random folds: 80% of data as train... 20% as test 
 
+newModel = XGBoostModel()
+
+
+#newModel.setClassifier(clfg)
+#newModel.setClassifier(rf)
+#newModel.setClassifier(clfc)
+Report,roc,rocCurve,CM = newModel.cross_val_predict(dataR,["report","roc","rocCurve","ConfusionMatrix"])
+
+Report.printOutput()
+
+'''
 featureImportance = []
 ROC = 0.
 CROSSVAL = 10 # 10 
@@ -142,4 +104,4 @@ print("AVG AUC-ROC",ROC/CROSSVAL)
 
 # access saved feature importance here
 featureImportance
-
+'''
