@@ -241,9 +241,14 @@ def metapathFeatures(disease,G,featureList,staticFeatures=None,test=False,loaded
 
 
 	for metapathframe in metapaths:
-		#print(metapathframe.shape)
+		#print("DF",df.index)
+		#print("MPSHAPE",metapathframe.shape)
+		#print(metapathframe.index)
 		#print(sum(metapathframe.sum(axis=1)))
-		df = df.join(metapathframe,on="protein_id")
+		#return df,metapathframe
+		
+		#df = df.join(metapathframe,on="protein_id")
+		df = df.join(metapathframe)
 
 	#print(len(df))
 
