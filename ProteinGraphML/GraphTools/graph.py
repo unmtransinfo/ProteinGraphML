@@ -44,7 +44,7 @@ class ProteinDiseaseAssociationGraph(GraphData): # on top of networkx?
 	edges = None
 	graphMap = {}  #we can put other graphs here...
 
-	namesMap = {}
+	namesMap = None
 	
 
 	# NOTE THIS IS A HACK, since undirected and directed graphs aren't working directly together right now, 
@@ -61,9 +61,6 @@ class ProteinDiseaseAssociationGraph(GraphData): # on top of networkx?
 	
 	def __init__(self,adapter=None,graph=None):
 		
-
-		# would be great to fix this order problem, make it all more robust
-
 		if graph is not None:
 			self.graph = graph
 		else:
@@ -73,27 +70,26 @@ class ProteinDiseaseAssociationGraph(GraphData): # on top of networkx?
 			self.graph = graph
 			self.childParentDict = adapter.childParentDict
 
+		self.namesMap = {}
 		self.addNameData(adapter)
 
 
 
-	def addNameData(self,adapter):
+	def addNameData(self,adapter):		
 		for node in adapter.names:
 			self.namesMap[node.name] = node
 
-
 	def attach(self,edge):
 		# helps build the multigraph, builds the interactions data, saves matrix also 
-		# here it maybe prudent to save a dictionary of the nodes themselves
-
+		# here it maybe prudent to save a dictionary of the nodes themselves		
 		self.edges.append(edge)
 		self.graph = self.graphBuilder([edge],self.graph)
-
 
 	def save(self,path):
 		
 		#nx.write_gpickle(self.graph,path)
-
+		print("this is our names map before we save",self.namesMap)
+		print(vars(self).keys())
 		self.edges = None # clear out the edges/ these have large amounts of data
 		pickle_out = open(path,"wb")
 		pickle.dump(self, pickle_out)
@@ -119,7 +115,7 @@ class ProteinDiseaseAssociationGraph(GraphData): # on top of networkx?
 
 
 	def loadNames(self,nameType,valueList):
-
+		print(self.namesMap)
 		thisNode = self.namesMap[nameType]
 		return thisNode.dataframe[thisNode.dataframe.mp_term_id.isin(valueList)].reset_index(drop=True)
 
@@ -145,16 +141,16 @@ class GraphEdge:
 
 
 # new graph stuff, things below have been removed 
-def filterNeighbors(ProteinGraph,start,association): # hard coded ... "association"
+def DELfilterNeighbors(ProteinGraph,start,association): # hard coded ... "association"
 	#graph = ProteinGraph
 	return [a for a in graph.adj[start] if "association" in graph.edges[(start,a)].keys() and graph.edges[(start,a)]["association"] == association]
 
-def getChildren(ProteinGraph,start): # hard coded ... "association"
+def DELgetChildren(ProteinGraph,start): # hard coded ... "association"
 	return [a for a in graph.adj[start] if "association" not in graph.edges[(start,a)].keys()]
 
 
 
-def getMetapaths(ProteinGraph,start):
+def DELgetMetapaths(ProteinGraph,start):
 	children = getChildren(ProteinGraph,start) # really, this shouldn't hit networkx directly ... but should remain an external function
 	proteinMap = {
 		True:set(),

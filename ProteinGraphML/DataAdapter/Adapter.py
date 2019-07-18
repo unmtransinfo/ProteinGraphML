@@ -34,6 +34,20 @@ class GraphEdge:
 		self.directed = True
 
 
+class NodeName:
+	# this will store, a key type, and a name 
+	# when we make one of these, we can call it later in the graph to rejoin with the nodes in question 
+	
+	keyValue = None # the value we can construct 
+	name = None # so we can call .name("Protein",nodes)
+	dataframe = None # a mapping we can use
+
+	def __init__(self,name,keyValue,dataframe):
+		self.keyValue = keyValue
+		self.name = name
+		self.dataframe = dataframe
+
+
 class Adapter:
 
 	# when we produce, we'd call a mat mult of each of the metapath chunks... stitch them together at the end 
@@ -42,6 +56,7 @@ class Adapter:
 	# the adapater will have to add new kinds of edges, so you'd want to include an edge adder, adds a set of edges
 
 	graph = None
+	names = []
 
 	def attachEdges(self): # maybe pass in an edge object here? metapath type? an intermediate object, which has relationships, can stack
 		pass
@@ -56,6 +71,12 @@ class Adapter:
 		return graph
 
 
+	def saveNameMap(self,label,key,name,frame): # this will drop all columns except for key/name
+		
+		#NodeName("MP","mp_term_id",mpOnto.drop(['parent_id'],axis=1).drop_duplicates())
+		
+		newNode = NodeName(label,key,frame[[key,name]].drop_duplicates())
+		self.names.append(newNode)
 
 
 class OlegDB(Adapter):
@@ -66,6 +87,8 @@ class OlegDB(Adapter):
 	childParentDict = None
 
 	db = None
+	
+
 
 	def __init__(self):
 		self.load()
@@ -157,10 +180,16 @@ class OlegDB(Adapter):
 		db = self.db
 		# select everything from the DB
 		TableColumns=["hid","homologene_group_id","tax_id","protein_id"]
+
 		humanProteinList = selectAsDF("select * from homology WHERE tax_id = 9606",TableColumns,db)
 		mouseProteinList = selectAsDF("select * from homology WHERE tax_id = 10090",TableColumns,db)
 		mousePhenotype = selectAsDF("select * from mousephenotype",["protein_id","mp_term_id","p_value","effect_size","procedure_name","parameter_name","association"],db)
 		mpOnto = selectAsDF("select * from mp_onto",["mp_term_id","parent_id","name"],db)
+
+		#self.names.append(NodeName("MP","mp_term_id",mpOnto.drop(['parent_id'],axis=1).drop_duplicates()))  #keyValue,name,dataframe
+		
+		self.saveNameMap("MP_ontology","mp_term_id","name",mpOnto) # we will save this data to the graph, so we can get it later
+
 
 		mouseToHumanMap = self.buildHomologyMap(humanProteinList,mouseProteinList)
 		combinedSet = attachColumn(mouseToHumanMap,mousePhenotype,"protein_id") # just bind the protein ID from our last table 
@@ -174,7 +203,7 @@ class OlegDB(Adapter):
 		depthMap = generateDepthMap(mpOnto)
 		mpOnto["level"] = mpOnto.apply(getVal,axis=1)
 		mpOnto = mpOnto[mpOnto["level"] > 1] # remove the single level stuff
-		geneToDisease = attachColumn(mouseToHumanAssociation,mpOnto,"mp_term_id") # this is trickier... we dont have these associations
+		geneToDisease = attachColumn(mouseToHumanAssociation,mpOnto,"mp_term_id")
 		
 		# we could extract this piece layer
 
