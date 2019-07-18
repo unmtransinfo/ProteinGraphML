@@ -199,6 +199,10 @@ class SkModel(BaseModel):
 
 class XGBoostModel(BaseModel):
 	m = None
+	param = None
+	def setParam(self,):
+		self.param = param
+
 	def train(self,trainData,param):		
 		dtrain = xgb.DMatrix(trainData.features,label=trainData.labels)				
 		bst = xgb.train(param, dtrain,num_boost_round=50)
@@ -214,7 +218,7 @@ class XGBoostModel(BaseModel):
 		#self.m = clf.fit(testData.features,testData.labels)
 		
 		#inputData = xgb.DMatrix(testData.features)
-		clf = xgb.XGBClassifier(learning_rate=0.02, n_estimators=600, objective='binary:logistic',
+		clf = xgb.XGBClassifier(learning_rate=0.02, n_estimators=5, objective='binary:logistic',
                     silent=True, nthread=1)
 		self.m = clf
 		predictions = cross_val_predict(self.m,testData.features,y=testData.labels,cv=10)
