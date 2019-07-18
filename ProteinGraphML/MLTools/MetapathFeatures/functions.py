@@ -171,15 +171,21 @@ def PPICompute(graph,proteinNodes,trueP,falseP):
 
 
 
-def getMetapaths(graph,start):
-	children = getChildren(graph,start)
+def getMetapaths(proteinGraph,start):
+
+	children = getChildren(proteinGraph.graph,start)
+	
+	if start in proteinGraph.childParentDict.keys(): # if we've got parents, lets remove them from this search
+		children = list( set(children) - set(proteinGraph.childParentDict[start]) )  
+
+
 	proteinMap = {
 		True:set(),
 		False:set()
 	}
 	for c in children:
-		p = filterNeighbors(graph,c,True)
-		n = filterNeighbors(graph,c,False)
+		p = filterNeighbors(proteinGraph.graph,c,True)
+		n = filterNeighbors(proteinGraph.graph,c,False)
 		posPaths = len(p)
 		negPaths = len(n)
 			
@@ -241,14 +247,9 @@ def metapathFeatures(disease,G,featureList,staticFeatures=None,test=False,loaded
 
 
 	for metapathframe in metapaths:
-		#print("DF",df.index)
-		#print("MPSHAPE",metapathframe.shape)
-		#print(metapathframe.index)
+		#print(metapathframe.shape)
 		#print(sum(metapathframe.sum(axis=1)))
-		#return df,metapathframe
-		
-		#df = df.join(metapathframe,on="protein_id")
-		df = df.join(metapathframe)
+		df = df.join(metapathframe,on="protein_id")
 
 	#print(len(df))
 

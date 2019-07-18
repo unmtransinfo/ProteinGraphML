@@ -44,10 +44,20 @@ class ProteinDiseaseAssociationGraph(GraphData): # on top of networkx?
 	edges = None
 	graphMap = {}  #we can put other graphs here...
 
+	namesMap = {}
+	
+
 	# NOTE THIS IS A HACK, since undirected and directed graphs aren't working directly together right now, 
-		# this will help us keep track of child/parent relationships
+		# this will help us keep track of child/parent relationships... when we query a nodes children, we can use this to filter out parents
 
 	parentChildDict = None # HACK
+
+
+	def load(path):
+		pickle_in = open(path,"rb")
+		newGraph = pickle.load(pickle_in)
+		return newGraph
+
 	
 	def __init__(self,adapter=None,graph=None):
 		
@@ -63,6 +73,14 @@ class ProteinDiseaseAssociationGraph(GraphData): # on top of networkx?
 			self.graph = graph
 			self.childParentDict = adapter.childParentDict
 
+		self.addNameData(adapter)
+
+
+
+	def addNameData(self,adapter):
+		for node in adapter.names:
+			self.namesMap[node.name] = node
+
 
 	def attach(self,edge):
 		# helps build the multigraph, builds the interactions data, saves matrix also 
@@ -76,7 +94,8 @@ class ProteinDiseaseAssociationGraph(GraphData): # on top of networkx?
 		
 		#nx.write_gpickle(self.graph,path)
 
-		pickle_out = open("newGRAPH.pickle","wb")
+		self.edges = None # clear out the edges/ these have large amounts of data
+		pickle_out = open(path,"wb")
 		pickle.dump(self, pickle_out)
 		pickle_out.close()
 
@@ -99,7 +118,10 @@ class ProteinDiseaseAssociationGraph(GraphData): # on top of networkx?
 		return fd
 
 
+	def loadNames(self,nameType,valueList):
 
+		thisNode = self.namesMap[nameType]
+		return thisNode.dataframe[thisNode.dataframe.mp_term_id.isin(valueList)].reset_index(drop=True)
 
 
 class GraphEdge:
