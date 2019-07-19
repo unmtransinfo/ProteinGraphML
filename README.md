@@ -1,6 +1,9 @@
 # ProteinGraphML
 
+## Dependencies
 
+* `xgboost`, `scikit-learn`, `networkx`, `pandas`, `pony`, `matplotlib`
+*  PostgreSQL database `metap` accessible.
 
 NOTE:: to begin add your DB creds to the DBcreds.yaml file, without a database you cannot run the 'Build_Graph' notebook
 

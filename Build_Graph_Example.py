@@ -10,7 +10,7 @@ proteinGraph = ProteinDiseaseAssociationGraph(dbAdapter)
 
 ## the 'ProteinDiseaseAssociationGraph' object has helper methods, but we can also access the networkx graph directly it is created with:
 
-len(proteinGraph.graph.nodes)
+print('Total nodes: %d'%len(proteinGraph.graph.nodes))
 
 ## we will want to filter by the proteins we are interested in, this list comes from a DB adapter, but any set will do
 proteins = dbAdapter.loadTotalProteinList().protein_id
@@ -36,11 +36,10 @@ reactome = [r for r in list(proteinGraph.graph.nodes) if isinstance(r,str) and r
 goNodes = [go for go in list(proteinGraph.graph.nodes) if isinstance(go,str) and go[0:3] == "GO:"]
 interNodes = [inter for inter in list(proteinGraph.graph.nodes) if isinstance(inter,str) and inter[0:3] == "IPR"]
 
-
-print("KEGG",len(keggNodes))
-print("REACT",len(reactome))
-print("GO",len(goNodes))
-print("INTERP",len(interNodes))
+print("KEGG nodes", len(keggNodes))
+print("REACT nodes", len(reactome))
+print("GO nodes", len(goNodes))
+print("INTERP nodes", len(interNodes))
 
 # this will save our graph
 proteinGraph.save("CURRENT_GRAPH")

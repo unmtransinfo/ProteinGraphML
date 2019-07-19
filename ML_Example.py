@@ -51,7 +51,7 @@ and label is false, if protein on the edge of path to the disease has a false as
 '''
 trainData = metapathFeatures(Disease,currentGraph,nodes,[]).fillna(0)
 
-trainData.shape # looks good 
+print('Training data: rows: %d ; cols: %d'%(trainData.shape[0],trainData.shape[1]))
 
 from ProteinGraphML.MLTools.Data import BinaryLabel
 
@@ -111,12 +111,13 @@ for k in range(0,CROSSVAL):
     ROC+=rocResult.data
     
     
-
     # this can do the feature importance as well, but working on adding support here first
     importance = newModel.m.get_score(importance_type='gain')
     featureImportance.append(importance)
     #ECGimportanceSet.append(importance)
     
+    for kk, feat in enumerate(importance.keys()):
+      print('%d.%d. %s: %.2f'%(k+1, kk+1, feat, importance[feat]))
 
 print("")    
 print("AVG AUC-ROC",ROC/CROSSVAL)
