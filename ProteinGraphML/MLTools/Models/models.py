@@ -219,12 +219,12 @@ class XGBoostModel(BaseModel):
 		
 		#inputData = xgb.DMatrix(testData.features)
 		clf = xgb.XGBClassifier(learning_rate=0.02, n_estimators=5, objective='binary:logistic',
-                    silent=True, nthread=1)
+                    silent=False, nthread=1)
 		self.m = clf
 		predictions = cross_val_predict(self.m,testData.features,y=testData.labels,cv=10)
 		return self.createResultObjects(testData,outputTypes,predictions)
 
-	def average_cross_val(self,testData,outputTypes,folds=10,split=0.8):
+	def average_cross_val(self,testData,outputTypes,folds=1,split=0.8):
 		# this function will take the average of metrics per fold... which is a random fold
 		CROSSVAL = 10
 
@@ -241,7 +241,7 @@ class XGBoostModel(BaseModel):
 			print("train",train.features.shape)
 
 			#newModel = XGBoostModel()
-			newModel.train(train,{})
+			newModel.train(train,{'max_depth':7,'eta':0.1,'gamma':1,'min_child_weight':2})
 
 			#model.predict
 			if importance:

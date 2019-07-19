@@ -42,5 +42,5 @@ print("GO nodes", len(goNodes))
 print("INTERP nodes", len(interNodes))
 
 # this will save our graph
-proteinGraph.save("CURRENT_GRAPH")
+proteinGraph.save("newCURRENT_GRAPH")
 

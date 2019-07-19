@@ -8,14 +8,16 @@ def Visualize(importance,graph,disease):
 
 	#print(importance.most_common())
 
-	firstFeature = importance.most_common()[4]
+	#firstFeature = importance.most_common()[4]
 
-	print(firstFeature[0])
+	#print(firstFeature[0])
 
-	print("hsa04144" in graph.nodes)
-	print("hsa04144" in graph.nodes)
-	print(firstFeature[0] in graph.nodes)
-	print(disease in graph.nodes)
+	#print("hsa04144" in graph.nodes)
+	#print("hsa04144" in graph.nodes)
+	#print(firstFeature[0] in graph.nodes)
+	#print(disease in graph.nodes)
+
+	firstFeature = importance
 
 	# this parameter will change based on the features ... we will need the name saving ability here...
 	# maybe we can test the disease list feature as well 
@@ -52,6 +54,7 @@ def Visualize(importance,graph,disease):
 
 
 	</div>
+        """+firstFeature[0]+"""
 	<script type="text/javascript">
 	data = 
 	"""
@@ -207,7 +210,7 @@ for(var edge of Object.values(cy.edges())) {
 </script>
 	"""
 
-	text_file = open("testIT.html", "w")
+	text_file = open("results/graphs/"+str(firstFeature[0])+"testIT.html", "w")
 	text_file.write(header+dataOut+footer)
 	text_file.close()
 
