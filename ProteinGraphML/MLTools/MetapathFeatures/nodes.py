@@ -1,5 +1,8 @@
 
 from .functions import computeType,PPICompute,sPPICompute
+import numpy as np
+import itertools
+
 
 class KeggNode:
 	
@@ -33,7 +36,7 @@ class ProteinInteractionNode:
 	computeMetapaths = sPPICompute
 	
 	def isThisNode(nodeValue):
-		return (isinstance(nodeValue,int))
+		return (isinstance(nodeValue,int) or isinstance(nodeValue,np.integer))
 
 
 #class StaticFeature():

@@ -24,17 +24,21 @@ class Result:
 	
 	data = None
 	predictions = None
-	
-	def __init__(self,dataOut,predictions,modelName):
+	space = None
+
+	def __init__(self,dataOut,predictions,modelName,space=""):
 		self.data = dataOut
 		self.predictions = predictions
 		self.modelName = modelName
+		self.space = space
 		# we put the functions here which actually convert the data to a binary score 
 	def acc(self):
 		return Output("ACC",accuracy_score(self.data.labels,self.predictions))
 	def roc(self):
 		roc = Output("AUCROC",roc_auc_score(self.data.labels,self.predictions))
-		roc.fileOutput(self.modelName)
+		#roc.fileOutput(self.modelName)
+
+
 		return roc
 
 	def ConfusionMatrix(self):
@@ -59,11 +63,9 @@ class Output: # base output...
 		self.stringType = type
 
 	def fileOutput(self,modelName): # now what if its a table? or a graph?
-		
 		rootName = self.stringType
-		
 		base = modelName+"/"+rootName
-		
+		# this is ... 
 		#if os.path.isdir("../results"):
 		#	if os.path.isdir(base):
 
@@ -82,8 +84,13 @@ class Output: # base output...
 	def textOutput(self):
 		return (self.stringType,self.data)
 
-	def printOutput(self):
-		print(self.textOutput())
+	def printOutput(self,file=None):
+		if file is not None:
+			print(self.data,file=file)
+			#print(self.textOutput(),file=file)
+		else:
+			print(self.data)
+			#print(self.textOutput())
 
 
 # FEATURE VISUALIZER 
@@ -97,15 +104,19 @@ class LabelOutput(Output):
 	def __init__(self,labels,predictions):
 		self.labels = labels
 		self.predictions = predictions
+		self.data = self.setData()
+	
+	def setData(self):
+		pass
+
 
 class ConfusionMatrix(LabelOutput):
-	
-	def printOutput(self):
-		print(confusion_matrix(self.labels,self.predictions))
+	def setData(self):
+		return confusion_matrix(self.labels,self.predictions)
 
 class Report(LabelOutput):
-	def printOutput(self):
-		print(classification_report(self.labels,self.predictions))
+	def setData(self):
+		return classification_report(self.labels,self.predictions)
 
 class RocCurve(Output):
 	fpr = None 
@@ -153,29 +164,44 @@ class BaseModel:
 		self.m = classifier
 	
 	def createResultObjects(self,testData,outputTypes,predictions):
+
+		# can we 
+
 		if not os.path.isdir("results"):
 			os.mkdir("results")
-		
+
 		modelName = "results/"+type(self.m).__name__+"-"+str(int(time.time()))
+		print("WE NEED A SPACE FOR THIS MODEL!! {0}".format(modelName))
+		
+		fileName = '{0}.txt'.format(modelName)
+		
+		open(fileName, 'a').close()
 		if not os.path.isdir(modelName):
 			os.mkdir(modelName)
-		
-		#if not os.path.isdir("results/"+type(self.m).__name__+"-"+str(int(time.time()))):
-		#	os.mkdir("results/"+type(self.m).__name__+)
+	
 
+		writeSpace = open(fileName, 'w')
 
-		#print('HERE IS THE MODEL',type(self.m).__name__)
-		# write a file with this name, this timestamp
-		# copy the model to the file as well? no, more like copy the splits...
+		print(self.m,file=writeSpace)
+		print("",file=writeSpace)
+
 		resultList = []
 		resultObject = Result(testData,predictions,modelName)
 		for resultType in outputTypes:
-			resultList.append(getattr(resultObject,resultType)())
+			newResultObject = getattr(resultObject,resultType)()
+			resultList.append(newResultObject)			
+			newResultObject.printOutput(file=writeSpace)
+			print("",file=writeSpace)
+
+		# for each of the items in the result list, write them to the shared space
 
 		if(len(resultList) == 1):
 			return resultList[0]
 		else:
 			return iter(resultList)
+
+
+
 
 class SkModel(BaseModel):
 	m = None
@@ -218,8 +244,24 @@ class XGBoostModel(BaseModel):
 		#self.m = clf.fit(testData.features,testData.labels)
 		
 		#inputData = xgb.DMatrix(testData.features)
-		clf = xgb.XGBClassifier(learning_rate=0.02, n_estimators=5, objective='binary:logistic',
-                    silent=False, nthread=1)
+
+		# these are the params... for this kind of classifier
+
+		#"seed"	"max_depth"	"eta"	"gamma"	"min_child_weight"	"subsample"	"colsample_bytree"	"nrounds"	"auc"
+		#1001	                      10	0.2	                 0.1	0	                                   0.9	                               0.5	39	0.7980698
+
+		#base_score=0.5, booster='gbtree', colsample_bylevel=1,
+		#colsample_bynode=1, colsample_bytree=1, gamma=0,
+		#learning_rate=0.02, max_delta_step=0, max_depth=4,
+		
+		'''
+		min_child_weight=1, missing=None, n_estimators=5, n_jobs=1,
+			  nthread=1, objective='binary:logistic', random_state=0,
+			  reg_alpha=0, reg_lambda=1, scale_pos_weight=1, seed=None,
+			  silent=False, subsample=1, verbosity=1
+		'''
+
+		clf = xgb.XGBClassifier(max_depth=10,gamma=0.1,min_child_weight=0,subsample=0.9,colsample_bytree=0.5)
 		self.m = clf
 		predictions = cross_val_predict(self.m,testData.features,y=testData.labels,cv=10)
 		return self.createResultObjects(testData,outputTypes,predictions)
@@ -239,9 +281,10 @@ class XGBoostModel(BaseModel):
 			train,test = testData.splitSet(split)
 			# make a loop, so we can split it 
 			print("train",train.features.shape)
+			print("test",test.features.shape)
 
 			#newModel = XGBoostModel()
-			newModel.train(train,{'max_depth':7,'eta':0.1,'gamma':1,'min_child_weight':2})
+			newModel.train(train,{'max_depth':0,'eta':0.1,'gamma':1,'min_child_weight':2})
 
 			#model.predict
 			if importance:
@@ -264,7 +307,7 @@ class XGBoostModel(BaseModel):
 		
 		param_comb = 200
 		clf = xgb.XGBClassifier(learning_rate=0.02, n_estimators=600, objective='binary:logistic',
-                    silent=True, nthread=1)
+					silent=True, nthread=1)
 
 		# random_search = GridSearchCV(clf, 
 		# 	param_distributions=params, 

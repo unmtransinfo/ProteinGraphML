@@ -33,7 +33,7 @@ currentGraph = ProteinDiseaseAssociationGraph.load(graphString)
 # SOME DISEASES CAUSE "DIVIDE BY 0 error"
 print("load this graph {0}".format(len(currentGraph.graph)))
 
-nodes = [KeggNode] #,ReactomeNode,GoNode,InterproNode]
+nodes = [ProteinInteractionNode,KeggNode,ReactomeNode,GoNode,InterproNode]
 
 trainData = metapathFeatures(disease,currentGraph,nodes,[]).fillna(0)
 
