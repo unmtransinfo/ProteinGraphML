@@ -14,8 +14,10 @@ That will build a graph on which metapath ML features are created
 You can use the ML Example notebook with just a graph, but you will need to generate it before hand
 
 ##### Table of Contents  
-[Background](#Background)  
+[Background](#Background)
+[Database Integration](#Database)  
 [Machine Learning](#MachineLearning)  
+
 
 <br><br><br>
 <a name="Background"/>
@@ -34,23 +36,35 @@ Below is a diagram of the major layout of how this works:
 ![alt text](https://github.com/unmtransinfo/ProteinGraphML/blob/master/MetapathDiagram.png)
 
 <br><br><br>
+<a name="Database"/>
+
+As mentioned above, if you would like to pull new data into the ProteinGraph system, you can add new adapters, this will prevent you from needing to edit any of the graph code or machine learning code, instead you can merely define a new Adapter class in: <br>
+`ProteinGraphML/DataAdapter/`
+<br>
+
+# Note::<br>
+<i>The graph currently makes assumptions that all nodes are unqiue. Proteins are integer IDs, these are the only Ints in the graph, the current protein logic counts on this being true, so make sure you do not violate this, otherwise calculations may be off!</i>
+
+
+
+<br><br><br>
 <a name="MachineLearning"/>
 ## Machine Learning: 
 
 After a graph has been generated, you can run machine learning on a given set of labels, or on a given disease by using scriptML.py.
 
-Input for this script will be:
-`python scriptML.py <PROCEDURE> --disease <DISEASE STRING> | --file <FILE WITH LABELS>`
+The script can be run as:<br>
+`python scriptML.py <PROCEDURE> --disease <DISEASE STRING> | --file <FILE WITH LABELS>`<br>
 
 
-This script will automatically generate a set of features... which you can expose to any "Procedure". These are machine learning functions which you can just add to 
-`ProteinGraphML/MLTools/Procedures/`
+This script will automatically generate a set of features... which you can expose to any "Procedure". These are machine learning functions which you can just add to <br>
+`ProteinGraphML/MLTools/Procedures/`<br>
 
-Then to run a given Procedure, in this case `XGBCrossValPred`, with a given disease exposed in graph we can use:
-`$ python scriptML.py XGBCrossValPred --disease MP_0000180`
+Then to run a given Procedure, in this case `XGBCrossValPred`, with a given disease exposed in graph we can use:<br>
+`$ python scriptML.py XGBCrossValPred --disease MP_0000180`<br>
 (this will create features for MP_0000180, and then push that data to the procedure `XGBCrossValPred`)
 
 We can also use a file of labels as our input:
-For example:
+For example:<br>
 `python scriptML.py XGBCrossValPred --file exampleFile`
 (the labels need to be in the form of a pickled dictionary)
