@@ -1,38 +1,84 @@
 import networkx as nx
+import time
 
-def Visualize(importance,graph,disease):
+
+from ProteinGraphML.Analysis.featureLabel import convertLabels
+from ProteinGraphML.DataAdapter import OlegDB,selectAsDF
+from ProteinGraphML.MLTools.MetapathFeatures import ProteinInteractionNode	
+
+
+
+def Visualize(importance,graph,disease,dbAdapter=None):
 	#print(importance)
 
 	#get shortest paths 
 	# make the graph, dump it to JSON, save that in an HTML template with our formatting 
-
-	#print(importance.most_common())
-
 	#firstFeature = importance.most_common()[4]
-
 	#print(firstFeature[0])
-
-	#print("hsa04144" in graph.nodes)
-	#print("hsa04144" in graph.nodes)
-	#print(firstFeature[0] in graph.nodes)
-	#print(disease in graph.nodes)
-
 	firstFeature = importance
 
 	# this parameter will change based on the features ... we will need the name saving ability here...
 	# maybe we can test the disease list feature as well 
 	
 	nodesInGraph = set()
-	for path in nx.all_simple_paths(graph, source=disease, target=firstFeature[0], cutoff=3):
+
+	cutoff = 3
+
+	#print(firstFeature)
+
+	middleNode = firstFeature[0]
+	if ProteinInteractionNode.isThisNode(firstFeature[0]):
+		#print("THIS IS INT",firstFeature[0])
+		middleNode = int(middleNode)
+		cutoff = 2
+
+
+
+	print("here is the cuttoffe",cutoff)
+	for path in nx.all_simple_paths(graph, source=disease, target=middleNode, cutoff=cutoff):
+		print(path)
 		nodesInGraph |= set(path)
 
+	#print('hehe',list(nx.all_simple_paths(graph, source=disease, target=firstFeature[0], cutoff=4)))
+
+
+	if len(list(nx.all_simple_paths(graph, source=disease, target=middleNode, cutoff=cutoff))) == 0:
+		raise Exception('WARNING- {0} cannot be visualized to {1}, no paths'.format(middleNode,disease))
+
+
+
+	print("ALL",nodesInGraph)
+
+	if dbAdapter is None:
+		dbAdapter = OlegDB()
+	
+	niceLabels = convertLabels(list(nodesInGraph),dbAdapter,selectAsDF,type='graph')
+	#print(11268 in list(nodesInGraph))
+	#print('11268' in list(nodesInGraph))
 
 	finalGraph = graph.subgraph(list(nodesInGraph))
-	#print(len(finalGraph.nodes))
-	#print(nx.cytoscape_data(finalGraph))
+	#print(type(nx.cytoscape_data(finalGraph)),nx.cytoscape_data(finalGraph)
+	#print(niceLabels[11268])
+	cytoscapeDump = nx.cytoscape_data(finalGraph)
+	#print("this is data",cytoscapeDump['data'])
+	#print("this is E",cytoscapeDump['elements'])
+	#print(len(cytoscapeDump['elements']['nodes']))
+	#print(len(cytoscapeDump['elements']['edges']))
 
-	dataOut = str(nx.cytoscape_data(finalGraph)).replace("True","true").replace("False","false")[:-1]
+	#cytoscapeDump['elements']['edges'] = cytoscapeDump['elements']['edges'][:10]
+	for k,n in enumerate(cytoscapeDump['elements']['nodes']):
+		cytoscapeDump['elements']['nodes'][k]['data']['name'] = niceLabels[n['data']['value']]
 
+		if ProteinInteractionNode.isThisNode(n['data']['value']): #isinstance(n['data']['value'],int):
+			cytoscapeDump['elements']['nodes'][k]['data']['value'] = str(n['data']['value'])
+		
+	dataOut = str(cytoscapeDump).replace("True","true").replace("False","false")[:-1]
+
+	
+
+	#for key in niceLabels.keys():
+		#print(key,niceLabels[key])
+		#dataOut = dataOut.replace(str(key),str(niceLabels[key]))
 
 
 	header = """
@@ -58,9 +104,27 @@ def Visualize(importance,graph,disease):
 	<script type="text/javascript">
 	data = 
 	"""
+	#,
+	#  'style': [{
+    #  selector: "node",
+    #  css: {
+    #    label: "data(name)"
+    #   }
+	#}]
+	#};
 
 	footer = """
-	,'container':document.getElementById('cy')}
+	,'container':document.getElementById('cy')
+	,
+	'style': [{
+      selector: "node",
+      css: {
+        label: "data(name)"
+       }
+		}]
+
+
+	};
 
 	var cy = cytoscape(data);
 
@@ -70,6 +134,7 @@ let options = {
   fit: false, // whether to fit the viewport to the graph
   directed: false, // whether the tree is directed downwards (or edges can point in any direction if false)
   padding: 30, // padding on fit
+  nodeSep: 40,
   circle: false, // put depths in concentric circles if true, put depths top down if false
   grid: false, // whether to create an even grid into which the DAG is placed (circle:false only)
   spacingFactor: 1.75, // positive spacing factor, larger => more space between nodes (N.B. n/a if causes overlap)
@@ -131,7 +196,7 @@ function edgeHasNode(inputEdge,nodeCheck) {
 for(var node of Object.values(cy.nodes())) {
 	//console.log(node)
 	if(node.id) { 
-		cy.getElementById(id).style('label',id)
+		//cy.getElementById(id).style('label',id)
 		var id = node.id()
 		//console.log(id);
 		if(isMPNode(id)) {
@@ -203,14 +268,15 @@ for(var edge of Object.values(cy.edges())) {
 	}
 }
 
+cy.layout(options).run();
 
 //for(var edge in nod)
-
 
 </script>
 	"""
 
-	text_file = open("results/graphs/"+str(firstFeature[0])+"testIT.html", "w")
+	fileString = "results/graphs/{0}{1}{2}.html".format(str(firstFeature[0]),str(int(time.time())),disease)
+	text_file = open(fileString, "w")
 	text_file.write(header+dataOut+footer)
 	text_file.close()
 

@@ -77,7 +77,7 @@ def metapathFeatures(disease,proteinGraph,featureList,staticFeatures=None,test=F
 		nonTrueAssociations = set(proteinNodes) - trueP
 		print(len(G.nodes),len(nodes),len(trueP),len(nonTrueAssociations))
 		METAPATH = pair[0].computeMetapaths(G,nodes,trueP,nonTrueAssociations)
-		#METAPATH = (METAPATH - METAPATH.mean())/METAPATH.std()
+		METAPATH = (METAPATH - METAPATH.mean())/METAPATH.std()
 		print("SHAPE OF METAPATH FRAME {0}".format(METAPATH.shape))
 		
 		metapaths.append(METAPATH)
@@ -110,6 +110,8 @@ def metapathFeatures(disease,proteinGraph,featureList,staticFeatures=None,test=F
 def joinStaticFeatures(dataFrame,featureList):
 	
 	for feature in featureList:
+		# if the file doesn't exist, call it's function.... from an adapter?
+
 		unpickled_df = pd.read_pickle("./"+feature+".csv.pkl")
 		# these are needed edits right now for the joins we do, drop the unnamed column and set the index to the protein id
 		unpickled_df = unpickled_df.drop(["Unnamed: 0"],axis=1)

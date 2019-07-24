@@ -71,7 +71,7 @@ def singleHop(graph,nodes,trueP,falseP):
 	dataset['middle'] = dataset.groupby(['protein_id'])['protein_id'].transform('count').astype(float)
 	dataset['edge'] = dataset.groupby(['protein_m_id'])['protein_m_id'].transform('count').astype(float)
 	
-	print(dataset.dtypes,type(UNIQUE_DISEASE))
+	#print(dataset.dtypes,type(UNIQUE_DISEASE))
 	# .astype(float) prevents "ZeroDivisionError: 0.0 cannot be raised to a negative power
 	UNIQUE_DISEASE = float(UNIQUE_DISEASE)
 	dataset['pdp'] = dataset['middle']**(-0.5) * dataset['edge']**(-0.5) * UNIQUE_DISEASE**(-0.5) * dataset['scores']

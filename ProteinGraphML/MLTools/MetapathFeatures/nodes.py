@@ -36,7 +36,9 @@ class ProteinInteractionNode:
 	computeMetapaths = sPPICompute
 	
 	def isThisNode(nodeValue):
-		return (isinstance(nodeValue,int) or isinstance(nodeValue,np.integer))
+		#if nodeValue.isdigit():
+		#	nodeValue = int(nodeValue)
+		return (isinstance(nodeValue,int) or isinstance(nodeValue,np.integer) or nodeValue.isdigit())
 
 
 #class StaticFeature():

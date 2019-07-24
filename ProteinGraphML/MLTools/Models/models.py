@@ -1,4 +1,5 @@
 import time
+import pickle
 
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV, cross_val_predict,StratifiedShuffleSplit
 from sklearn.linear_model import LogisticRegression
@@ -163,35 +164,42 @@ class BaseModel:
 	def setClassifier(self,classifier):
 		self.m = classifier
 	
-	def createResultObjects(self,testData,outputTypes,predictions):
+	def createResultObjects(self,testData,outputTypes,predictions,saveData=True):
 
 		# can we 
 
 		if not os.path.isdir("results"):
 			os.mkdir("results")
 
-		modelName = "results/"+type(self.m).__name__+"-"+str(int(time.time()))
-		print("WE NEED A SPACE FOR THIS MODEL!! {0}".format(modelName))
 		
-		fileName = '{0}.txt'.format(modelName)
-		
-		open(fileName, 'a').close()
-		if not os.path.isdir(modelName):
-			os.mkdir(modelName)
-	
+		if saveData:  # we can turn off saving of data... 
+			
 
-		writeSpace = open(fileName, 'w')
+			modelName = "results/"+type(self.m).__name__+"-"+str(int(time.time()))		
+	 
 
-		print(self.m,file=writeSpace)
-		print("",file=writeSpace)
+			fileName = '{0}.txt'.format(modelName)
+			open(fileName, 'a').close()
+			if not os.path.isdir(modelName):
+				os.mkdir(modelName)
+			
+			writeSpace = open(fileName, 'w')
 
-		resultList = []
-		resultObject = Result(testData,predictions,modelName)
-		for resultType in outputTypes:
-			newResultObject = getattr(resultObject,resultType)()
-			resultList.append(newResultObject)			
-			newResultObject.printOutput(file=writeSpace)
+			print(self.m,file=writeSpace)
 			print("",file=writeSpace)
+
+			resultList = []
+			resultObject = Result(testData,predictions,modelName)
+			for resultType in outputTypes:
+				print(resultType,file=writeSpace)
+				newResultObject = getattr(resultObject,resultType)()
+				resultList.append(newResultObject)
+				newResultObject.printOutput(file=writeSpace)
+				print("",file=writeSpace)
+		else:
+			for resultType in outputTypes:
+				newResultObject = getattr(resultObject,resultType)()
+				resultList.append(newResultObject)
 
 		# for each of the items in the result list, write them to the shared space
 
@@ -242,62 +250,72 @@ class XGBoostModel(BaseModel):
 	def cross_val_predict(self,testData,outputTypes):
 		#clf = LogisticRegression(random_state=0, solver='lbfgs',multi_class='multinomial')#.fit(X, y)
 		#self.m = clf.fit(testData.features,testData.labels)
-		
 		#inputData = xgb.DMatrix(testData.features)
-
 		# these are the params... for this kind of classifier
-
 		#"seed"	"max_depth"	"eta"	"gamma"	"min_child_weight"	"subsample"	"colsample_bytree"	"nrounds"	"auc"
 		#1001	                      10	0.2	                 0.1	0	                                   0.9	                               0.5	39	0.7980698
-
 		#base_score=0.5, booster='gbtree', colsample_bylevel=1,
 		#colsample_bynode=1, colsample_bytree=1, gamma=0,
 		#learning_rate=0.02, max_delta_step=0, max_depth=4,
-		
 		'''
 		min_child_weight=1, missing=None, n_estimators=5, n_jobs=1,
 			  nthread=1, objective='binary:logistic', random_state=0,
 			  reg_alpha=0, reg_lambda=1, scale_pos_weight=1, seed=None,
 			  silent=False, subsample=1, verbosity=1
 		'''
-
-		clf = xgb.XGBClassifier(max_depth=10,gamma=0.1,min_child_weight=0,subsample=0.9,colsample_bytree=0.5)
+		#scale_pos_weight
+		#scale_pos_weight=testData.posWeight,
+		clf = xgb.XGBClassifier(scale_pos_weight=testData.posWeight,max_depth=10,gamma=0.1,min_child_weight=0,subsample=0.9,colsample_bytree=0.5)
 		self.m = clf
 		predictions = cross_val_predict(self.m,testData.features,y=testData.labels,cv=10)
 		return self.createResultObjects(testData,outputTypes,predictions)
 
-	def average_cross_val(self,testData,outputTypes,folds=1,split=0.8):
+	def average_cross_val(self,testData,outputTypes,folds=1,split=0.8,params={}):
 		# this function will take the average of metrics per fold... which is a random fold
 		CROSSVAL = 10
-
 		collection = []
 		importance = None
 
-
+		metrics = {"roc":0.}
 		for k in range(0,folds):
-
+			print("DOING 1 FOLD")
 			newModel = XGBoostModel()
-
 			train,test = testData.splitSet(split)
 			# make a loop, so we can split it 
-			print("train",train.features.shape)
-			print("test",test.features.shape)
+			#print("train",train.features.shape,train.posWeight)
+			#print("test",test.features.shape,test.posWeight)
+			#newModel = XGBoostModel() 
+			#{'max_depth':0,'eta':0.1,'gamma':1,'min_child_weight':2} NO PARAMS
 
-			#newModel = XGBoostModel()
-			newModel.train(train,{'max_depth':0,'eta':0.1,'gamma':1,'min_child_weight':2})
+			#'max_depth':0
+			newModel.train(train,{})
 
-			#model.predict
+			roc = newModel.predict(test,["roc"])
+			print("roc")
+			roc.printOutput()
+			metrics["roc"] += roc.data
+
+			#model.predict ...
 			if importance:
 				importance = importance + Counter(newModel.m.get_score(importance_type='gain'))
+				print(Counter(newModel.m.get_score(importance_type='gain')))
 			else:
-				importance = Counter(newModel.m.get_score(importance_type='gain'))
-				print(importance)
-
+				importance = Counter(newModel.m.get_score(importance_type='gain'))				
 		
 		for key in importance:
 			importance[key] = importance[key]/folds
 
+		for key in metrics:
+			metrics[key] = metrics[key]/folds			
+
+		print("METRTCS",metrics) # write this metric to a file...
+		#print(importance)
+
+		with open('results/firsty.pkl', 'wb') as f:
+			pickle.dump(importance, f, pickle.HIGHEST_PROTOCOL)
+
 		return importance
+
 
 
 	# FEATURE SEARCH, will create the dataset with different sets of features, and search over them to get resutls

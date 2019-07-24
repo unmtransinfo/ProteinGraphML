@@ -7,6 +7,8 @@ class Data:
 	def loadFromNumpy(self,features,labels):
 		self.features = features
 		self.labels = labels
+		self.posWeight = len([l for l in self.labels if l == 0.])/len([l for l in self.labels if l == 1.])
+		print("SCALE POS",self.posWeight)
 
 	def splitSet(self,splitSize):
 		#,random_state=565
@@ -31,6 +33,7 @@ class BinaryLabel(Data):
 	features = []
 	labels = []
 	labelColumn = None
+	posWeight = None
 	# can we clean this up
 	def loadNoLabel(self,dataIN):
 		self.data = dataIN
@@ -42,4 +45,6 @@ class BinaryLabel(Data):
 		self.labelColumn = labelColumn
 		self.labels = self.data[self.labelColumn]
 		self.features = self.data.drop([self.labelColumn],axis=1)
-
+		self.posWeight = len([l for l in self.labels if l == 0.])/len([l for l in self.labels if l == 1.])
+		
+		print("SCALE POS",self.posWeight)
