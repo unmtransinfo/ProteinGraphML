@@ -35,32 +35,22 @@ Below is a diagram of the major layout of how this works:
 
 <br><br><br>
 <a name="MachineLearning"/>
-## Machine Learning instructions: 
+## Machine Learning: 
 
 After a graph has been generated, you can run machine learning on a given set of labels, or on a given disease by using scriptML.py.
 
 Input for this script will be:
-python scriptML.py <PROCEDURE> --disease <DISEASE STRING> | --file <FILE WITH LABELS>
+`python scriptML.py <PROCEDURE> --disease <DISEASE STRING> | --file <FILE WITH LABELS>`
 
 
 This script will automatically generate a set of features... which you can expose to any "Procedure". These are machine learning functions which you can just add to 
-MLTools/Procedures/
+`ProteinGraphML/MLTools/Procedures/`
 
-Then to run a given Procedure with a given disease exposed in the graph we can use:
-python scriptML.py XGBCrossValPred --disease MP_0000180
-(this will create features for MP_0000180, and then push that data to the procedure 'XGBCrossValPred')
+Then to run a given Procedure, in this case `XGBCrossValPred`, with a given disease exposed in graph we can use:
+`$ python scriptML.py XGBCrossValPred --disease MP_0000180`
+(this will create features for MP_0000180, and then push that data to the procedure `XGBCrossValPred`)
 
 We can also use a file of labels as our input:
 For example:
-python scriptML.py XGBCrossValPred --file ATG_KEGG
+`python scriptML.py XGBCrossValPred --file exampleFile`
 (the labels need to be in the form of a pickled dictionary)
-
-
-
-
-
-
-
-
-
-
