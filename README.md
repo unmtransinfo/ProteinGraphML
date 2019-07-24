@@ -17,9 +17,9 @@ You can use the ML Example notebook with just a graph, but you will need to gene
 [Background](#Background)  
 [Machine Learning](#MachineLearning)  
 
-
+<br><br><br>
 <a name="Background"/>
-##Background: 
+## Background: 
 
 The goal of this software is to enable the user to perform machine learning on disease associations. 
  This repo approaches this as an ML / engineering problem first. Thus, the code is designed to operate on structure, not on data sources specifically. Hopefully this approach is helpful for future work. 
@@ -33,9 +33,9 @@ This is done using networkx, and objects called “adapters”. We can create ad
 Below is a diagram of the major layout of how this works:
 ![alt text](https://github.com/unmtransinfo/ProteinGraphML/blob/master/MetapathDiagram.png)
 
-
+<br><br><br>
 <a name="MachineLearning"/>
-##Machine Learning instructions: 
+## Machine Learning instructions: 
 
 After a graph has been generated, you can run machine learning on a given set of labels, or on a given disease by using scriptML.py.
 
