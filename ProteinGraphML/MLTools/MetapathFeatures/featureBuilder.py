@@ -45,7 +45,7 @@ def metapathFeatures(disease,proteinGraph,featureList,staticFeatures=None,test=F
 	# for each of the features, compute their metapaths, given an object, and graph+list... then they get joined 
 	#print(len(proteinGraph.graph.nodes))
 
-	paths = getMetapaths(proteinGraph,disease)
+	
 
 	G = proteinGraph.graph # this is our networkx api 
 	
@@ -53,19 +53,21 @@ def metapathFeatures(disease,proteinGraph,featureList,staticFeatures=None,test=F
 		trueP = loadedLists[True] 
 		falseP = loadedLists[False]
 	else:
+		paths = getMetapaths(proteinGraph,disease)
 		trueP = paths[True]
 		falseP = paths[False] 
 
 	print("PREPARING {0} TRUE  ASSOCIATIONS".format(len(trueP)))
 	print("PREPARING {0} FALSE ASSOCIATIONS".format(len(falseP)))
-	print("NODES IN GRAPH - {0}".format(len(G.nodes)))
+	print("")
+	print("(NODES IN GRAPH - {0})".format(len(G.nodes)))
 
 	proteinNodes = [pro for pro in list(G.nodes) if ProteinInteractionNode.isThisNode(pro)] #if isinstance(pro,int)] # or isinstance(pro,np.integer)]
 	
 	if len(proteinNodes) == 0:
 		raise Exception('No protein nodes detected in graph')
 
-	print("DETECTED PROTEINS {0}".format(len(proteinNodes)))
+	print("(DETECTED PROTEINS - {0})".format(len(proteinNodes)))
 
 	nodeListPairs = []
 	for n in featureList:
@@ -75,10 +77,10 @@ def metapathFeatures(disease,proteinGraph,featureList,staticFeatures=None,test=F
 	for pair in nodeListPairs:
 		nodes = pair[1]
 		nonTrueAssociations = set(proteinNodes) - trueP
-		print(len(G.nodes),len(nodes),len(trueP),len(nonTrueAssociations))
+		#print(len(G.nodes),len(nodes),len(trueP),len(nonTrueAssociations))
 		METAPATH = pair[0].computeMetapaths(G,nodes,trueP,nonTrueAssociations)
 		METAPATH = (METAPATH - METAPATH.mean())/METAPATH.std()
-		print("SHAPE OF METAPATH FRAME {0}".format(METAPATH.shape))
+		print("SHAPE OF METAPATH FRAME {0} for {1}".format(METAPATH.shape,pair[0]))
 		
 		metapaths.append(METAPATH)
 		
@@ -94,11 +96,12 @@ def metapathFeatures(disease,proteinGraph,featureList,staticFeatures=None,test=F
 
 
 	for metapathframe in metapaths:
-		print(metapathframe.shape)
-		print(sum(metapathframe.sum(axis=1)))
+		# YOU CAN USE THESE TO GET A SUM IF NEED BE
+		#print(metapathframe.shape)
+		#print(sum(metapathframe.sum(axis=1)))
+		
 		df = df.join(metapathframe,on="protein_id")
-
-	#print(len(df))
+	
 
 	if staticFeatures is not None:
 		df = joinStaticFeatures(df,staticFeatures)
