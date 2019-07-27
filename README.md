@@ -92,11 +92,10 @@ To run a completed pipeline, you can use `Build_Graph_Example.py` which will gen
 To generate static features (features which don't use metapaths), there is an attached R script which you can use `ProteinGraphML/MLTools/StaticFeatures/staticFiles.R` which will generte four CSV files. One for ccle,gtex,lincs, and hpa, based on Oleg's transformations and his database. 
 Once you run this script, all you need to do is pickle the four csv files, and then you can use them w/ as features. For example in scriptML.py (line ~75): <br>
 
-`
-nodes = [ProteinInteractionNode,KeggNode,ReactomeNode,GoNode,InterproNode]`<br>
-staticFeatures = [] becomes -> ["gtex","lincs","ccle","hpa"]`<br>
-trainData = metapathFeatures(disease,currentGraph,nodes,staticFeatures).fillna(0)`<br>
-`
+`nodes = [ProteinInteractionNode,KeggNode,ReactomeNode,GoNode,InterproNode]`<br>
+`staticFeatures = [] becomes -> ["gtex","lincs","ccle","hpa"]`<br>
+`trainData = metapathFeatures(disease,currentGraph,nodes,staticFeatures).fillna(0)`<br>
+
 
 This will auto load all of the static features and bind them to your data.
 
