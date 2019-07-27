@@ -9,11 +9,12 @@ def gtex(DBadapter):
 	return basicPivot(DBadapter.loadGTEX(),"protein_id","tissue_type_detail","median_tpm")
 
 
-def ccle(DBadapter):
-	return basicPivot(DBadapter.loadGTEX(),"protein_id","tissue_type_detail","median_tpm")
+
+#def ccle(DBadapter):
+	#return basicPivot(DBadapter.loadGTEX(),"protein_id","tissue_type_detail","median_tpm")
 
 
-# THESE FEATURES ARE COMING ONLINE
+# THESE FEATURES ARE COMING ONLINE - TO be completed, can be used in R for now
 
 #def ccle(DBadapter):
 
