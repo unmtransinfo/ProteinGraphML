@@ -47,4 +47,4 @@ class BinaryLabel(Data):
 		self.features = self.data.drop([self.labelColumn],axis=1)
 		self.posWeight = len([l for l in self.labels if l == 0.])/len([l for l in self.labels if l == 1.])
 		
-		print("SCALE POS",self.posWeight)
+		#print("SCALE POS",self.posWeight)

@@ -9,6 +9,10 @@ def gtex(DBadapter):
 	return basicPivot(DBadapter.loadGTEX(),"protein_id","tissue_type_detail","median_tpm")
 
 
+def ccle(DBadapter):
+	return basicPivot(DBadapter.loadGTEX(),"protein_id","tissue_type_detail","median_tpm")
+
+
 # THESE FEATURES ARE COMING ONLINE
 
 #def ccle(DBadapter):
@@ -20,3 +24,5 @@ def gtex(DBadapter):
 
 def basicPivot(data,key,column,value):
 	return data.pivot_table(index=[key],columns=[column], values=value,aggfunc=np.median).fillna(0)
+
+	

@@ -12,14 +12,17 @@ def TEST(dataObject):
 	print('tehe')
 
 def XGBCrossValPred(dataObject):
-	newModel = XGBoostModel()
-	roc,acc,CM,report = newModel.cross_val_predict(dataObject,["roc","acc","ConfusionMatrix","report"])
+	newModel = XGBoostModel("XGBCrossValPred")
+	#roc,acc,CM,report = newModel.cross_val_predict(dataObject,["roc","acc","ConfusionMatrix","report"])
+	roc,acc,CM,report = newModel.cross_val_predict(dataObject,["roc","acc","ConfusionMatrix","report"]) #,"acc","ConfusionMatrix","report"
 	print("AUCROC--- {0}".format(roc.data))
 
 def XGBCrossVal(dataObject):
 
-	newModel = XGBoostModel()	
-	newModel.average_cross_val(dataObject,["roc","acc","ConfusionMatrix","report"],folds=10,params={'max_depth':10,'gamma':0.2})
+	newModel = XGBoostModel("XGBCrossVal")
+	# CUSTOM PARAMS 
+	params={'max_depth':10,'gamma':0.2}
+	newModel.average_cross_val(dataObject,["roc","acc","ConfusionMatrix","report"],folds=2,params=params)
 	##"seed"	"max_depth"	"eta"	"gamma"	"min_child_weight"	"subsample"	"colsample_bytree"	"nrounds"	"auc"
 		#1001	                      10	0.2	                 0.1	0	                                   0.9	  
 	

@@ -16,10 +16,12 @@ from sklearn.metrics import roc_auc_score,roc_curve #.roc_auc_score(y_true, y_sc
 import matplotlib.pyplot as plt
 # iterating on our platform across domains 
 
+import time
 import os
 from collections import Counter
 
 # update all of this.... later 
+OUT_DIR = "results/"
 
 class Result:
 	
@@ -27,11 +29,13 @@ class Result:
 	predictions = None
 	space = None
 
-	def __init__(self,dataOut,predictions,modelName,space=""):
+	def __init__(self,dataOut,predictions,modelName,space="",modelDIR=None):
 		self.data = dataOut
 		self.predictions = predictions
 		self.modelName = modelName
 		self.space = space
+		#print("HERE IS THE MODEL")
+		self.resultDIR = modelDIR
 		# we put the functions here which actually convert the data to a binary score 
 	def acc(self):
 		return Output("ACC",accuracy_score(self.data.labels,self.predictions))
@@ -50,7 +54,8 @@ class Result:
 
 		fpr, tpr, threshold = roc_curve(self.data.labels,self.predictions)
 		rocCurve = RocCurve("rocCurve",fpr, tpr)
-		rocCurve.fileOutput(self.modelName)
+		print("HERE IS THE RESULT DIR",self.resultDIR)
+		rocCurve.fileOutput(self.resultDIR)
 		return rocCurve
 	
 	def report(self):
@@ -117,6 +122,7 @@ class ConfusionMatrix(LabelOutput):
 
 class Report(LabelOutput):
 	def setData(self):
+		print(self.predictions)
 		return classification_report(self.labels,self.predictions)
 
 class RocCurve(Output):
@@ -128,10 +134,14 @@ class RocCurve(Output):
 		self.fpr = fpr
 		self.tpr = tpr
 
-	def fileOutput(self,modelName):
-		rootName = self.stringType		
-		base = modelName+"/"+rootName
+	def fileOutput(self,file=None,fileString=None):
+		rootName = self.stringType
+		#base = modelName+"/"+rootName
+		print("ROOT",rootName)
+		# root is the type...
 
+		#print('HERE IS THE BASE',base)
+		
 		roc_auc = auc(self.fpr, self.tpr)
 		plt.title('Receiver Operating Characteristic')
 		plt.plot(self.fpr, self.tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
@@ -142,9 +152,15 @@ class RocCurve(Output):
 		plt.ylabel('True Positive Rate')
 		plt.xlabel('False Positive Rate')
 
-		plt.savefig(base+'.png')
+		#plt.savefig(base+'.png')
+		if fileString is not None:
+			#plt.savefig('books_read.png')
+			#print("THIS IS THE FILE STRING===",fileString)
+			plt.savefig('results/{0}/auc.png'.format(fileString))
 
-	def printOutput(self):
+	def printOutput(self,file=None):
+		if file is not None: # if we've got a file, we wont print it
+			return 
 
 		#fpr, tpr, threshold = metrics.roc_curve(y_test, preds)
 		roc_auc = auc(self.fpr, self.tpr)
@@ -161,44 +177,67 @@ class RocCurve(Output):
 		plt.show()
 
 class BaseModel:
+	MODEL_DIR = ""
+	def __init__(self,MODEL_DIR,runName = None):
+		self.MODEL_DIR = MODEL_DIR
+		if runName is None:
+			self.MODEL_RUN_NAME = "{0}-{1}".format(self.MODEL_DIR,str(int(time.time())))
+			self.DATA_DIR = "results/{0}".format(self.MODEL_RUN_NAME)
+		else:
+			self.MODEL_RUN_NAME = runName
+			self.DATA_DIR = "results/{0}".format(runName)
+	
+	def getFile(self):		
+
+		self.createDirectoryIfNeed(self.DATA_DIR)
+		WRITEFILE = '{0}/metrics.txt'.format(self.DATA_DIR)
+		#open(WRITEDIR, 'a').close()
+
+		fileName = WRITEFILE
+		writeSpace = open(fileName, 'w')
+		return writeSpace
+
+	def createDirectoryIfNeed(self,dir):
+		print("AYYEE",dir)
+
+		if not os.path.isdir(dir):
+			os.mkdir(dir)
+
 	def setClassifier(self,classifier):
 		self.m = classifier
 	
 	def createResultObjects(self,testData,outputTypes,predictions,saveData=True):
 
-		# can we 
+		self.createDirectoryIfNeed("results")
 
-		if not os.path.isdir("results"):
-			os.mkdir("results")
-
-		
 		if saveData:  # we can turn off saving of data... 
-			
-
-			modelName = "results/"+type(self.m).__name__+"-"+str(int(time.time()))		
-	 
-
-			fileName = '{0}.txt'.format(modelName)
-			open(fileName, 'a').close()
-			if not os.path.isdir(modelName):
-				os.mkdir(modelName)
-			
-			writeSpace = open(fileName, 'w')
+						
+			writeSpace = self.getFile()
 
 			print(self.m,file=writeSpace)
-			print("",file=writeSpace)
+			print("",file=writeSpace) 
 
 			resultList = []
-			resultObject = Result(testData,predictions,modelName)
+			resultObject = Result(testData,predictions,self.MODEL_RUN_NAME,modelDIR=self.MODEL_RUN_NAME)
 			for resultType in outputTypes:
+
 				print(resultType,file=writeSpace)
-				newResultObject = getattr(resultObject,resultType)()
+				print("HERES MODEL NAME",self.MODEL_RUN_NAME)
+				newResultObject = getattr(resultObject,resultType)() #self.MODEL_RUN_NAME
+				print(type(newResultObject))
 				resultList.append(newResultObject)
-				newResultObject.printOutput(file=writeSpace)
+				#print(resultObject)	
+				#print("MODEL DIR",self.MODEL_DIR) #self.MODEL_RUN_NAME
+				if resultType == "rocCurve" and self.MODEL_DIR == "XGBCrossVal": # if it's XGB cross val we will write output (hack)
+					newResultObject.fileOutput(fileString=self.MODEL_RUN_NAME)
+				else:
+					newResultObject.printOutput(file=writeSpace)
+				#resultObject.printOutput(file=writeSpace)
 				print("",file=writeSpace)
+
 		else:
 			for resultType in outputTypes:
-				newResultObject = getattr(resultObject,resultType)()
+				newResultObject = getattr(resultObject,resultType)(self.MODEL_RUN_NAME)
 				resultList.append(newResultObject)
 
 		# for each of the items in the result list, write them to the shared space
@@ -244,10 +283,18 @@ class XGBoostModel(BaseModel):
 	
 	def predict(self,testData,outputTypes):
 		inputData = xgb.DMatrix(testData.features)
-		predictions = self.m.predict(inputData)
+		predictions = self.m.predict(inputData) #
+
+		#ypred_bst = np.array(bst.predict(dtest,ntree_limit=bst.best_iteration))`
+		#ypred_bst  = ypred_bst > 0.5  
+		#ypred_bst = ypred_bst.astype(int)  
+		#if "report" in outputTypes: # small hack for the report feature, we can use this to make sure 
+
+
 		return self.createResultObjects(testData,outputTypes,predictions)		
 
 	def cross_val_predict(self,testData,outputTypes):
+		# other model options 
 		#clf = LogisticRegression(random_state=0, solver='lbfgs',multi_class='multinomial')#.fit(X, y)
 		#self.m = clf.fit(testData.features,testData.labels)
 		#inputData = xgb.DMatrix(testData.features)
@@ -275,25 +322,40 @@ class XGBoostModel(BaseModel):
 		CROSSVAL = 10
 		collection = []
 		importance = None
+		#WRITEDIR = OUT_DIR+"stuff" # create a new file
+		#self.DIR = 
+		#self.MODEL_DIR+"-"+
+		dummyModel = XGBoostModel(self.MODEL_DIR)
+		#DIR = "results/{0}-{1}".format(self.MODEL_DIR,str(int(time.time())))
+		
+		print("THING",dummyModel.MODEL_RUN_NAME)
+		
+		DIR = dummyModel.MODEL_RUN_NAME # This will get us a model with a specific timestamp
+		
+		print("")
+		print("THIS IS THE DIR {0}".format(DIR))
+		print("")
 
-		metrics = {"roc":0.}
+		metrics = {"average-roc":0.}
+		print("=== RUNNING {0} FOLDS".format(folds))
 		for k in range(0,folds):
 			print("DOING 1 FOLD")
-			newModel = XGBoostModel()
+			newModel = XGBoostModel(self.MODEL_DIR)
 			train,test = testData.splitSet(split)
 			# make a loop, so we can split it 
-			#print("train",train.features.shape,train.posWeight)
-			#print("test",test.features.shape,test.posWeight)
+			
 			#newModel = XGBoostModel() 
+
+			# YOU can add in parameters to here
 			#{'max_depth':0,'eta':0.1,'gamma':1,'min_child_weight':2} NO PARAMS
-
-			#'max_depth':0
+			
 			newModel.train(train,{})
+			roc,rc = newModel.predict(test,["roc","rocCurve"])
 
-			roc = newModel.predict(test,["roc"])
-			print("roc")
+			
 			roc.printOutput()
-			metrics["roc"] += roc.data
+			
+			metrics["average-roc"] += roc.data
 
 			#model.predict ...
 			if importance:
@@ -309,11 +371,18 @@ class XGBoostModel(BaseModel):
 			metrics[key] = metrics[key]/folds			
 
 		print("METRTCS",metrics) # write this metric to a file...
-		#print(importance)
-
-		with open('results/firsty.pkl', 'wb') as f:
+		
+		
+		FINALDIR = 'results/{0}/featImportance.pkl'.format(DIR)
+		print("WRITE THIS FEAT {0}".format(DIR))
+		
+		
+		with open(FINALDIR, 'wb') as f:
 			pickle.dump(importance, f, pickle.HIGHEST_PROTOCOL)
+		
 
+
+		
 		return importance
 
 

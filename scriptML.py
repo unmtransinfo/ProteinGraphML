@@ -72,7 +72,7 @@ currentGraph = ProteinDiseaseAssociationGraph.load(graphString)
 # SOME DISEASES CAUSE "DIVIDE BY 0 error"
 print("GRAPH {0} LOADED".format(graphString))
 
-nodes = [ProteinInteractionNode,KeggNode] #,#ReactomeNode,GoNode,InterproNode]
+nodes = [KeggNode] #[ProteinInteractionNode,KeggNode,ReactomeNode,GoNode,InterproNode]
 staticFeatures = []
 
 print("--- USING {0} METAPATH FEATURE SETS".format(len(nodes)))
