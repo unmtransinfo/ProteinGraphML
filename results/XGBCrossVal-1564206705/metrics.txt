@@ -1,0 +1,7 @@
+<xgboost.core.Booster object at 0x190ce1ef0>
+
+roc
+0.5858134920634921
+
+rocCurve
+
