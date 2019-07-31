@@ -1,10 +1,23 @@
 # ProteinGraphML
 
+Protein Graph in Python for MetaPath-ML and for any other graph machine learning
+needs. Comes with machine learning models in Python.
+
+## Table of Contents  
+
+* [Dependencies](#Dependencies)
+* [Background](#Background)
+* [Database Integration](#Database)  
+* [Machine Learning](#MachineLearning)  
+* [Visualization](#vis)  
+* [Pipeline to run script](#pipeline)  
+
+
+<a name="Dependencies"/>
 ## Dependencies
 
 * `xgboost`, `scikit-learn`, `networkx`, `pandas`, `pony`, `matplotlib`
 *  PostgreSQL database `metap` accessible.
-
 
 
 NOTE:: to begin add your DB creds to the DBcreds.yaml file, without a database you cannot run the 'Build_Graph' notebook
@@ -12,13 +25,6 @@ NOTE:: to begin add your DB creds to the DBcreds.yaml file, without a database y
 That will build a graph on which metapath ML features are created 
 
 You can use the ML Example notebook with just a graph, but you will need to generate it before hand
-
-##### Table of Contents  
-[Background](#Background)
-[Database Integration](#Database)  
-[Machine Learning](#MachineLearning)  
-[Visualization](#vis)  
-[Pipeline to run script](#pipeline)  
 
 
 <br><br><br>
