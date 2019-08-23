@@ -16,10 +16,11 @@ needs. Comes with machine learning models in Python.
 ## <a name="Dependencies"/>Dependencies
 
 * `xgboost`, `scikit-learn`, `networkx`, `pandas`, `pony`, `matplotlib`
-*  PostgreSQL database `metap` accessible.
+*  PostgreSQL db `metap` accessible.
+*  Db `metap` and method based on [metap](https://github.com/unmtransinfo/metap) mostly-R code originally developed by Oleg Ursu.
 
 
-NOTE:: to begin add your DB creds to the DBcreds.yaml file, without a database you cannot run the 'Build_Graph' notebook
+NOTE:: to begin add your DB creds to the DBcreds.yaml file, without a database you cannot run the `Build_Graph` notebook
 
 That will build a graph on which metapath ML features are created
 
