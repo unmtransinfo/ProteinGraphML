@@ -46,5 +46,6 @@ class BinaryLabel(Data):
 		self.labels = self.data[self.labelColumn]
 		self.features = self.data.drop([self.labelColumn],axis=1)
 		self.posWeight = len([l for l in self.labels if l == 0.])/len([l for l in self.labels if l == 1.])
-		
+		print ('Number of positive and negative class:', len([l for l in self.labels if l == 1.]), len([l for l in self.labels if l == 0.]))
+		print ('Shape of the data', self.data.shape[0], self.data.shape[1])
 		#print("SCALE POS",self.posWeight)

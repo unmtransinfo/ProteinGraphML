@@ -61,6 +61,7 @@ def metapathFeatures(disease,proteinGraph,featureList,staticFeatures=None,test=F
 	print("PREPARING {0} FALSE ASSOCIATIONS".format(len(falseP)))
 	print("")
 	print("(NODES IN GRAPH - {0})".format(len(G.nodes)))
+	print("(EDGES IN GRAPH - {0})".format(len(G.edges)))
 
 	proteinNodes = [pro for pro in list(G.nodes) if ProteinInteractionNode.isThisNode(pro)] #if isinstance(pro,int)] # or isinstance(pro,np.integer)]
 	

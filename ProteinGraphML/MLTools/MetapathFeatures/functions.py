@@ -15,6 +15,8 @@ def listCompute(graph,falseP,trueP,middleNode,edgeNode):
 
 	right = result[result.protein_id.isin(trueP)]
 	left = result[result.protein_id.isin(falseP)|result.protein_id.isin(trueP)]
+	#print ('right:', right)
+	#print ('left:', left)
 	merged = pd.merge(left,right,on='pathway_id')
 	deduplicates = merged[merged.protein_id_x != merged.protein_id_y].copy()
 	UNIQUE_DISEASE = len(set(deduplicates.protein_id_y))

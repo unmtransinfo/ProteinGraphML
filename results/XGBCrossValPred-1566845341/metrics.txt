@@ -1,0 +1,32 @@
+XGBClassifier(base_score=0.5, booster='gbtree', colsample_bylevel=1,
+              colsample_bynode=1, colsample_bytree=1, gamma=0,
+              learning_rate=0.1, max_delta_step=0, max_depth=3,
+              min_child_weight=1, missing=None, n_estimators=100, n_jobs=8,
+              nthread=None, objective='binary:logistic', random_state=0,
+              reg_alpha=0, reg_lambda=1, scale_pos_weight=272.47297297297297,
+              seed=None, silent=None, subsample=1, verbosity=1)
+
+roc
+0.7280856961708024
+
+acc
+0.9618520531699363
+
+mcc
+0.07979270106100321
+
+ConfusionMatrix
+[[19444   719]
+ [   53    21]]
+
+report
+              precision    recall  f1-score   support
+
+           0       1.00      0.96      0.98     20163
+           1       0.03      0.28      0.05        74
+
+    accuracy                           0.96     20237
+   macro avg       0.51      0.62      0.52     20237
+weighted avg       0.99      0.96      0.98     20237
+
+

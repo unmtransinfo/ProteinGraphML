@@ -1,7 +1,7 @@
 import time
 import pickle
 
-from sklearn.model_selection import RandomizedSearchCV, GridSearchCV, cross_val_predict, StratifiedShuffleSplit, cross_val_score
+from sklearn.model_selection import RandomizedSearchCV, GridSearchCV, cross_val_predict,StratifiedShuffleSplit
 from sklearn.linear_model import LogisticRegression
 
 import xgboost as xgb
@@ -9,7 +9,7 @@ import xgboost as xgb
 from sklearn.naive_bayes import GaussianNB
 #from sklearn.model_selection import cross_val_score,
 
-from sklearn.metrics import accuracy_score,auc,confusion_matrix,classification_report,matthews_corrcoef
+from sklearn.metrics import accuracy_score,auc,confusion_matrix,classification_report
 from sklearn.metrics import roc_auc_score,roc_curve #.roc_auc_score(y_true, y_score, average='macro', sample_weight=None, max_fpr=None)
 
 # this model system will hopefully make a simple API for dealing with large data 
@@ -28,7 +28,6 @@ class Result:
 	data = None
 	predictions = None
 	space = None
-	predLabel = None
 
 	def __init__(self,dataOut,predictions,modelName,space="",modelDIR=None):
 		self.data = dataOut
@@ -38,27 +37,21 @@ class Result:
 		#print("HERE IS THE MODEL")
 		self.resultDIR = modelDIR
 		# we put the functions here which actually convert the data to a binary score 
-		self.predLabel = [round(p) for p in self.predictions] #generate label using probability
-		#print ('PRINT ALL VALUES....>>>')
-		#print (self.predictions, len(self.predictions))
-		#print (self.predLabel, len(self.predLabel))
-		#print (self.data.labels, len(self.data.labels))
 	def acc(self):
-		return Output("ACC",accuracy_score(self.data.labels,self.predLabel))
-
-	def mcc(self): #Add MCC since data is imbalanced
-		return Output("MCC",matthews_corrcoef(self.data.labels,self.predLabel))
-
+		return Output("ACC",accuracy_score(self.data.labels,self.predictions))
 	def roc(self):
 		roc = Output("AUCROC",roc_auc_score(self.data.labels,self.predictions))
 		#roc.fileOutput(self.modelName)
+
+
 		return roc
 
 	def ConfusionMatrix(self):
-		return ConfusionMatrix(self.data.labels,self.predLabel)
+		return ConfusionMatrix(self.data.labels,self.predictions)
 
 	def rocCurve(self):
 		 #fpr, tpr, threshold = metrics.roc_curve(y_test, preds)
+
 		fpr, tpr, threshold = roc_curve(self.data.labels,self.predictions)
 		rocCurve = RocCurve("rocCurve",fpr, tpr)
 		print("HERE IS THE RESULT DIR",self.resultDIR)
@@ -66,7 +59,7 @@ class Result:
 		return rocCurve
 	
 	def report(self):
-		return Report(self.data.labels,self.predLabel)
+		return Report(self.data.labels,self.predictions)
 
 class Output: # base output...
 	data = None
@@ -129,6 +122,7 @@ class ConfusionMatrix(LabelOutput):
 
 class Report(LabelOutput):
 	def setData(self):
+		print(self.predictions)
 		return classification_report(self.labels,self.predictions)
 
 class RocCurve(Output):
@@ -230,7 +224,7 @@ class BaseModel:
 				print(resultType,file=writeSpace)
 				print("HERES MODEL NAME",self.MODEL_RUN_NAME)
 				newResultObject = getattr(resultObject,resultType)() #self.MODEL_RUN_NAME
-				#print(type(newResultObject))
+				print(type(newResultObject))
 				resultList.append(newResultObject)
 				#print(resultObject)	
 				#print("MODEL DIR",self.MODEL_DIR) #self.MODEL_RUN_NAME
@@ -247,7 +241,7 @@ class BaseModel:
 				resultList.append(newResultObject)
 
 		# for each of the items in the result list, write them to the shared space
-		#print ('resultList...........', resultList)
+
 		if(len(resultList) == 1):
 			return resultList[0]
 		else:
@@ -284,24 +278,22 @@ class XGBoostModel(BaseModel):
 
 	def train(self,trainData,param):		
 		dtrain = xgb.DMatrix(trainData.features,label=trainData.labels)				
-		#bst = xgb.train(param, dtrain,num_boost_round=50)
-		bst = xgb.train(param, dtrain) #use the default values of parameters
+		bst = xgb.train(param, dtrain,num_boost_round=50)
 		self.m = bst
 	
 	def predict(self,testData,outputTypes):
 		inputData = xgb.DMatrix(testData.features)
 		predictions = self.m.predict(inputData) #
-		#print ('predictions.................', predictions)
+
 		#ypred_bst = np.array(bst.predict(dtest,ntree_limit=bst.best_iteration))`
 		#ypred_bst  = ypred_bst > 0.5  
 		#ypred_bst = ypred_bst.astype(int)  
 		#if "report" in outputTypes: # small hack for the report feature, we can use this to make sure 
 
+
 		return self.createResultObjects(testData,outputTypes,predictions)		
 
-	#def cross_val_predict(self,testData,outputTypes):
-	def cross_val_predict(self,testData,outputTypes,params={},cv=1):
-		#print (params,cv)
+	def cross_val_predict(self,testData,outputTypes):
 		# other model options 
 		#clf = LogisticRegression(random_state=0, solver='lbfgs',multi_class='multinomial')#.fit(X, y)
 		#self.m = clf.fit(testData.features,testData.labels)
@@ -320,37 +312,14 @@ class XGBoostModel(BaseModel):
 		'''
 		#scale_pos_weight
 		#scale_pos_weight=testData.posWeight,
-		#clf = xgb.XGBClassifier(scale_pos_weight=testData.posWeight,max_depth=10,gamma=0.1,min_child_weight=0,subsample=0.9,colsample_bytree=0.5, n_jobs=8)
-		
-		clf = xgb.XGBClassifier(**params)
+		clf = xgb.XGBClassifier(scale_pos_weight=testData.posWeight,max_depth=10,gamma=0.1,min_child_weight=0,subsample=0.9,colsample_bytree=0.5)
 		self.m = clf
-		class01Probs = cross_val_predict(self.m,testData.features,y=testData.labels,cv=cv,method='predict_proba') #calls sklearn's cross_val_predict
-		predictions = [i[1] for i in class01Probs] #select class1 probability
-		roc,acc,mcc, CM,report = self.createResultObjects(testData,outputTypes,predictions) 
-				
-		#add the logic to find the imporant features -START
-		importance = clf.fit(testData.features,testData.labels).get_booster().get_score(importance_type='gain')
-		#print (importance)
-		FINALDIR = 'results/{0}/featImportance.txt'.format(self.MODEL_RUN_NAME)
-		print("WRITE FEATURES TO {0}".format(self.MODEL_RUN_NAME))
-		fo = open(FINALDIR, 'w')
-		line = 'Feature' + '\t' + '\t' + 'Gain Value' + '\n' #Header	
-		fo.write(line)
-		line = '=======' + '\t' + '\t' + '==========' + '\n'
-		fo.write(line)
-		
-		for feature,gain in importance.items():
-			line = str(feature) + '\t' + '\t' + str(gain) + '\n'
-			fo.write(line)
-		fo.close()
-		#add the logic to find the imporant features - END
-		
-		return roc,acc,mcc, CM,report
+		predictions = cross_val_predict(self.m,testData.features,y=testData.labels,cv=10)
+		return self.createResultObjects(testData,outputTypes,predictions)
 
-	def average_cross_val(self,testData,outputTypes,folds=1,split=0.8,params={},cv=1):
+	def average_cross_val(self,testData,outputTypes,folds=1,split=0.8,params={}):
 		# this function will take the average of metrics per fold... which is a random fold
-		#print (params,cv)
-		#CROSSVAL = 10
+		CROSSVAL = 10
 		collection = []
 		importance = None
 		#WRITEDIR = OUT_DIR+"stuff" # create a new file
@@ -367,13 +336,12 @@ class XGBoostModel(BaseModel):
 		print("THIS IS THE DIR {0}".format(DIR))
 		print("")
 
-		metrics = {"average-roc":0., "average-mcc":0., "average-acc":0.} #add mcc and accuracy too
+		metrics = {"average-roc":0.}
 		print("=== RUNNING {0} FOLDS".format(folds))
 		for k in range(0,folds):
-			print("DOING {0} FOLD".format(k+1))
-			
-			#newModel = XGBoostModel(self.MODEL_DIR)
-			#train,test = testData.splitSet(split)
+			print("DOING 1 FOLD")
+			newModel = XGBoostModel(self.MODEL_DIR)
+			train,test = testData.splitSet(split)
 			# make a loop, so we can split it 
 			
 			#newModel = XGBoostModel() 
@@ -381,28 +349,20 @@ class XGBoostModel(BaseModel):
 			# YOU can add in parameters to here
 			#{'max_depth':0,'eta':0.1,'gamma':1,'min_child_weight':2} NO PARAMS
 			
-			#newModel.train(train,{})
-			#newModel.train(train,params) #pass the default parameters
-			#roc,rc = newModel.predict(test,["roc","rocCurve"])
-			#roc,rc,acc,mcc = newModel.predict(test,outputTypes) #use the passed outputTypes
-			#roc.printOutput()
-		
-			clf = xgb.XGBClassifier(**params)
-			self.m = clf
-			class01Probs = cross_val_predict(self.m,testData.features,y=testData.labels,cv=cv,method='predict_proba') #calls sklearn's cross_val_predict
-			predictions = [i[1] for i in class01Probs] #select class1 probability
-			roc,rc,acc,mcc = self.createResultObjects(testData,outputTypes,predictions)
+			newModel.train(train,{})
+			roc,rc = newModel.predict(test,["roc","rocCurve"])
+
+			
+			roc.printOutput()
 			
 			metrics["average-roc"] += roc.data
-			metrics["average-mcc"] += mcc.data
-			metrics["average-acc"] += acc.data
 
 			#model.predict ...
 			if importance:
-				importance = importance + Counter(clf.fit(testData.features,testData.labels).get_booster().get_score(importance_type='gain'))
-				#print(Counter(newModel.m.get_score(importance_type='gain')))
+				importance = importance + Counter(newModel.m.get_score(importance_type='gain'))
+				print(Counter(newModel.m.get_score(importance_type='gain')))
 			else:
-				importance = Counter(clf.fit(testData.features,testData.labels).get_booster().get_score(importance_type='gain'))				
+				importance = Counter(newModel.m.get_score(importance_type='gain'))				
 		
 		for key in importance:
 			importance[key] = importance[key]/folds
@@ -420,7 +380,9 @@ class XGBoostModel(BaseModel):
 		with open(FINALDIR, 'wb') as f:
 			pickle.dump(importance, f, pickle.HIGHEST_PROTOCOL)
 		
-	
+
+
+		
 		return importance
 
 

@@ -90,6 +90,7 @@ class ProteinDiseaseAssociationGraph(GraphData): # on top of networkx?
 		#nx.write_gpickle(self.graph,path)
 		print("this is our names map before we save",self.namesMap)
 		print(vars(self).keys())
+		print ("Shape of the graph data:", len(self.graph.edges), len(self.graph.nodes))
 		self.edges = None # clear out the edges/ these have large amounts of data
 		pickle_out = open(path,"wb")
 		pickle.dump(self, pickle_out)

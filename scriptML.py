@@ -1,5 +1,8 @@
 import sys
 import argparse
+import pyreadr
+import numpy as np
+import os
 
 from ProteinGraphML.DataAdapter import OlegDB,selectAsDF
 import networkx as nx
@@ -35,6 +38,7 @@ argData = vars(parser.parse_args())
 disease = argData['disease']
 file = argData['file']
 fileData = None
+path_to_rds_files = '/home/oleg/workspace/metap/data/input/' #IMPORTANT: change it if you have saved rds files in a different folder
 
 if disease is None and file is None: # NO INPUT
 	print("disease or file must be specified")
@@ -46,10 +50,23 @@ if file is not None and disease is not None:
 
 if disease is None and file is not None: # NO disease, use file
 	print("loading from file! {0}".format(file))
-	
+	filenames = next(os.walk(path_to_rds_files))[2]
+	flname = file + '.rds'
+	pklFile = file + '.pkl'
+	if (flname not in filenames):
+		print ('RDS file not found!!! Set the variable path_to_rds_files correctly')
+	else:
+		print ('Loading data from RDS file to craete a dictionary')
+		rdsdata = pyreadr.read_r(path_to_rds_files+flname)
+		fileData = {}
+		fileData[True] = set(np.where(rdsdata[None]['Y']=='pos')[0])
+		fileData[False] = set(np.where(rdsdata[None]['Y']=='neg')[0])
+		#with open(pklFile, 'wb') as handle:
+		#	pickle.dump(labels, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    		
 	#def load_obj(name):
-	with open(file + '.pkl', 'rb') as f:
-		fileData = pickle.load(f)
+	#with open(pklFile, 'rb') as f:
+	#	fileData = pickle.load(f)
 	#loadList = load_obj('nextDataset')
 
 if file is None:
@@ -61,6 +78,7 @@ DEFAULT_GRAPH = "newCURRENT_GRAPH"
 # CANT FIND THIS DISEASE
 #disease = sys.argv[1]
 Procedure = argData['procedure'][0]
+print('Procedure', Procedure)
 
 graphString = None
 
@@ -88,6 +106,7 @@ else:
 d = BinaryLabel()
 d.loadData(trainData)
 #XGBCrossVal(d)
+#print('calling function...', locals()[Procedure])
 locals()[Procedure](d)
 
 

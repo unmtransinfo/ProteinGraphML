@@ -18,8 +18,9 @@ from ProteinGraphML.MLTools.Procedures import *
 disease = "MP_0000180"
 
 graphString = None
+fileData = None
 
-graphString = "<NAME OF GRAPH FILE>"
+graphString = "newCURRENT_GRAPH"
 # CANT FIND THIS GRAPH
 currentGraph = ProteinDiseaseAssociationGraph.load(graphString)
 # SOME DISEASES CAUSE "DIVIDE BY 0 error"
