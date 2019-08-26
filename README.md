@@ -15,7 +15,7 @@ needs. Comes with machine learning models in Python.
 
 ## <a name="Dependencies"/>Dependencies
 
-* `xgboost`, `scikit-learn`, `networkx`, `pandas`, `pony`, `matplotlib`
+* `xgboost`, `scikit-learn`, `networkx`, `pandas`, `pony`, `matplotlib`, `pyreadr`
 *  PostgreSQL db `metap` accessible.
 *  Db `metap` and method based on [metap](https://github.com/unmtransinfo/metap) mostly-R code originally developed by Oleg Ursu.
 
