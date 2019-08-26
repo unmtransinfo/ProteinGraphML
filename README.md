@@ -72,6 +72,9 @@ We can also use a file of labels as our input:
 For example:<br>
 `python scriptML.py XGBCrossValPred --file exampleFile`
 (the labels need to be in the form of a pickled dictionary)
+For the diseases that do not have MP_TERM_ID, train/test sets and their labels are stored in RDS files on seaborgium home/oleg/workspace/metap/data/input. Using the RDS file for a disease, create a dictionary with keys True and False (e.g. {True:{1,2,3},False:{5,6}}) and save the dictionary in a pickle file (e.g. 1014300.pkl). To run the ML scripts for such diseases, use file as an argument. E.g.
+`python scriptML.py XGBCrossValPred --file 1014300` or <br>
+`python scriptML.py XGBCrossVal --file 1014300`
 
 ## <a name="Vis"/>Visualization:
 Scripts for visualization can be found in: <br>ProteinGraphML/Analysis/, which contains code for graph generation and for creating charts for feature visualization. Visualize has code for creating HTML graphs, and featureLabel has code for taking a dictionary of feature importance, and giving it human readable labels.
