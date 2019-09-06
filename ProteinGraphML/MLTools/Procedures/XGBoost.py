@@ -12,13 +12,13 @@ CROSSVAL = 10
 def TEST(dataObject):
 	print('tehe')
 
-def XGBCrossValPred(dataObject):
+def XGBCrossValPred(dataObject, idDescription):
 	newModel = XGBoostModel("XGBCrossValPred")
 	params = {'scale_pos_weight':dataObject.posWeight, 'n_jobs':8} 		#XGboost parameters	
 	
 	#roc,acc,CM,report = newModel.cross_val_predict(dataObject,["roc","acc","ConfusionMatrix","report"]) 
 	
-	roc,acc,mcc, CM,report = newModel.cross_val_predict(dataObject, ["roc","acc", "mcc", "ConfusionMatrix","report"], params=params,cv=CROSSVAL) #Pass parameters 
+	roc,acc,mcc, CM,report = newModel.cross_val_predict(dataObject, idDescription, ["roc","acc", "mcc", "ConfusionMatrix","report"], params=params,cv=CROSSVAL) #Pass parameters 
 	
 	#print("AUCROC --- {0}".format(roc.data))
 	#print("Accuracy --- {0}".format(acc.data))
@@ -29,7 +29,7 @@ def XGBCrossValPred(dataObject):
 	#print(report.data)
 	#roc.printOutput() #plot roc
 
-def XGBCrossVal(dataObject):
+def XGBCrossVal(dataObject, idDescription):
 	newModel = XGBoostModel("XGBCrossVal")
 	params = {'scale_pos_weight':dataObject.posWeight, 'n_jobs':8} 		#XGboost parameters	
 	
@@ -37,7 +37,7 @@ def XGBCrossVal(dataObject):
 	#params={'max_depth':10,'gamma':0.2}
 	#importance = newModel.average_cross_val(dataObject, ["roc","acc","ConfusionMatrix","report"], folds=2, params=params)
 
-	importance = newModel.average_cross_val(dataObject, ["roc","rocCurve","acc","mcc"], folds=2, params=params,cv=CROSSVAL)
+	importance = newModel.average_cross_val(dataObject, idDescription, ["roc","rocCurve","acc","mcc"], folds=2, params=params,cv=CROSSVAL)
 	
 	#print (importance)
 	##"seed"	"max_depth"	"eta"	"gamma"	"min_child_weight"	"subsample"	"colsample_bytree"	"nrounds"	"auc"

@@ -44,3 +44,18 @@ print("INTERP nodes", len(interNodes))
 # this will save our graph
 proteinGraph.save("newCURRENT_GRAPH")
 
+# create a log file to save the information about nodes and edges in the graphs
+idDescription = dbAdapter.fetchPathwayIdDescription()
+recCount = 0
+with open('graphData.log', 'w') as fo:
+	allEdges = set(proteinGraph.graph.edges)
+	for edge in allEdges:
+		recCount+=1
+		try:
+			line = 'Edge ==>   ' + '(' + str(edge[0]) + ':' + idDescription[edge[0]] + ', ' + str(edge[1]) + ':' + idDescription[edge[1]] + ')' + '\n'
+			fo.write(line)
+		except:
+			print ('Name not found in the database', edge)
+		if (recCount%1000000 ==0): #just to check the progess
+			print ('{0} records written to the log file'.format(recCount))
+			

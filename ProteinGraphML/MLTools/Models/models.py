@@ -300,7 +300,7 @@ class XGBoostModel(BaseModel):
 		return self.createResultObjects(testData,outputTypes,predictions)		
 
 	#def cross_val_predict(self,testData,outputTypes):
-	def cross_val_predict(self,testData,outputTypes,params={},cv=1):
+	def cross_val_predict(self,testData,idDescription,outputTypes,params={},cv=1):
 		#print (params,cv)
 		# other model options 
 		#clf = LogisticRegression(random_state=0, solver='lbfgs',multi_class='multinomial')#.fit(X, y)
@@ -332,22 +332,25 @@ class XGBoostModel(BaseModel):
 		importance = clf.fit(testData.features,testData.labels).get_booster().get_score(importance_type='gain')
 		#print (importance)
 		FINALDIR = 'results/{0}/featImportance.txt'.format(self.MODEL_RUN_NAME)
-		print("WRITE FEATURES TO {0}".format(self.MODEL_RUN_NAME))
-		fo = open(FINALDIR, 'w')
-		line = 'Feature' + '\t' + '\t' + 'Gain Value' + '\n' #Header	
-		fo.write(line)
-		line = '=======' + '\t' + '\t' + '==========' + '\n'
-		fo.write(line)
+		print("WRITE IMPORTANT FEATURES TO {0}".format(self.MODEL_RUN_NAME))
 		
-		for feature,gain in importance.items():
-			line = str(feature) + '\t' + '\t' + str(gain) + '\n'
+		with open(FINALDIR, 'w') as fo:
+			line = 'Feature' + '\t' + 'Name' + '\t' + 'Gain Value' + '\n' #Header	
 			fo.write(line)
-		fo.close()
+			line = '=======' + '\t' + '===================' + '\t' + '==========' + '\n'
+			fo.write(line)
+		
+			for feature,gain in importance.items():
+				if (feature.lower().islower()): #alphanumeric feature
+					line = feature + '\t' + idDescription[feature] + '\t' +  str(gain) + '\n'
+				else: #numeric feature
+					line = str(feature) + '\t' + idDescription[int(feature)] + '\t' +  str(gain) + '\n'
+				fo.write(line)
 		#add the logic to find the imporant features - END
 		
 		return roc,acc,mcc, CM,report
 
-	def average_cross_val(self,testData,outputTypes,folds=1,split=0.8,params={},cv=1):
+	def average_cross_val(self,testData,idDescription,outputTypes,folds=1,split=0.8,params={},cv=1):
 		# this function will take the average of metrics per fold... which is a random fold
 		#print (params,cv)
 		#CROSSVAL = 10
@@ -413,12 +416,24 @@ class XGBoostModel(BaseModel):
 		print("METRTCS",metrics) # write this metric to a file...
 		
 		
-		FINALDIR = 'results/{0}/featImportance.pkl'.format(DIR)
-		print("WRITE THIS FEAT {0}".format(DIR))
+		FINALDIR = 'results/{0}/featImportance.txt'.format(DIR)
+		print("WRITE IMPORTANT FEATURES TO {0}".format(DIR))
+	
+		with open(FINALDIR, 'w') as fo:
+			line = 'Feature' + '\t' + 'Name' + '\t' + 'Gain Value' + '\n' #Header	
+			fo.write(line)
+			line = '=======' + '\t' + '===================' + '\t' + '==========' + '\n'
+			fo.write(line)
+			for feature,gain in importance.items():
+				if (feature.lower().islower()): #alphanumeric feature
+					line = feature + '\t' + idDescription[feature] + '\t' +  str(gain) + '\n'
+				else: #numeric feature
+					line = str(feature) + '\t' + idDescription[int(feature)] + '\t' +  str(gain) + '\n'
+				fo.write(line)
 		
 		
-		with open(FINALDIR, 'wb') as f:
-			pickle.dump(importance, f, pickle.HIGHEST_PROTOCOL)
+		#with open(FINALDIR, 'wb') as f:
+		#	pickle.dump(importance, f, pickle.HIGHEST_PROTOCOL)
 		
 	
 		return importance

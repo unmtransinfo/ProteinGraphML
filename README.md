@@ -15,12 +15,11 @@ needs. Comes with machine learning models in Python.
 
 ## <a name="Dependencies"/>Dependencies
 
-* `xgboost`, `scikit-learn`, `networkx`, `pandas`, `pony`, `matplotlib`, `pyreadr`
-*  PostgreSQL db `metap` accessible.
-*  Db `metap` and method based on [metap](https://github.com/unmtransinfo/metap) mostly-R code originally developed by Oleg Ursu.
+* `xgboost`, `scikit-learn`, `networkx`, `pandas`, `pony`, `matplotlib`
+*  PostgreSQL database `metap` accessible.
 
 
-NOTE:: to begin add your DB creds to the DBcreds.yaml file, without a database you cannot run the `Build_Graph` notebook
+NOTE:: to begin add your DB creds to the DBcreds.yaml file, without a database you cannot run the 'Build_Graph' notebook
 
 That will build a graph on which metapath ML features are created
 
@@ -71,10 +70,7 @@ Then to run a given Procedure, in this case `XGBCrossValPred`, with a given dise
 We can also use a file of labels as our input:
 For example:<br>
 `python scriptML.py XGBCrossValPred --file exampleFile`
-(the labels need to be in the form of a pickled dictionary)<br>
-For the diseases that do not have MP_TERM_ID, train/test sets and their labels are stored in RDS files on seaborgium home/oleg/workspace/metap/data/input. Using the RDS file for a disease, scriptML.py creates a dictionary with keys True and False (e.g. {True:{1,2,3},False:{5,6}}). To run the ML scripts for such diseases, use file as an argument. E.g.<br>
-`python scriptML.py XGBCrossValPred --file 1014300` or <br>
-`python scriptML.py XGBCrossVal --file 1014300`
+(the labels need to be in the form of a pickled dictionary)
 
 ## <a name="Vis"/>Visualization:
 Scripts for visualization can be found in: <br>ProteinGraphML/Analysis/, which contains code for graph generation and for creating charts for feature visualization. Visualize has code for creating HTML graphs, and featureLabel has code for taking a dictionary of feature importance, and giving it human readable labels.

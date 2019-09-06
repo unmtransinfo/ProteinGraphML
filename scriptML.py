@@ -15,7 +15,7 @@ import pickle
 from ProteinGraphML.MLTools.Data import BinaryLabel
 from ProteinGraphML.MLTools.Models import XGBoostModel
 from ProteinGraphML.MLTools.Procedures import *
-
+from ProteinGraphML.DataAdapter import OlegDB
 
 parser = argparse.ArgumentParser(description='Run ML Procedure')
 
@@ -96,18 +96,23 @@ staticFeatures = []
 print("--- USING {0} METAPATH FEATURE SETS".format(len(nodes)))
 print("--- USING {0} STATIC FEATURE SETS".format(len(staticFeatures)))
 
+
+#fetch the description of proteins and pathway_ids
+dbAdapter = OlegDB()
+idDescription = dbAdapter.fetchPathwayIdDescription() #fetch the description
+
 if fileData is not None:
 	#print("FOUND {0} POSITIVE LABELS".format(len(fileData[True])))
 	#print("FOUND {0} NEGATIVE LABELS".format(len(fileData[False])))
-	trainData = metapathFeatures(disease,currentGraph,nodes,staticFeatures,loadedLists=fileData).fillna(0)
+	trainData = metapathFeatures(disease,currentGraph,nodes,idDescription,staticFeatures,loadedLists=fileData).fillna(0) 
 else:
-	trainData = metapathFeatures(disease,currentGraph,nodes,staticFeatures).fillna(0)
+	trainData = metapathFeatures(disease,currentGraph,nodes,idDescription,staticFeatures).fillna(0)
 
 d = BinaryLabel()
 d.loadData(trainData)
 #XGBCrossVal(d)
 #print('calling function...', locals()[Procedure])
-locals()[Procedure](d)
+locals()[Procedure](d,idDescription)
 
 
 #print("FEATURES CREATED, STARTING ML")

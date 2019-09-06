@@ -12,11 +12,11 @@ def listCompute(graph,falseP,trueP,middleNode,edgeNode):
 	# this is now the slowest operation ... followed up w/ this loop
 	result = pd.DataFrame(data={"protein_id":edgeNode,"pathway_id":middleNode})
 	# we need to sort this frame into....proteins, and pathways ... 
-
 	right = result[result.protein_id.isin(trueP)]
 	left = result[result.protein_id.isin(falseP)|result.protein_id.isin(trueP)]
 	#print ('right:', right)
 	#print ('left:', left)
+
 	merged = pd.merge(left,right,on='pathway_id')
 	deduplicates = merged[merged.protein_id_x != merged.protein_id_y].copy()
 	UNIQUE_DISEASE = len(set(deduplicates.protein_id_y))
@@ -25,14 +25,13 @@ def listCompute(graph,falseP,trueP,middleNode,edgeNode):
 	deduplicates['edge'] = deduplicates.groupby(['protein_id_x'])['protein_id_x'].transform('count')
 	deduplicates['endSet'] = deduplicates['middle']**(-0.5) * deduplicates['edge']**(-0.5) * (UNIQUE_DISEASE**(-0.5))
 
-
 	# pathway ID??
 	final = deduplicates.pivot_table(index=['protein_id_x'],columns=['pathway_id'], values='endSet').fillna(0)
 	return final
 
 
 # we need every path from A to B ... B has to be true, but thats it
-def singleHop(graph,nodes,trueP,falseP):
+def singleHop(graph,nodes,trueP,falseP, idDescription, fh):
 	
 	filterNodes = [k for k in nodes if len(set(graph.adj[k]).intersection(trueP)) > 0]
 	# lets get all of the nodes, that connect to true nodes
@@ -64,9 +63,18 @@ def singleHop(graph,nodes,trueP,falseP):
 		edgeNodes.append(e[0])
 		combinedScores.append(graph.get_edge_data(e[0],e[1])['combined_score'])
 
-
 	dataset = pd.DataFrame(data={"protein_id":edgeNodes,"protein_m_id":middleNodes,"scores":combinedScores})
 	#result.to_csv('STUFF')
+
+	###write the edgenodes and middlenodes in a log file
+	setA = set(edgeNodes)
+	setB = set(middleNodes)
+	for node in setA:
+		line = str(node) + ' : ' + idDescription[node] + '\n'
+		fh.write(line)
+	for node in setB:
+		line = str(node) + ' : ' + idDescription[node] + '\n'
+		fh.write(line)
 
 	#return listCompute({},falseP,trueP,middleNodes,edgeNodes)
 	UNIQUE_DISEASE = len(set(dataset.protein_m_id))
@@ -83,7 +91,7 @@ def singleHop(graph,nodes,trueP,falseP):
 	# filter this list-no
 
 
-def computeType(graph,nodes,trueP,falseP):
+def computeType(graph,nodes,trueP,falseP,idDescription,fh):
 	
 	filterNodes = [k for k in nodes if len(set(graph.adj[k]).intersection(trueP)) > 0]
 
@@ -114,6 +122,16 @@ def computeType(graph,nodes,trueP,falseP):
 
 	newG = {}
 
+	###write the edgenodes and middlenodes in a log file
+	setA = set(edgeNodeList)
+	setB = set(middleNodeList)
+	for node in setA:
+		line = str(node) + ' : ' + idDescription[node] + '\n'
+		fh.write(line)
+	for node in setB:
+		line = str(node) + ' : ' + idDescription[node] + '\n'
+		fh.write(line)
+	
 	return listCompute(newG,falseP,trueP,middleNodeList,edgeNodeList)
 
 
@@ -143,9 +161,9 @@ def completePPI(graph,trues,allNodes,adjGraph):
 	return final
 
 
-def sPPICompute(graph,proteinNodes,trueP,falseP):
+def sPPICompute(graph,proteinNodes,trueP,falseP,idDescription,fh):
 	#computeType(graph,nodes,trueP,falseP)
-	return singleHop(graph,proteinNodes,trueP,falseP) #computeType(graph,proteinNodes,trueP,falseP)
+	return singleHop(graph,proteinNodes,trueP,falseP,idDescription,fh) #computeType(graph,proteinNodes,trueP,falseP)
 
 
 def PPICompute(graph,proteinNodes,trueP,falseP):

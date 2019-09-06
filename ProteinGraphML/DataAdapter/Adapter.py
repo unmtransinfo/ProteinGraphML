@@ -226,10 +226,37 @@ class OlegDB(Adapter):
 
 
 
-
 	def buildHomologyMap(self,humanProteinList,mouseProteinList):
 		
 		# builds a map, between human/mouse data
 		mapProteinSet = pd.merge(humanProteinList,mouseProteinList,on='homologene_group_id',suffixes=('_h', '_m'))
 		mapProteinSet = mapProteinSet.rename(columns = {'protein_id_m':'protein_id'})
 		return mapProteinSet	
+
+	# the following function will be used to fetch the description of pathway
+	def fetchPathwayIdDescription(self):
+		idNameDict = {}
+		reactome = selectAsDF("select reactome_id, name from reactome",["reactome_id","name"],self.db)
+		reactomeDict = reactome.set_index('reactome_id').T.to_dict('records')[0] #DataFrame to dictionary
+		idNameDict.update(reactomeDict)
+		
+		kegg = selectAsDF("select kegg_pathway_id, kegg_pathway_name from kegg_pathway",["kegg_pathway_id", "kegg_pathway_name"],self.db)
+		keggDict = kegg.set_index('kegg_pathway_id').T.to_dict('records')[0] #DataFrame to dictionary
+		idNameDict.update(keggDict)
+		
+		interpro = selectAsDF("select entry_ac,entry_name from interpro",["entry_ac", "entry_name"],self.db)
+		interproDict = interpro.set_index('entry_ac').T.to_dict('records')[0] #DataFrame to dictionary
+		idNameDict.update(interproDict)
+
+		goa = selectAsDF("select go_id, name from go",["go_id", "name"],self.db)
+		goaDict = goa.set_index('go_id').T.to_dict('records')[0] #DataFrame to dictionary
+		idNameDict.update(goaDict)
+
+		ppi = selectAsDF("select protein_id, name from protein",["protein_id", "name"],self.db)
+		ppiDict = ppi.set_index('protein_id').T.to_dict('records')[0] #DataFrame to dictionary
+		idNameDict.update(ppiDict)
+		
+		mp = selectAsDF("select mp_term_id, name from mp_onto",["mp_term_id", "name"],self.db)
+		mpDict = mp.set_index('mp_term_id').T.to_dict('records')[0] #DataFrame to dictionary
+		idNameDict.update(mpDict)
+		return idNameDict

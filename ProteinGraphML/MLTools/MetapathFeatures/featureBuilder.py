@@ -39,21 +39,20 @@ def getChildren(graph,start): # hard coded ... "association"
 	return [a for a in graph.adj[start] if "association" not in graph.edges[(start,a)].keys()]
 
 
-def metapathFeatures(disease,proteinGraph,featureList,staticFeatures=None,test=False,loadedLists=None):
+def metapathFeatures(disease,proteinGraph,featureList,idDescription,staticFeatures=None,test=False,loadedLists=None):
 	# we compute a genelist.... 
 	# get the proteins 
 	# for each of the features, compute their metapaths, given an object, and graph+list... then they get joined 
 	#print(len(proteinGraph.graph.nodes))
-
+ 	
 	
-
 	G = proteinGraph.graph # this is our networkx api 
 	
 	if loadedLists is not None:
 		trueP = loadedLists[True] 
 		falseP = loadedLists[False]
 	else:
-		paths = getMetapaths(proteinGraph,disease)
+		paths = getMetapaths(proteinGraph,disease) #a dictionary with 'True' and 'False' as keys and protein_id as values
 		trueP = paths[True]
 		falseP = paths[False] 
 
@@ -73,19 +72,20 @@ def metapathFeatures(disease,proteinGraph,featureList,staticFeatures=None,test=F
 	nodeListPairs = []
 	for n in featureList:
 		nodeListPairs.append((n,[nval for nval in list(G.nodes) if n.isThisNode(nval)]))
-		
+	
 	metapaths = []
+	fh = open('metapath_features.log', 'w') # file to save nodes used for metapaths
 	for pair in nodeListPairs:
 		nodes = pair[1]
+		#print ('PK....', nodes)
 		nonTrueAssociations = set(proteinNodes) - trueP
 		#print(len(G.nodes),len(nodes),len(trueP),len(nonTrueAssociations))
-		METAPATH = pair[0].computeMetapaths(G,nodes,trueP,nonTrueAssociations)
+		METAPATH = pair[0].computeMetapaths(G,nodes,trueP,nonTrueAssociations, idDescription, fh)
 		METAPATH = (METAPATH - METAPATH.mean())/METAPATH.std()
 		print("SHAPE OF METAPATH FRAME {0} for {1}".format(METAPATH.shape,pair[0]))
-		
 		metapaths.append(METAPATH)
-		
-	
+	fh.close()
+
 	if test:
 		fullList = list(proteinNodes)
 		df = pd.DataFrame(fullList, columns=['protein_id'])
