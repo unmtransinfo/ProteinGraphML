@@ -1,16 +1,26 @@
-# Create a Protein Disease graph from the DB adapter 'OlegDB'
+#!/usr/bin/env python3
+"""
+	Create a Protein Disease graph from the DB adapter 'OlegDB'
+"""
+import logging
+logging.basicConfig(level=logging.INFO)
+#logging.basicConfig(filename='Build_Graph_Example.log')
 
 from ProteinGraphML.DataAdapter import OlegDB
 from ProteinGraphML.GraphTools import ProteinDiseaseAssociationGraph
 
-## we construct a base map of protein to disease just by creating the ProteinDiseaseAs
+## Construct base map of protein-to-disease by creating the ProteinDiseaseAssociationGraph.
+## Db is PonyORM Database (https://docs.ponyorm.org/api_reference.html#api-reference).
 
 dbAdapter = OlegDB()
+
 proteinGraph = ProteinDiseaseAssociationGraph(dbAdapter)
 
-## the 'ProteinDiseaseAssociationGraph' object has helper methods, but we can also access the networkx graph directly it is created with:
+## The 'ProteinDiseaseAssociationGraph' object has helper methods, but 
+## the networkx Graph methods also available.
+## https://networkx.github.io/documentation/stable/reference/
 
-print('Total nodes: %d'%len(proteinGraph.graph.nodes))
+logging.info('Total nodes: %d; edges: %d'%(len(proteinGraph.graph.nodes), len(proteinGraph.graph.edges)))
 
 ## we will want to filter by the proteins we are interested in, this list comes from a DB adapter, but any set will do
 proteins = dbAdapter.loadTotalProteinList().protein_id

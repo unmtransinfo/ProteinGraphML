@@ -2,6 +2,7 @@
 from pony.orm import *
 import pandas as pd
 import yaml
+import logging
 
 #from DBCONST import *
 #from biodata_helper import *
@@ -155,17 +156,13 @@ class OlegDB(Adapter):
 
 
 	def load(self):
-
-
 		# MOVE THE DB INFO TO A CONST FILE 
-
 
 		with open("DBcreds.yaml", 'r') as stream:
 			try:
 				credentials = yaml.safe_load(stream)
 			except yaml.YAMLError as exc:
 				print('Please add valid DB credentials to DBcreds.yaml') 
-
 
 		user = credentials['user']
 		password = credentials['password']
@@ -174,6 +171,8 @@ class OlegDB(Adapter):
 
 		self.db = Database()
 		self.db.bind(provider='postgres',user=user,password=password,host=host,database=database)
+		logging.info("Connected to db (%s): %s:%s:%s"%(self.db.provider_name, host, database, user))
+
 		self.db.generate_mapping(create_tables=False)
 
 		# hack ... saving the (DB) like this 
@@ -182,9 +181,13 @@ class OlegDB(Adapter):
 		TableColumns=["hid","homologene_group_id","tax_id","protein_id"]
 
 		humanProteinList = selectAsDF("select * from homology WHERE tax_id = 9606",TableColumns,db)
+		logging.info("humanProteinList: %d"%(humanProteinList.shape[0]))
 		mouseProteinList = selectAsDF("select * from homology WHERE tax_id = 10090",TableColumns,db)
+		logging.info("mouseProteinList: %d"%(mouseProteinList.shape[0]))
 		mousePhenotype = selectAsDF("select * from mousephenotype",["protein_id","mp_term_id","p_value","effect_size","procedure_name","parameter_name","association"],db)
+		logging.info("mousePhenotype: %d"%(mousePhenotype.shape[0]))
 		mpOnto = selectAsDF("select * from mp_onto",["mp_term_id","parent_id","name"],db)
+		logging.info("mpOnto: %d"%(mpOnto.shape[0]))
 
 		#self.names.append(NodeName("MP","mp_term_id",mpOnto.drop(['parent_id'],axis=1).drop_duplicates()))  #keyValue,name,dataframe
 		
@@ -194,8 +197,7 @@ class OlegDB(Adapter):
 		mouseToHumanMap = self.buildHomologyMap(humanProteinList,mouseProteinList)
 		combinedSet = attachColumn(mouseToHumanMap,mousePhenotype,"protein_id") # just bind the protein ID from our last table 
 		mouseToHumanAssociation = combinedSet[["protein_id_h","mp_term_id","association"]].drop_duplicates()
-		
-
+		logging.info("mouseToHumanAssociation: %d"%(mouseToHumanAssociation.shape[0]))
 
 		def getVal(row):
 			return depthMap[row["mp_term_id"]]

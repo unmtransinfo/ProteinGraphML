@@ -1,5 +1,6 @@
 import networkx as nx
 import pickle
+import logging
 
 
 # chain a list of compose functions together to build the graph
@@ -36,34 +37,28 @@ class GraphData:
 
 	    return endGraph
 
-
-
-
 class ProteinDiseaseAssociationGraph(GraphData): # on top of networkx?
 	graph = None
 	edges = None
 	graphMap = {}  #we can put other graphs here...
-
 	namesMap = None
-
 
 	# NOTE THIS IS A HACK, since undirected and directed graphs aren't working directly together right now,
 		# this will help us keep track of child/parent relationships... when we query a nodes children, we can use this to filter out parents
 
 	parentChildDict = None # HACK
 
-
 	def load(path):
 		pickle_in = open(path,"rb")
 		newGraph = pickle.load(pickle_in)
 		return newGraph
-
 
 	def __init__(self,adapter=None,graph=None):
 
 		if graph is not None:
 			self.graph = graph
 		else:
+			logging.info("Loading edges into graph: geneToDisease, phenotypeHierarchy...")
 
 			self.edges = [adapter.geneToDisease,adapter.phenotypeHierarchy] #self.PPI] # order matters!!
 			graph = self.graphBuilder(self.edges)
@@ -73,9 +68,11 @@ class ProteinDiseaseAssociationGraph(GraphData): # on top of networkx?
 		self.namesMap = {}
 		self.addNameData(adapter)
 
+		logging.info('Total nodes: %d; edges: %d'%(len(self.graph.nodes), len(self.graph.edges)))
 
 
 	def addNameData(self,adapter):
+		logging.info("Adding names into graph: %d names..."%(len(list(adapter.names))))
 		for node in adapter.names:
 			self.namesMap[node.name] = node
 
