@@ -31,9 +31,9 @@ proteins = dbAdapter.loadTotalProteinList().protein_id
 filterByProteins = set(proteins)
 logging.info('Protein list: %d'%(len(filterByProteins)))
 
-# Using attach() will add edges from a DB as defined by the adapter.
-# With this method create a graph of data, which can itself be saved, prevents the
-# need for rebuilding as we work on different diseases, perform analysis.
+# Using attach() add edges from DB.
+# With this method create graph, which can be saved, avoiding
+# need for rebuilding for different diseases, models and analyses.
 # Also filter by proteins of interest, in this case it is our original list.
 
 pdg.attach(dbAdapter.loadPPI(filterByProteins))
@@ -42,13 +42,10 @@ pdg.attach(dbAdapter.loadReactome(filterByProteins))
 pdg.attach(dbAdapter.loadInterpro(filterByProteins))
 pdg.attach(dbAdapter.loadGo(filterByProteins))
 
-# networkx provides an api we can nodes from \n",
-# here i exploit the unique features of each node to count them\n",
-# we can get a count of the nodes in the current graph
-
+# Count node types based on IDs using NetworkX API.
 keggNodes = [n for n in list(pdg.graph.nodes)
 	if isinstance(n, str) and n[0:3]=="hsa"]
-reactome = [n for n in list(pdg.graph.nodes)
+reactomeNodes = [n for n in list(pdg.graph.nodes)
 	if isinstance(n, str) and n[0:2]=="R-"]
 goNodes = [n for n in list(pdg.graph.nodes)
 	if isinstance(n, str) and n[0:3]=="GO:"]
@@ -56,14 +53,14 @@ interNodes = [n for n in list(pdg.graph.nodes)
 	if isinstance(n, str) and n[0:3]=="IPR"]
 
 logging.info("KEGG nodes: %d"%(len(keggNodes)))
-logging.info("REACT nodes: %d"%(len(reactome)))
+logging.info("REACTOME nodes: %d"%(len(reactomeNodes)))
 logging.info("GO nodes: %d"%(len(goNodes)))
-logging.info("INTERP nodes: %d"%(len(interNodes)))
+logging.info("INTERPRO nodes: %d"%(len(interNodes)))
 
-# Save graph.
-gfile="newCURRENT_GRAPH"
-logging.info("Saving graph to {0}".format(gfile))
-pdg.save(gfile)
+# Save graph in pickle format.
+picklefile="ProteinDisease_GRAPH.pickle"
+logging.info("Saving pickled graph to: {0}".format(picklefile))
+pdg.save(picklefile)
 
 # Fetch pathway information from db.
 # (Not stored in graph?)
