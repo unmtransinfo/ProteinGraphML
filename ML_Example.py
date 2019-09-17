@@ -1,49 +1,61 @@
-import sys
+#!/usr/bin/env python3
+###
+import sys, os, logging, time
 import argparse
+import pandas as pd
+import pickle
+import networkx as nx
+
+logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s', level=logging.INFO)
+#logging.basicConfig(filename='ML_Example.log')
+
+logging.info("Python version: {0}".format(sys.version.split()[0]))
+logging.info("Pandas version: {0}".format(pd.__version__))
+logging.info("NetworkX version: {0}".format(nx.__version__))
 
 from ProteinGraphML.DataAdapter import OlegDB,selectAsDF
-import networkx as nx
 from ProteinGraphML.GraphTools import ProteinDiseaseAssociationGraph
 from ProteinGraphML.Analysis import Visualize
-import pandas as pd
 from ProteinGraphML.MLTools.MetapathFeatures import metapathFeatures,ProteinInteractionNode,KeggNode,ReactomeNode,GoNode,InterproNode
 from ProteinGraphML.MLTools.MetapathFeatures import getMetapaths
-import pickle
 from ProteinGraphML.MLTools.Data import BinaryLabel
 from ProteinGraphML.MLTools.Models import XGBoostModel
 from ProteinGraphML.MLTools.Procedures import *
 
+t0 = time.time()
 
 # CANT FIND THIS DISEASE
-disease = "MP_0000180"
+# disease = "MP_0000180"
 
-graphString = None
+disease = "MP_0000184"
+logging.info("disease: {0}".format(disease))
+
+graphName = None
 fileData = None
 
-graphString = "newCURRENT_GRAPH"
+graphName = "newCURRENT_GRAPH"
 # CANT FIND THIS GRAPH
-currentGraph = ProteinDiseaseAssociationGraph.load(graphString)
+currentGraph = ProteinDiseaseAssociationGraph.load(graphName)
+
 # SOME DISEASES CAUSE "DIVIDE BY 0 error"
-print("GRAPH {0} LOADED".format(graphString))
+logging.info("GRAPH LOADED: {0}".format(graphName))
 
 nodes = [ProteinInteractionNode,KeggNode,ReactomeNode,GoNode,InterproNode]
 staticFeatures = [] # ALL OPTIONS HERE... ["gtex","lincs","hpa","ccle"]
 
-print("--- USING {0} METAPATH FEATURE SETS".format(len(nodes)))
-print("--- USING {0} STATIC FEATURE SETS".format(len(staticFeatures)))
+logging.info("USING {0} METAPATH FEATURE SETS".format(len(nodes)))
+logging.info("USING {0} STATIC FEATURE SETS".format(len(staticFeatures)))
 
 if fileData is not None:
-    #print("FOUND {0} POSITIVE LABELS".format(len(fileData[True])))
-    #print("FOUND {0} NEGATIVE LABELS".format(len(fileData[False])))
-    trainData = metapathFeatures(disease,currentGraph,nodes,staticFeatures,loadedLists=fileData).fillna(0)
+    logging.info("FOUND {0} POSITIVE LABELS".format(len(fileData[True])))
+    logging.info("FOUND {0} NEGATIVE LABELS".format(len(fileData[False])))
+    trainData = metapathFeatures(disease, currentGraph, nodes, staticFeatures, loadedLists=fileData).fillna(0)
 else:
-    trainData = metapathFeatures(disease,currentGraph,nodes,staticFeatures).fillna(0)
+    trainData = metapathFeatures(disease, currentGraph, nodes, staticFeatures).fillna(0)
 
 d = BinaryLabel()
 d.loadData(trainData)
 XGBCrossVal(d)
 
-
-
-
+logging.info('{0}: elapsed time: {1}'.format(os.path.basename(sys.argv[0]), time.strftime('%Hh:%Mm:%Ss', time.gmtime(time.time()-t0))))
 

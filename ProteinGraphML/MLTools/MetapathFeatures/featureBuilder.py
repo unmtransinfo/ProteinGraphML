@@ -1,4 +1,5 @@
 import itertools
+import logging
 import pandas as pd
 
 from .nodes import ProteinInteractionNode
@@ -56,33 +57,34 @@ def metapathFeatures(disease,proteinGraph,featureList,idDescription,staticFeatur
 		trueP = paths[True]
 		falseP = paths[False] 
 
-	print("PREPARING {0} TRUE  ASSOCIATIONS".format(len(trueP)))
-	print("PREPARING {0} FALSE ASSOCIATIONS".format(len(falseP)))
-	print("")
-	print("(NODES IN GRAPH - {0})".format(len(G.nodes)))
-	print("(EDGES IN GRAPH - {0})".format(len(G.edges)))
+	logging.info("(metapathFeatures) PREPARING TRUE ASSOCIATIONS: {0}".format(len(trueP)))
+	logging.info("(metapathFeatures) PREPARING FALSE ASSOCIATIONS: {0}".format(len(falseP)))
+	logging.info("(metapathFeatures) NODES IN GRAPH: {0}".format(len(G.nodes)))
+	logging.info("(metapathFeatures) EDGES IN GRAPH: {0}".format(len(G.edges)))
 
 	proteinNodes = [pro for pro in list(G.nodes) if ProteinInteractionNode.isThisNode(pro)] #if isinstance(pro,int)] # or isinstance(pro,np.integer)]
 	
 	if len(proteinNodes) == 0:
 		raise Exception('No protein nodes detected in graph')
 
-	print("(DETECTED PROTEINS - {0})".format(len(proteinNodes)))
+	logging.info("(metapathFeatures) DETECTED PROTEINS: {0}".format(len(proteinNodes)))
 
 	nodeListPairs = []
 	for n in featureList:
 		nodeListPairs.append((n,[nval for nval in list(G.nodes) if n.isThisNode(nval)]))
 	
 	metapaths = []
-	fh = open('metapath_features.log', 'w') # file to save nodes used for metapaths
+	flog = 'metapath_features.log'
+	logging.info("(metapathFeatures) Metapath features logfile: {0}".format(flog))
+	fh = open(flog, 'w') # file to save nodes used for metapaths
 	for pair in nodeListPairs:
 		nodes = pair[1]
 		#print ('PK....', nodes)
 		nonTrueAssociations = set(proteinNodes) - trueP
-		#print(len(G.nodes),len(nodes),len(trueP),len(nonTrueAssociations))
-		METAPATH = pair[0].computeMetapaths(G,nodes,trueP,nonTrueAssociations, idDescription, fh)
+		#print(len(G.nodes), len(nodes), len(trueP), len(nonTrueAssociations))
+		METAPATH = pair[0].computeMetapaths(G, nodes, trueP, nonTrueAssociations, idDescription, fh)
 		METAPATH = (METAPATH - METAPATH.mean())/METAPATH.std()
-		print("SHAPE OF METAPATH FRAME {0} for {1}".format(METAPATH.shape,pair[0]))
+		logging.info("(metapathFeatures) METAPATH FRAME {0}x{1} for {2}".format(METAPATH.shape[0], METAPATH.shape[1], pair[0]))
 		metapaths.append(METAPATH)
 	fh.close()
 

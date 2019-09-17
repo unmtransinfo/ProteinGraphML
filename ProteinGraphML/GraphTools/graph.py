@@ -58,7 +58,7 @@ class ProteinDiseaseAssociationGraph(GraphData): # on top of networkx?
 		if graph is not None:
 			self.graph = graph
 		else:
-			logging.info("Loading edges into graph: geneToDisease, phenotypeHierarchy...")
+			logging.info("(ProteinDiseaseAssociationGraph.__init__) Loading edges into graph: geneToDisease, phenotypeHierarchy...")
 
 			self.edges = [adapter.geneToDisease,adapter.phenotypeHierarchy] #self.PPI] # order matters!!
 			graph = self.graphBuilder(self.edges)
@@ -68,11 +68,11 @@ class ProteinDiseaseAssociationGraph(GraphData): # on top of networkx?
 		self.namesMap = {}
 		self.addNameData(adapter)
 
-		logging.info('Total nodes: %d; edges: %d'%(len(self.graph.nodes), len(self.graph.edges)))
+		logging.info('(ProteinDiseaseAssociationGraph.__init__) Total nodes: %d; edges: %d'%(len(self.graph.nodes), len(self.graph.edges)))
 
 
 	def addNameData(self,adapter):
-		logging.info("Adding names into graph: %d names..."%(len(list(adapter.names))))
+		logging.info("(ProteinDiseaseAssociationGraph.addNameData) Adding names into graph: %d names..."%(len(list(adapter.names))))
 		for node in adapter.names:
 			self.namesMap[node.name] = node
 
@@ -85,11 +85,12 @@ class ProteinDiseaseAssociationGraph(GraphData): # on top of networkx?
 	def save(self,path):
 
 		#nx.write_gpickle(self.graph,path)
-		print("this is our names map before we save",self.namesMap)
-		print(vars(self).keys())
-		print ("Shape of the graph data:", len(self.graph.edges), len(self.graph.nodes))
+		logging.info("(ProteinDiseaseAssociationGraph.save) names map: {0}".format(str(self.namesMap)))
+		logging.info("(ProteinDiseaseAssociationGraph.save) {0}".format(str(vars(self).keys())))
+		logging.info("(ProteinDiseaseAssociationGraph.save) nodes: {0}, edges: {1}".format(len(self.graph.nodes), len(self.graph.edges)))
 		self.edges = None # clear out the edges/ these have large amounts of data
-		pickle_out = open(path,"wb")
+		pickle_out = open(path, "wb")
+		logging.info("(ProteinDiseaseAssociationGraph.save) saving to pickle file: {0} (no edges)".format(path))
 		pickle.dump(self, pickle_out)
 		pickle_out.close()
 

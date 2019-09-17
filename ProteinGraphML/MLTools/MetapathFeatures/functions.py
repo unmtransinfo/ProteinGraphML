@@ -1,6 +1,6 @@
 import networkx as nx
 import numpy as np
-import itertools
+import itertools, logging
 import pandas as pd
 
 #from .nodes import ProteinInteractionNode

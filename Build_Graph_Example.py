@@ -4,7 +4,8 @@
 """
 import sys, os, time
 import logging
-logging.basicConfig(level=logging.INFO)
+
+logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s', level=logging.INFO)
 #logging.basicConfig(filename='Build_Graph_Example.log')
 
 from ProteinGraphML.DataAdapter import OlegDB
@@ -20,10 +21,10 @@ dbAdapter = OlegDB()
 pdg = ProteinDiseaseAssociationGraph(dbAdapter)
 
 ## The 'ProteinDiseaseAssociationGraph' object has helper methods, but 
-## the networkx Graph methods also available.
+## NetworkX methods also available.
 ## https://networkx.github.io/documentation/stable/reference/
 
-logging.info('Total nodes: %d; edges: %d'%(len(pdg.graph.nodes), len(pdg.graph.edges)))
+logging.info('Total nodes: %d; edges: %d'%(pdg.graph.order(), pdg.graph.size()))
 
 ## Filter by proteins of interest; this list comes from a DB adapter, but any set will do.
 proteins = dbAdapter.loadTotalProteinList().protein_id
@@ -68,19 +69,24 @@ pdg.save(gfile)
 # (Not stored in graph?)
 idDescription = dbAdapter.fetchPathwayIdDescription()
 
-# Log node and edge info.
-recCount = 0
+# Log node and edge info. Could be formatted for downstream use (e.g. Neo4j).
+edgeCount=0; nodeCount=0;
 logfile = 'graphData.log'
 with open(logfile, 'w') as flog:
-	allEdges = set(pdg.graph.edges)
-	for edge in allEdges:
-		recCount+=1
-		try:
-			flog.write('Edge ==>   '+'(' + str(edge[0])+':'+idDescription[edge[0]]+', '+str(edge[1])+':'+idDescription[edge[1]]+')'+'\n')
-		except:
-			logging.error('Name not found in the database: {0}'.format(edge))
+  allNodes = set(pdg.graph.nodes)
+  for node in allNodes:
+    nodeCount+=1
+    try:
+      flog.write('NODE '+'{id:"'+str(node)+'", desc:"'+idDescription[node]+'"}'+'\n')
+    except:
+      logging.error('Node not found: {0}'.format(node))
 
-logging.info('{0} records written to {1}'.format(recCount, logfile))
+  allEdges = set(pdg.graph.edges)
+  for edge in allEdges:
+    edgeCount+=1
+    flog.write('EDGE '+'{idSource:"'+str(edge[0])+'", idTarget:"'+str(edge[1])+'"}'+'\n')
+
+logging.info('{0} nodes, {1} edges written to {2}'.format(nodeCount, edgeCount, logfile))
 
 logging.info('{0}: elapsed time: {1}'.format(os.path.basename(sys.argv[0]), time.strftime('%Hh:%Mm:%Ss', time.gmtime(time.time()-t0))))
 

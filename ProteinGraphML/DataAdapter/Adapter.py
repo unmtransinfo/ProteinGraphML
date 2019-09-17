@@ -97,7 +97,7 @@ class OlegDB(Adapter):
 	def loadTotalProteinList(self):
 	
 		protein = selectAsDF("select protein_id from protein where tax_id = 9606",['protein_id'],self.db)
-		logging.info("Human protein IDs returned: {0}".format(protein.shape[0]))
+		logging.info("(OlegDB.loadTotalProteinList) Human protein IDs returned: {0}".format(protein.shape[0]))
 	
 		return protein
 
@@ -108,7 +108,7 @@ class OlegDB(Adapter):
 		if proteinFilter is not None:
 			reactome = reactome[reactome['protein_id'].isin(proteinFilter)]
 
-		logging.info("Reactome rows returned: {0}".format(reactome.shape[0]))
+		logging.info("(OlegDB.loadReactome) Reactome rows returned: {0}".format(reactome.shape[0]))
 		return GraphEdge("protein_id","reactome_id",data=reactome)
 
 
@@ -120,7 +120,7 @@ class OlegDB(Adapter):
 			stringDB = stringDB[stringDB['protein_id1'].isin(proteinFilter)]
 			stringDB = stringDB[stringDB['protein_id2'].isin(proteinFilter)]
 
-		logging.info("STRING rows returned: {0}".format(stringDB.shape[0]))
+		logging.info("(OlegDB.loadPPI) STRING rows returned: {0}".format(stringDB.shape[0]))
 		return GraphEdge("protein_id1","protein_id2","combined_score",stringDB)
 
 	def loadKegg(self,proteinFilter=None):
@@ -130,7 +130,7 @@ class OlegDB(Adapter):
 		if proteinFilter is not None:
 			kegg = kegg[kegg['protein_id'].isin(proteinFilter)]
 
-		logging.info("KEGG rows returned: {0}".format(kegg.shape[0]))
+		logging.info("(OlegDB.loadKegg) KEGG rows returned: {0}".format(kegg.shape[0]))
 		return GraphEdge("protein_id","kegg_pathway_id",data=kegg)
 
 
@@ -141,7 +141,7 @@ class OlegDB(Adapter):
 		if proteinFilter is not None:
 			interpro = interpro[interpro['protein_id'].isin(proteinFilter)]
 
-		logging.info("Interpro rows returned: {0}".format(interpro.shape[0]))
+		logging.info("(OlegDB.loadInterpro) Interpro rows returned: {0}".format(interpro.shape[0]))
 		return GraphEdge("protein_id","entry_ac",data=interpro)
 
 	def loadGo(self,proteinFilter=None):
@@ -151,14 +151,14 @@ class OlegDB(Adapter):
 		if proteinFilter is not None:
 			goa = goa[goa['protein_id'].isin(proteinFilter)]
 
-		logging.info("GO rows returned: {0}".format(goa.shape[0]))
+		logging.info("(OlegDB.loadGo) GO rows returned: {0}".format(goa.shape[0]))
 		return GraphEdge("protein_id","go_id",data=goa)
 
 
 	# static features
 	def loadGTEX(self):
 		gtex = selectAsDF("select protein_id,median_tpm,tissue_type_detail from gtex",["protein_id","median_tpm","tissue_type_detail"],self.db)
-		logging.info("GTEx rows returned: {0}".format(gtex.shape[0]))
+		logging.info("(OlegDB.loadGTEX) GTEx rows returned: {0}".format(gtex.shape[0]))
 		return gtex
 
 
@@ -178,7 +178,7 @@ class OlegDB(Adapter):
 
 		self.db = Database()
 		self.db.bind(provider='postgres',user=user,password=password,host=host,database=database)
-		logging.info("Connected to db (%s): %s:%s:%s"%(self.db.provider_name, host, database, user))
+		logging.info("(OlegDB.load) Connected to db (%s): %s:%s:%s"%(self.db.provider_name, host, database, user))
 
 		self.db.generate_mapping(create_tables=False)
 
@@ -188,13 +188,13 @@ class OlegDB(Adapter):
 		TableColumns=["hid","homologene_group_id","tax_id","protein_id"]
 
 		humanProteinList = selectAsDF("select * from homology WHERE tax_id = 9606",TableColumns,db)
-		logging.info("humanProteinList: %d"%(humanProteinList.shape[0]))
+		logging.info("(OlegDB.load) humanProteinList: %d"%(humanProteinList.shape[0]))
 		mouseProteinList = selectAsDF("select * from homology WHERE tax_id = 10090",TableColumns,db)
-		logging.info("mouseProteinList: %d"%(mouseProteinList.shape[0]))
+		logging.info("(OlegDB.load) mouseProteinList: %d"%(mouseProteinList.shape[0]))
 		mousePhenotype = selectAsDF("select * from mousephenotype",["protein_id","mp_term_id","p_value","effect_size","procedure_name","parameter_name","association"],db)
-		logging.info("mousePhenotype: %d"%(mousePhenotype.shape[0]))
+		logging.info("(OlegDB.load) mousePhenotype: %d"%(mousePhenotype.shape[0]))
 		mpOnto = selectAsDF("select * from mp_onto",["mp_term_id","parent_id","name"],db)
-		logging.info("mpOnto: %d"%(mpOnto.shape[0]))
+		logging.info("(OlegDB.load) mpOnto: %d"%(mpOnto.shape[0]))
 
 		#self.names.append(NodeName("MP","mp_term_id",mpOnto.drop(['parent_id'],axis=1).drop_duplicates()))  #keyValue,name,dataframe
 		
@@ -204,7 +204,7 @@ class OlegDB(Adapter):
 		mouseToHumanMap = self.buildHomologyMap(humanProteinList,mouseProteinList)
 		combinedSet = attachColumn(mouseToHumanMap,mousePhenotype,"protein_id") # just bind the protein ID from our last table 
 		mouseToHumanAssociation = combinedSet[["protein_id_h","mp_term_id","association"]].drop_duplicates()
-		logging.info("mouseToHumanAssociation: %d"%(mouseToHumanAssociation.shape[0]))
+		logging.info("(OlegDB.load) mouseToHumanAssociation: %d"%(mouseToHumanAssociation.shape[0]))
 
 		def getVal(row):
 			return depthMap[row["mp_term_id"]]
@@ -246,32 +246,32 @@ class OlegDB(Adapter):
 	def fetchPathwayIdDescription(self):
 		idNameDict = {}
 		reactome = selectAsDF("select reactome_id, name from reactome",["reactome_id","name"],self.db)
-		logging.info("Reactome IDs: {0}".format(reactome.shape[0]))
+		logging.info("(OlegDB.fetchPathwayIdDescription) Reactome IDs: {0}".format(reactome.shape[0]))
 		reactomeDict = reactome.set_index('reactome_id').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(reactomeDict)
 		
 		kegg = selectAsDF("select kegg_pathway_id, kegg_pathway_name from kegg_pathway",["kegg_pathway_id", "kegg_pathway_name"],self.db)
-		logging.info("KEGG pathway IDs: {0}".format(kegg.shape[0]))
+		logging.info("(OlegDB.fetchPathwayIdDescription) KEGG pathway IDs: {0}".format(kegg.shape[0]))
 		keggDict = kegg.set_index('kegg_pathway_id').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(keggDict)
 		
 		interpro = selectAsDF("select entry_ac,entry_name from interpro",["entry_ac", "entry_name"],self.db)
-		logging.info("Interpro IDs: {0}".format(interpro.shape[0]))
+		logging.info("(OlegDB.fetchPathwayIdDescription) Interpro IDs: {0}".format(interpro.shape[0]))
 		interproDict = interpro.set_index('entry_ac').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(interproDict)
 
 		goa = selectAsDF("select go_id, name from go",["go_id", "name"],self.db)
-		logging.info("GO IDs: {0}".format(goa.shape[0]))
+		logging.info("(OlegDB.fetchPathwayIdDescription) GO IDs: {0}".format(goa.shape[0]))
 		goaDict = goa.set_index('go_id').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(goaDict)
 
 		ppi = selectAsDF("select protein_id, name from protein",["protein_id", "name"],self.db)
-		logging.info("Protein IDs: {0}".format(ppi.shape[0]))
+		logging.info("(OlegDB.fetchPathwayIdDescription) Protein IDs: {0}".format(ppi.shape[0]))
 		ppiDict = ppi.set_index('protein_id').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(ppiDict)
 		
 		mp = selectAsDF("select mp_term_id, name from mp_onto",["mp_term_id", "name"],self.db)
-		logging.info("MP IDs: {0}".format(mp.shape[0]))
+		logging.info("(OlegDB.fetchPathwayIdDescription) MP IDs: {0}".format(mp.shape[0]))
 		mpDict = mp.set_index('mp_term_id').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(mpDict)
 		return idNameDict
