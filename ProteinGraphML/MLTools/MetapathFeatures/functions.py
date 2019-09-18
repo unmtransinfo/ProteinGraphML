@@ -70,11 +70,17 @@ def singleHop(graph,nodes,trueP,falseP, idDescription, fh):
 	setA = set(edgeNodes)
 	setB = set(middleNodes)
 	for node in setA:
-		line = str(node) + ' : ' + idDescription[node] + '\n'
-		fh.write(line)
+		try:
+			line = str(node) + ' : ' + idDescription[node] + '\n'
+			fh.write(line)
+		except Exception as e:
+			logging.error('Node not found: {0}; {1}'.format(node, e))
 	for node in setB:
-		line = str(node) + ' : ' + idDescription[node] + '\n'
-		fh.write(line)
+		try:
+			line = str(node) + ' : ' + idDescription[node] + '\n'
+			fh.write(line)
+		except Exception as e:
+			logging.error('Node not found: {0}; {1}'.format(node, e))
 
 	#return listCompute({},falseP,trueP,middleNodes,edgeNodes)
 	UNIQUE_DISEASE = len(set(dataset.protein_m_id))
@@ -126,11 +132,17 @@ def computeType(graph,nodes,trueP,falseP,idDescription,fh):
 	setA = set(edgeNodeList)
 	setB = set(middleNodeList)
 	for node in setA:
-		line = str(node) + ' : ' + idDescription[node] + '\n'
-		fh.write(line)
+		try:
+			line = str(node) + ' : ' + idDescription[node] + '\n'
+			fh.write(line)
+		except Exception as e:
+			logging.error('Node not found: {0}; {1}'.format(node, e))
 	for node in setB:
-		line = str(node) + ' : ' + idDescription[node] + '\n'
-		fh.write(line)
+		try:
+			line = str(node) + ' : ' + idDescription[node] + '\n'
+			fh.write(line)
+		except Exception as e:
+			logging.error('Node not found: {0}; {1}'.format(node, e))
 	
 	return listCompute(newG,falseP,trueP,middleNodeList,edgeNodeList)
 

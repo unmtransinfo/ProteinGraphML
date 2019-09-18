@@ -5,6 +5,7 @@ import argparse
 import pandas as pd
 import pickle
 import networkx as nx
+from pony.orm import *
 
 logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s', level=logging.INFO)
 #logging.basicConfig(filename='ML_Example.log')
@@ -20,25 +21,27 @@ from ProteinGraphML.MLTools.MetapathFeatures import metapathFeatures,ProteinInte
 from ProteinGraphML.MLTools.MetapathFeatures import getMetapaths
 from ProteinGraphML.MLTools.Data import BinaryLabel
 from ProteinGraphML.MLTools.Models import XGBoostModel
-from ProteinGraphML.MLTools.Procedures import *
+from ProteinGraphML.MLTools.Procedures import * #XGBCrossVal
 
 t0 = time.time()
 
-# CANT FIND THIS DISEASE
+dbAdapter = OlegDB()
+
+# CANT FIND THIS DISEASE(?)
 # disease = "MP_0000180"
-
 disease = "MP_0000184"
-logging.info("disease: {0}".format(disease))
+with db_session:
+  dname = dbAdapter.db.get("SELECT name FROM mp_onto WHERE mp_term_id = '"+disease+"'")
+  logging.info("disease: {0}: \"{1}\"".format(disease, dname))
 
-graphName = None
 fileData = None
 
-graphName = "newCURRENT_GRAPH"
-# CANT FIND THIS GRAPH
-currentGraph = ProteinDiseaseAssociationGraph.load(graphName)
+pickleFile = "ProteinDisease_GRAPH.pickle"
+# CANT FIND THIS GRAPH(?)
+currentGraph = ProteinDiseaseAssociationGraph.load(pickleFile)
 
 # SOME DISEASES CAUSE "DIVIDE BY 0 error"
-logging.info("GRAPH LOADED: {0}".format(graphName))
+logging.info("GRAPH LOADED: {0}".format(pickleFile))
 
 nodes = [ProteinInteractionNode,KeggNode,ReactomeNode,GoNode,InterproNode]
 staticFeatures = [] # ALL OPTIONS HERE... ["gtex","lincs","hpa","ccle"]
@@ -55,7 +58,10 @@ else:
 
 d = BinaryLabel()
 d.loadData(trainData)
-XGBCrossVal(d)
+
+# PK sorry if this is wrong -- feel free to fix!
+idDescription = dbAdapter.fetchPathwayIdDescription()
+XGBCrossVal(d, idDescription)
 
 logging.info('{0}: elapsed time: {1}'.format(os.path.basename(sys.argv[0]), time.strftime('%Hh:%Mm:%Ss', time.gmtime(time.time()-t0))))
 
