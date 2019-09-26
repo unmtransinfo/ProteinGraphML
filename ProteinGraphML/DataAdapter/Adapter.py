@@ -275,3 +275,16 @@ class OlegDB(Adapter):
 		mpDict = mp.set_index('mp_term_id').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(mpDict)
 		return idNameDict
+
+
+	# the following function will be used to fetch the protein_id for the given symbols
+	def fetchProteinIdForSymbol(self, symbolList):
+		sql = "SELECT symbol, protein_id FROM protein WHERE symbol in ("
+		for symbol in symbolList[:-1]:
+			sql = sql + "'" + symbol + "'"+ ','
+		sql = sql + "'" + symbolList[-1] + "')"
+		#print (sql) 
+		symbolProtein = selectAsDF(sql,['symbol','protein_id'],self.db)
+		logging.info("(OlegDB.fetchProteinIdForSymbol) Protein ID for Symbol: {0}".format(symbolProtein.shape[0]))
+		symbolProteinIdDict = symbolProtein.set_index('symbol').T.to_dict('records')[0] #DataFrame to dictionary
+		return symbolProteinIdDict

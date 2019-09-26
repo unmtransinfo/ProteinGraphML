@@ -43,8 +43,8 @@ def load_obj(name):
 
 #importance = load_obj('firsty')
 
-importance = {'hsa01100': 0.31735258141642814, 'hsa04740': 0.2208299216149202, 'hsa05100': 0.1847905733996812, 'hsa04930': 0.10625980494746863, 'hsa04514': 0.047493659101048136, 'hsa04114': 0.03542724660274679, 'hsa04810': 0.03365848585388666, 'hsa04144': 0.030556051003490892}
-
+#importance = {'hsa01100': 0.31735258141642814, 'hsa04740': 0.2208299216149202, 'hsa05100': 0.1847905733996812, 'hsa04930': 0.10625980494746863, 'hsa04514': 0.047493659101048136, 'hsa04114': 0.03542724660274679, 'hsa04810': 0.03365848585388666, 'hsa04144': 0.030556051003490892}
+importance = {'9616': 2105.705294242928, '9408': 1222.0591658210526, 'IPR009057': 1288.9410799999998}
 
 #loadedObject
 labelMap = convertLabels(importance.keys(),dbAdapter,selectAsDF,type='plot')
@@ -66,9 +66,10 @@ AUC = 0.9
 if True:
 	currentGraph = ProteinDiseaseAssociationGraph.load("newCURRENT_GRAPH")
 
-# for the graph, we need the original importance
+# for the graph, we need the original importance 
 	for key in importance.keys():
-		Visualize((key,importance[key]),currentGraph.graph,"MP_0000180",dbAdapter=dbAdapter) #g,currentGraph.graph,Disease)
+		Visualize((key,importance[key]),currentGraph.graph,"1569365856",dbAdapter=dbAdapter) #g,currentGraph.graph,Disease)
+		
 		break
 
 print('STARTING FEAT VIS')

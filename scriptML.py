@@ -17,6 +17,7 @@ from ProteinGraphML.MLTools.Models import XGBoostModel
 from ProteinGraphML.MLTools.Procedures import *
 from ProteinGraphML.DataAdapter import OlegDB
 
+PROTEIN_COUNT = 20237 #Change it if needed
 parser = argparse.ArgumentParser(description='Run ML Procedure')
 
 ##parser.add_argument('disease', metavar='disease', type=str, nargs='+',
@@ -38,7 +39,7 @@ argData = vars(parser.parse_args())
 disease = argData['disease']
 file = argData['file']
 fileData = None
-path_to_rds_files = '/home/oleg/workspace/metap/data/input/' #IMPORTANT: change it if you have saved rds files in a different folder
+path_to_files = '/home/pkumar/ITDC/ProteinGraphML/DataForML/'  #IMPORTANT: change it if you have saved pkl files in a different folder
 
 if disease is None and file is None: # NO INPUT
 	print("disease or file must be specified")
@@ -49,20 +50,13 @@ if file is not None and disease is not None:
 	print("running on this disease",disease)
 
 if disease is None and file is not None: # NO disease, use file
-	print("loading from file! {0}".format(file))
-	filenames = next(os.walk(path_to_rds_files))[2]
-	flname = file + '.rds'
-	pklFile = file + '.pkl'
-	if (flname not in filenames):
-		print ('RDS file not found!!! Set the variable path_to_rds_files correctly')
-	else:
-		print ('Loading data from RDS file to craete a dictionary')
-		rdsdata = pyreadr.read_r(path_to_rds_files+flname)
-		fileData = {}
-		fileData[True] = set(np.where(rdsdata[None]['Y']=='pos')[0])
-		fileData[False] = set(np.where(rdsdata[None]['Y']=='neg')[0])
-		#with open(pklFile, 'wb') as handle:
-		#	pickle.dump(labels, handle, protocol=pickle.HIGHEST_PROTOCOL)
+	pklFile = path_to_files + file + '.pkl'
+	try:
+		with open(pklFile, 'rb') as f:
+			fileData = pickle.load(f)
+	except:
+		print ('Run generate_pkl_dict.py to generate the pickle dictionary file for the given disease')
+		exit()
     		
 	#def load_obj(name):
 	#with open(pklFile, 'rb') as f:
