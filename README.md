@@ -10,7 +10,9 @@ needs. Comes with machine learning models in Python.
 * [Database Integration](#Database)  
 * [Machine Learning](#MachineLearning)  
 * [Visualization](#Vis)  
-* [Pipeline to run script](#Pipeline)  
+* [Pipeline to run script](#Pipeline)
+* [Steps to run script](#Steps)
+
 
 
 ## <a name="Dependencies"/>Dependencies
@@ -94,3 +96,44 @@ Once you run this script, all you need to do is pickle the four csv files, and t
 
 
 This will auto load all of the static features and bind them to your data.
+
+## <a name="Steps"/>Steps to run ProteinGraphML codes:
+The codes of ProteinGraphML must be executed in the following order to avoid errors:
+
+__1. Build_Graph_Example.py:__  Run this program before running any other program as it generates a graph that is required to run ML codes.
+```
+python Build_Graph_Example.py
+```
+
+__2. generate_pkl_dict.py:__  This program generates a "pickle" dictionary that contains protein_ids for both class 'True' and 'False'. The "pickle" dictionary is needed if you are running ML codes for a disease that does not have MP_TERM_ID. Also, if you have symbols instead of protein_ids for a disease, this code fetches the corresponding protein_id for each symbol from the database and generates the "pickle" dictionary. This program needs 2 command line parameters -  'file' and 'symbol'. Parameter 'file' is used to specify the name of the file that contains protein_ids/symbols and labels for a given disease. Parameter 'symbol' is used to specify whether or not the file contains symbols. If the file contains symbols, the value of the parameter 'symbol' is set to Y, otherwise, N. If the file is a spreadsheet, the header should have "Protein_id	 Label " or "Symbol    Label". If the file is a text file, the Protein_id/symbol and  Label should be comma-separated. There should not be any header in the text file. If the file is an RDS file, the parameter 'symbol'  can be omitted. Use one of the following, to run this program.
+```
+python generate_pkl_dict.py --file filename.xlsx --symbol Y
+python generate_pkl_dict.py --file filename.xlsx --symbol N
+python generate_pkl_dict.py --file filename.txt --symbol Y
+python generate_pkl_dict.py --file filename.txt --symbol N
+python generate_pkl_dict.py --file RDS_file
+
+E.g.
+python generate_pkl_dict.py --file 125853
+python generate_pkl_dict.py --file diabetes.xlsx --symbol Y
+```
+
+__3. scriptML.py:__  This is the machine learning code that uses XGboost model to classify the data using 5-fold cross-validation. It also generates a list of important features used by the classification model. If a disease has MP_TERM_ID, run this program using parameter 'disease', otherwise, run using parameter 'file'. Also, use parameter 'XGBCrossValPred' if you want to use run 5-fold cross-validation for one iteration. Use parameter 'XGBCrossVal' if you want to run 5-fold cross-validation for multiple iterations. 
+```
+python scriptML.py XGBCrossValPred --file filename
+python scriptML.py XGBCrossVal --file filename
+python scriptML.py XGBCrossValPred --disease diseasename
+python scriptML.py XGBCrossVal --disease diseasename
+
+E.g. 
+python scriptML.py XGBCrossVal --file 144700
+python scriptML.py XGBCrossValPred --disease MP_0000180
+```
+
+__4. makeVis.py:__  This program generates HTML files containing JS/HTML codes for visualization. This program needs 2 command-line parameters: 'disease' and 'num'. Parameter 'num' represents the number of top important features that need to be selected. Parameter 'disease' is used for selecting a disease. If the disease is not present in the graph, this code will return an error. 
+```
+python3 makeVis.py --disease diseasename --num numberOfImportantFeatures
+
+E.g. 
+python makeVis.py --disease MP_0000180 --num 2
+```
