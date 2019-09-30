@@ -38,7 +38,9 @@ argData = vars(parser.parse_args())
 disease = argData['disease']
 file = argData['file']
 fileData = None
-path_to_files = '/home/pkumar/ITDC/ProteinGraphML/DataForML/'  #IMPORTANT: change it if you have saved pkl files in a different folder
+#path_to_files = '/home/pkumar/ITDC/ProteinGraphML/DataForML/'  #IMPORTANT: change it if you have saved pkl files in a different folder
+path_to_files = os.getcwd() + '/DataForML/'  #IMPORTANT: change it if you have saved pkl files in a different folder
+
 
 if disease is None and file is None: # NO INPUT
 	print("disease or file must be specified")

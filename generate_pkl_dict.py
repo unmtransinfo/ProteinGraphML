@@ -10,7 +10,7 @@ import numpy as np
 ##IMPORTANT: change these values according to your local machine.
 PROTEIN_COUNT = 20237 #Change it if needed
 path_to_rds_files = '/home/oleg/workspace/metap/data/input/' 
-path_to_files = '/home/pkumar/ITDC/ProteinGraphML/DataForML/' 
+path_to_files = os.getcwd() + '/DataForML/' 
 ########################################################################
 
 parser = argparse.ArgumentParser(description='Generate dictionary file using proteinIds')
