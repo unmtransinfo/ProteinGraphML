@@ -1,5 +1,4 @@
 
-
 # SAVED DATA 
 # WHERE TO SAVE 
 # TYPE, FIG OR GRAPH 
@@ -14,9 +13,10 @@ from ProteinGraphML.DataAdapter import OlegDB,selectAsDF
 from ProteinGraphML.GraphTools import ProteinDiseaseAssociationGraph
 
 import pickle
+import argparse
 ## we construct a base map of protein to disease just by creating the ProteinDiseaseAs
 
-#print('hehe')
+''''
 def featureVisualize(features,AUC,TITLE,count=20): 
     
 	plt.rcParams.update({'font.size': 15,'lines.linewidth': 1000}) #   axes.labelweight': 'bold'})
@@ -33,51 +33,49 @@ def featureVisualize(features,AUC,TITLE,count=20):
 	r.invert_yaxis()
 
 	r.figure.savefig(FILETITLE+'.png',bbox_inches='tight')
-
-
-dbAdapter = OlegDB()
+'''
 
 def load_obj(name):
-    with open('results/' + name + '.pkl', 'rb') as f:
+    with open(name, 'rb') as f:
         return pickle.load(f)
 
-#importance = load_obj('firsty')
+#Get the name of the disease
+parser = argparse.ArgumentParser(description='Run ML Procedure')
+parser.add_argument('--disease', metavar='disease', required=True, type=str, nargs='?',help='phenotype')
+parser.add_argument('--num', metavar='featureCount', required=True, type=str, nargs='?',help='Number of top features')
+argData = vars(parser.parse_args())
+diseaseName = argData['disease']
+numOfFeatures = int(argData['num'])
+print ('Running visualization using disease...{0}'.format(diseaseName))
+fileName = 'results/XGBFeatures/' + diseaseName + '.pkl' #IMPORTANT: update this if folder name changes
 
+#fetch the saved important features
+importance = load_obj(fileName)
+print (importance)
 #importance = {'hsa01100': 0.31735258141642814, 'hsa04740': 0.2208299216149202, 'hsa05100': 0.1847905733996812, 'hsa04930': 0.10625980494746863, 'hsa04514': 0.047493659101048136, 'hsa04114': 0.03542724660274679, 'hsa04810': 0.03365848585388666, 'hsa04144': 0.030556051003490892}
-importance = {'9616': 2105.705294242928, '9408': 1222.0591658210526, 'IPR009057': 1288.9410799999998}
 
-#loadedObject
+#access the database to get the description of important features
+dbAdapter = OlegDB()
 labelMap = convertLabels(importance.keys(),dbAdapter,selectAsDF,type='plot')
 
-print('HERE ARE LABELS')
-
-#importance = {'hsa01100': 0.31735258141642814, 'hsa04740': 0.2208299216149202, 'hsa05100': 0.1847905733996812, 'hsa04930': 0.10625980494746863, 'hsa04514': 0.047493659101048136, 'hsa04114': 0.03542724660274679, 'hsa04810': 0.03365848585388666, 'hsa04144': 0.030556051003490892}#{"MP_0000180":34,343:1.0,30001:0.3}
-#labelMap = convertLabels(importance.keys(),dbAdapter,selectAsDF,type='plot')
-#for value[key] in importance.values():
-
-newSet = {}
-for key in importance.keys():
-	newSet[labelMap[key]] = importance[key]
-
-
-AUC = 0.9
-#print(newSet,labelMap)
+print('Generate HTML files for visualization...!!!')
 
 if True:
 	currentGraph = ProteinDiseaseAssociationGraph.load("newCURRENT_GRAPH")
 
-# for the graph, we need the original importance 
-	for key in importance.keys():
-		Visualize((key,importance[key]),currentGraph.graph,"1569365856",dbAdapter=dbAdapter) #g,currentGraph.graph,Disease)
-		
-		break
+	# for the graph, we need the original importance 
+	for imp in importance.most_common(numOfFeatures):
+		print(imp)
+		Visualize(imp, currentGraph.graph, diseaseName, dbAdapter=dbAdapter) #g,currentGraph.graph,Disease)
+		#break
 
-print('STARTING FEAT VIS')
+#newSet = {}
+#for key in importance.keys():
+#	newSet[labelMap[key]] = importance[key]
 
-featureVisualize(Counter(newSet),AUC,"AAA")
+#print('STARTING FEAT VIS')
+#AUC = 0.9
+#print(newSet,labelMap)
+#featureVisualize(Counter(newSet),AUC,"AAA")
 #Visualize
-
-
-
-
 #convertLabels([343,30001],dbAdapter,selectAsDF,type="han")

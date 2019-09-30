@@ -17,7 +17,7 @@ from ProteinGraphML.MLTools.Models import XGBoostModel
 from ProteinGraphML.MLTools.Procedures import *
 from ProteinGraphML.DataAdapter import OlegDB
 
-PROTEIN_COUNT = 20237 #Change it if needed
+
 parser = argparse.ArgumentParser(description='Run ML Procedure')
 
 ##parser.add_argument('disease', metavar='disease', type=str, nargs='+',
@@ -28,7 +28,6 @@ parser.add_argument('procedure', metavar='procedure', type=str, nargs='+',
 parser.add_argument('--file', type=str, nargs='?', help='some help')
 parser.add_argument('--disease', metavar='disease', type=str, nargs='?',help='phenotype')
 #parser.add_argument('--disease', metavar='disease', type=str, nargs='?',help='phenotype')
-
 
 
 argData = vars(parser.parse_args())
@@ -44,13 +43,9 @@ path_to_files = '/home/pkumar/ITDC/ProteinGraphML/DataForML/'  #IMPORTANT: chang
 if disease is None and file is None: # NO INPUT
 	print("disease or file must be specified")
 	exit()
-
-if file is not None and disease is not None:
-	print("file and disease detected, will use disease string {0}".format(disease))
-	print("running on this disease",disease)
-
-if disease is None and file is not None: # NO disease, use file
+elif disease is None and file is not None: # NO disease, use file
 	pklFile = path_to_files + file + '.pkl'
+	diseaseName = file
 	try:
 		with open(pklFile, 'rb') as f:
 			fileData = pickle.load(f)
@@ -62,9 +57,14 @@ if disease is None and file is not None: # NO disease, use file
 	#with open(pklFile, 'rb') as f:
 	#	fileData = pickle.load(f)
 	#loadList = load_obj('nextDataset')
-
-if file is None:
+elif file is None and disease is not None:
 	print("running on this disease",disease)
+	diseaseName = disease
+else:
+	print ('Wrong parameters passed')
+#if file is not None and disease is not None:
+#	print("file and disease detected, will use disease string {0}".format(disease))
+#	print("running on this disease",disease)
 
 print("")
 DEFAULT_GRAPH = "newCURRENT_GRAPH"
@@ -106,7 +106,7 @@ d = BinaryLabel()
 d.loadData(trainData)
 #XGBCrossVal(d)
 #print('calling function...', locals()[Procedure])
-locals()[Procedure](d,idDescription)
+locals()[Procedure](d,idDescription,diseaseName)
 
 
 #print("FEATURES CREATED, STARTING ML")

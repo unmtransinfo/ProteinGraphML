@@ -329,7 +329,7 @@ class XGBoostModel(BaseModel):
 		roc,acc,mcc, CM,report = self.createResultObjects(testData,outputTypes,predictions) 
 				
 		#add the logic to find the imporant features -START
-		importance = clf.fit(testData.features,testData.labels).get_booster().get_score(importance_type='gain')
+		importance = Counter(clf.fit(testData.features,testData.labels).get_booster().get_score(importance_type='gain'))
 		#print (importance)
 		FINALDIR = 'results/{0}/featImportance.txt'.format(self.MODEL_RUN_NAME)
 		print("WRITE IMPORTANT FEATURES TO {0}".format(self.MODEL_RUN_NAME))
@@ -348,7 +348,7 @@ class XGBoostModel(BaseModel):
 				fo.write(line)
 		#add the logic to find the imporant features - END
 		
-		return roc,acc,mcc, CM,report
+		return roc,acc,mcc, CM,report,importance
 
 	def average_cross_val(self,testData,idDescription,outputTypes,folds=1,split=0.8,params={},cv=1):
 		# this function will take the average of metrics per fold... which is a random fold

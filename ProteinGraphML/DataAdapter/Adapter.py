@@ -245,32 +245,32 @@ class OlegDB(Adapter):
 	# the following function will be used to fetch the description of pathway
 	def fetchPathwayIdDescription(self):
 		idNameDict = {}
-		reactome = selectAsDF("select reactome_id, name from reactome",["reactome_id","name"],self.db)
+		reactome = selectAsDF("select distinct reactome_id, name from reactome",["reactome_id","name"],self.db)
 		logging.info("(OlegDB.fetchPathwayIdDescription) Reactome IDs: {0}".format(reactome.shape[0]))
 		reactomeDict = reactome.set_index('reactome_id').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(reactomeDict)
 		
-		kegg = selectAsDF("select kegg_pathway_id, kegg_pathway_name from kegg_pathway",["kegg_pathway_id", "kegg_pathway_name"],self.db)
+		kegg = selectAsDF("select distinct kegg_pathway_id, kegg_pathway_name from kegg_pathway",["kegg_pathway_id", "kegg_pathway_name"],self.db)
 		logging.info("(OlegDB.fetchPathwayIdDescription) KEGG pathway IDs: {0}".format(kegg.shape[0]))
 		keggDict = kegg.set_index('kegg_pathway_id').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(keggDict)
 		
-		interpro = selectAsDF("select entry_ac,entry_name from interpro",["entry_ac", "entry_name"],self.db)
+		interpro = selectAsDF("select distinct entry_ac,entry_name from interpro",["entry_ac", "entry_name"],self.db)
 		logging.info("(OlegDB.fetchPathwayIdDescription) Interpro IDs: {0}".format(interpro.shape[0]))
 		interproDict = interpro.set_index('entry_ac').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(interproDict)
 
-		goa = selectAsDF("select go_id, name from go",["go_id", "name"],self.db)
+		goa = selectAsDF("select distinct go_id, name from go",["go_id", "name"],self.db)
 		logging.info("(OlegDB.fetchPathwayIdDescription) GO IDs: {0}".format(goa.shape[0]))
 		goaDict = goa.set_index('go_id').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(goaDict)
 
-		ppi = selectAsDF("select protein_id, name from protein",["protein_id", "name"],self.db)
+		ppi = selectAsDF("select distinct protein_id, name from protein",["protein_id", "name"],self.db)
 		logging.info("(OlegDB.fetchPathwayIdDescription) Protein IDs: {0}".format(ppi.shape[0]))
 		ppiDict = ppi.set_index('protein_id').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(ppiDict)
 		
-		mp = selectAsDF("select mp_term_id, name from mp_onto",["mp_term_id", "name"],self.db)
+		mp = selectAsDF("select distinct mp_term_id, name from mp_onto",["mp_term_id", "name"],self.db)
 		logging.info("(OlegDB.fetchPathwayIdDescription) MP IDs: {0}".format(mp.shape[0]))
 		mpDict = mp.set_index('mp_term_id').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(mpDict)
