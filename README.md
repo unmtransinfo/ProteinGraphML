@@ -132,7 +132,7 @@ python scriptML.py XGBCrossValPred --disease MP_0000180
 
 __4. makeVis.py:__  This program generates HTML files containing JS/HTML codes for visualization. This program needs 2 command-line parameters: 'disease' and 'num'. Parameter 'num' represents the number of top important features that need to be selected. Parameter 'disease' is used for selecting a disease. If the disease is not present in the graph, this code will return an error. 
 ```
-python3 makeVis.py --disease diseasename --num numberOfImportantFeatures
+python makeVis.py --disease diseasename --num numberOfImportantFeatures
 
 E.g. 
 python makeVis.py --disease MP_0000180 --num 2
