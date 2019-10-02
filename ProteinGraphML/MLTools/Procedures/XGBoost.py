@@ -64,6 +64,8 @@ def saveImportantFeatures(importance, diseaseName):
 	'''
 	Save important features in a pickle dictionary
 	'''
-	featureFile = 'results/XGBFeatures/{0}.pkl'.format(diseaseName)
+	featureDir = 'results/XGBFeatures'
+	if not os.path.exists(featureDir): os.mkdir(featureDir) 
+	featureFile = featureDir + '/{0}'.format(diseaseName)
 	with open(featureFile, 'wb') as ff:
 		pickle.dump(importance, ff, pickle.HIGHEST_PROTOCOL)
