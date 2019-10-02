@@ -61,19 +61,19 @@ After a graph has been generated, you can run machine learning on a given set of
 labels, or on a given disease by using RunML.py.
 
 The script can be run as:<br>
-`python RunML.py <PROCEDURE> --disease <DISEASE STRING> | --file <FILE WITH LABELS>`<br>
+`RunML.py <PROCEDURE> --disease <DISEASE STRING> | --file <FILE WITH LABELS>`<br>
 
 
 This script will automatically generate a set of features... which you can expose to any "Procedure". These are machine learning functions which you can just add to <br>
 `ProteinGraphML/MLTools/Procedures/`<br>
 
 Then to run a given Procedure, in this case `XGBCrossValPred`, with a given disease exposed in graph we can use:<br>
-`$ python RunML.py XGBCrossValPred --disease MP_0000180`<br>
+`$ RunML.py XGBCrossValPred --disease MP_0000180`<br>
 (this will create features for MP_0000180, and then push that data to the procedure `XGBCrossValPred`)
 
 We can also use a file of labels as our input:
 For example:<br>
-`python RunML.py XGBCrossValPred --file exampleFile`
+`RunML.py XGBCrossValPred --file exampleFile`
 (the labels need to be in the form of a pickled dictionary)
 
 ## <a name="Vis"/>Visualization:
@@ -106,38 +106,38 @@ The codes of ProteinGraphML must be executed in the following order to avoid err
 
 __1. `BuildKG_OlegDb.py`:__  Run this program before running any other program as it generates a graph that is required to run ML codes.
 ```
-python BuildKG_OlegDb.py
+BuildKG_OlegDb.py
 ```
 
 __2. `PickleTrainingset.py`:__  This program generates a "pickle" dictionary that contains protein_ids for both class 'True' and 'False'. The "pickle" dictionary is needed if you are running ML codes for a disease that does not have MP_TERM_ID. Also, if you have symbols instead of protein_ids for a disease, this code fetches the corresponding protein_id for each symbol from the database and generates the "pickle" dictionary. This program needs 2 command line parameters -  'file' and 'symbol'. Parameter 'file' is used to specify the name of the file that contains protein_ids/symbols and labels for a given disease. Parameter 'symbol' is used to specify whether or not the file contains symbols. If the file contains symbols, the value of the parameter 'symbol' is set to Y, otherwise, N. If the file is a spreadsheet, the header should have "Protein_id	 Label " or "Symbol    Label". If the file is a text file, the Protein_id/symbol and  Label should be comma-separated. There should not be any header in the text file. If the file is an RDS file, the parameter 'symbol'  can be omitted. Use one of the following, to run this program.
 ```
-python PickleTrainingset.py --file filename.xlsx --symbol Y
-python PickleTrainingset.py --file filename.xlsx --symbol N
-python PickleTrainingset.py --file filename.txt --symbol Y
-python PickleTrainingset.py --file filename.txt --symbol N
-python PickleTrainingset.py --file RDS_file
+PickleTrainingset.py --file filename.xlsx --symbol Y
+PickleTrainingset.py --file filename.xlsx --symbol N
+PickleTrainingset.py --file filename.txt --symbol Y
+PickleTrainingset.py --file filename.txt --symbol N
+PickleTrainingset.py --file RDS_file
 
 E.g.
-python PickleTrainingset.py --file 125853
-python PickleTrainingset.py --file diabetes.xlsx --symbol Y
+PickleTrainingset.py --file 125853
+PickleTrainingset.py --file diabetes.xlsx --symbol Y
 ```
 
 __3. `RunML.py`:__  This is the machine learning code that uses XGboost model to classify the data using 5-fold cross-validation. It also generates a list of important features used by the classification model. If a disease has MP_TERM_ID, run this program using parameter 'disease', otherwise, run using parameter 'file'. Also, use parameter 'XGBCrossValPred' if you want to use run 5-fold cross-validation for one iteration. Use parameter 'XGBCrossVal' if you want to run 5-fold cross-validation for multiple iterations. 
 ```
-python RunML.py XGBCrossValPred --file filename
-python RunML.py XGBCrossVal --file filename
-python RunML.py XGBCrossValPred --disease diseasename
-python RunML.py XGBCrossVal --disease diseasename
+RunML.py XGBCrossValPred --file filename
+RunML.py XGBCrossVal --file filename
+RunML.py XGBCrossValPred --disease diseasename
+RunML.py XGBCrossVal --disease diseasename
 
 E.g. 
-python RunML.py XGBCrossVal --file 144700
-python RunML.py XGBCrossValPred --disease MP_0000180
+RunML.py XGBCrossVal --file 144700
+RunML.py XGBCrossValPred --disease MP_0000180
 ```
 
 __4. `MakeVis.py`:__  This program generates HTML files containing JS/HTML codes for visualization. This program needs 2 command-line parameters: 'disease' and 'num'. Parameter 'num' represents the number of top important features that need to be selected. Parameter 'disease' is used for selecting a disease. If the disease is not present in the graph, this code will return an error. 
 ```
-python MakeVis.py --disease diseasename --num numberOfImportantFeatures
+MakeVis.py --disease diseasename --num numberOfImportantFeatures
 
 E.g. 
-python MakeVis.py --disease MP_0000180 --num 2
+MakeVis.py --disease MP_0000180 --num 2
 ```

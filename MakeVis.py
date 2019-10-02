@@ -1,4 +1,5 @@
-
+#!/usr/bin/env python3
+###
 # SAVED DATA 
 # WHERE TO SAVE 
 # TYPE, FIG OR GRAPH 
