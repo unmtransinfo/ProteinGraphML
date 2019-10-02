@@ -109,28 +109,51 @@ __1. `BuildKG_OlegDb.py`:__  Run this program before running any other program a
 BuildKG_OlegDb.py
 ```
 
-__2. `PickleTrainingset.py`:__  This program generates a "pickle" dictionary that contains protein_ids for both class 'True' and 'False'. The "pickle" dictionary is needed if you are running ML codes for a disease that does not have MP_TERM_ID. Also, if you have symbols instead of protein_ids for a disease, this code fetches the corresponding protein_id for each symbol from the database and generates the "pickle" dictionary. This program needs 2 command line parameters -  'file' and 'symbol'. Parameter 'file' is used to specify the name of the file that contains protein_ids/symbols and labels for a given disease. Parameter 'symbol' is used to specify whether or not the file contains symbols. If the file contains symbols, the value of the parameter 'symbol' is set to Y, otherwise, N. If the file is a spreadsheet, the header should have "Protein_id	 Label " or "Symbol    Label". If the file is a text file, the Protein_id/symbol and  Label should be comma-separated. There should not be any header in the text file. If the file is an RDS file, the parameter 'symbol'  can be omitted. Use one of the following, to run this program.
+__2. `PickleTrainingset.py`:__	This program generates a "pickle" dictionary that
+contains protein_ids for both class 'True' and 'False'. The "pickle" dictionary is needed
+if you are running ML codes for a disease that does not have MP_TERM_ID. Also, if you
+have gene symbols instead of protein_ids for a disease, this code fetches the corresponding
+protein_id for each symbol from the database and generates the "pickle" dictionary.
+
+Command line parameters:
+
+* `--file` : File that contains protein_ids/symbols and labels for a given disease, with extension (.txt|.xlsx|.rds).  __Required.__
+* `--dir` : directory where data files are found (default: DataForML).
+* `--symbol_or_pid` : "symbol" or "pid" (default: symbol).
+
+If the file is a spreadsheet, the header should have "Protein_id Label" or "Symbol Label".
+If the file is a text file, the Protein_id/symbol and
+Label should be comma-separated. There should not be any header in the text file. If the
+file is an RDS file, the parameter 'symbol'  can be omitted. Use one of the following,
+to run this program.
+
 ```
-PickleTrainingset.py --file filename.xlsx --symbol Y
-PickleTrainingset.py --file filename.xlsx --symbol N
-PickleTrainingset.py --file filename.txt --symbol Y
-PickleTrainingset.py --file filename.txt --symbol N
-PickleTrainingset.py --file RDS_file
+PickleTrainingset.py --file filename.xlsx
+PickleTrainingset.py --file filename.txt
 
 E.g.
-PickleTrainingset.py --file 125853
-PickleTrainingset.py --file diabetes.xlsx --symbol Y
+PickleTrainingset.py --file diabetes_pid.txt --symbol_or_pid 'pid'
+PickleTrainingset.py --file 125853.rds
+PickleTrainingset.py --file diabetes.xlsx
 ```
 
-__3. `RunML.py`:__  This is the machine learning code that uses XGboost model to classify the data using 5-fold cross-validation. It also generates a list of important features used by the classification model. If a disease has MP_TERM_ID, run this program using parameter 'disease', otherwise, run using parameter 'file'. Also, use parameter 'XGBCrossValPred' if you want to use run 5-fold cross-validation for one iteration. Use parameter 'XGBCrossVal' if you want to run 5-fold cross-validation for multiple iterations. 
-```
-RunML.py XGBCrossValPred --file filename
-RunML.py XGBCrossVal --file filename
-RunML.py XGBCrossValPred --disease diseasename
-RunML.py XGBCrossVal --disease diseasename
+__3. `RunML.py`:__  This is the machine learning code that uses XGboost model
+to classify the data using 5-fold cross-validation. It also generates a list of
+important features used by the classification model.
+
+Command line parameters:
+
+* `--disease` : Use with Mammalian Phenotype ID, e.g. MP_0000180.
+* `--file` : Pickled training set file, produced by `PickleTrainingset.py`.
+* `procedure` (positional parameter):
+   * `XGBCrossValPred` :  5-fold cross-validation for one iteration.
+   * `XGBCrossVal` : 5-fold cross-validation for multiple iterations.
 
 E.g. 
-RunML.py XGBCrossVal --file 144700
+```
+RunML.py XGBCrossVal --file 144700.pkl
+RunML.py XGBCrossValPred --file 144700.pkl
+RunML.py XGBCrossVal --disease MP_0000180
 RunML.py XGBCrossValPred --disease MP_0000180
 ```
 

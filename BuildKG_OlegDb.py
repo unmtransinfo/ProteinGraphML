@@ -58,7 +58,7 @@ logging.info("GO nodes: %d"%(len(goNodes)))
 logging.info("INTERPRO nodes: %d"%(len(interNodes)))
 
 # Save graph in pickle format.
-picklefile="ProteinDisease_GRAPH.pickle"
+picklefile="ProteinDisease_GRAPH.pkl"
 logging.info("Saving pickled graph to: {0}".format(picklefile))
 pdg.save(picklefile)
 

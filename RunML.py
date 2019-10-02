@@ -19,16 +19,22 @@ from ProteinGraphML.MLTools.Models import XGBoostModel
 from ProteinGraphML.MLTools.Procedures import *
 from ProteinGraphML.DataAdapter import OlegDB
 
+#path_to_files = '/home/pkumar/ITDC/ProteinGraphML/DataForML/'  #IMPORTANT: change it if you have saved pkl files in a different folder
+path_to_files = os.getcwd() + '/DataForML/'  #IMPORTANT: change it if you have saved pkl files in a different folder
+
+#DEFAULT_GRAPH = "newCURRENT_GRAPH"
+DEFAULT_GRAPH = "ProteinDisease_GRAPH.pkl"
 
 parser = argparse.ArgumentParser(description='Run ML Procedure')
 
 ##parser.add_argument('disease', metavar='disease', type=str, nargs='+',
 # #                   help='phenotype')
 
-parser.add_argument('procedure', metavar='procedure', type=str, nargs='+',
-					help='ML to run')
-parser.add_argument('--file', type=str, nargs='?', help='some help')
-parser.add_argument('--disease', metavar='disease', type=str, nargs='?',help='phenotype')
+parser.add_argument('procedure', metavar='procedure', type=str, nargs='+', help='ML to run')
+parser.add_argument('--file', type=str, nargs='?', help='input file, pickled training set')
+parser.add_argument('--dir', default=path_to_files, help='input dir')
+parser.add_argument('--disease', metavar='disease', type=str, nargs='?', help='Mammalian Phenotype ID, e.g. MP_0000180')
+parser.add_argument('--kgfile', default=DEFAULT_GRAPH, help='input pickled KG')
 #parser.add_argument('--disease', metavar='disease', type=str, nargs='?',help='phenotype')
 
 
@@ -38,49 +44,44 @@ argData = vars(parser.parse_args())
 #print(argData['procedure'][0])
 
 disease = argData['disease']
-file = argData['file']
+fileName = argData['file']
 fileData = None
-#path_to_files = '/home/pkumar/ITDC/ProteinGraphML/DataForML/'  #IMPORTANT: change it if you have saved pkl files in a different folder
-path_to_files = os.getcwd() + '/DataForML/'  #IMPORTANT: change it if you have saved pkl files in a different folder
 
 
-if disease is None and file is None: # NO INPUT
-	print("disease or file must be specified")
+if disease is None and fileName is None: # NO INPUT
+	print("--disease or --file must be specified")
 	exit()
-elif disease is None and file is not None: # NO disease, use file
-	pklFile = path_to_files + file + '.pkl'
-	diseaseName = file
+elif disease is None and fileName is not None: # NO disease, use file
+	pklFile = argData['dir'] + fileName
+	diseaseName = fileName
 	try:
 		with open(pklFile, 'rb') as f:
 			fileData = pickle.load(f)
 	except:
-		print ('Run generate_pkl_dict.py to generate the pickle dictionary file for the given disease')
+		print ('ERROR: Must generate pickled training set file for the given disease')
 		exit()
     		
 	#def load_obj(name):
 	#with open(pklFile, 'rb') as f:
 	#	fileData = pickle.load(f)
 	#loadList = load_obj('nextDataset')
-elif file is None and disease is not None:
+elif fileName is None and disease is not None:
 	print("running on this disease",disease)
 	diseaseName = disease
 else:
 	print ('Wrong parameters passed')
-#if file is not None and disease is not None:
+#if fileName is not None and disease is not None:
 #	print("file and disease detected, will use disease string {0}".format(disease))
 #	print("running on this disease",disease)
 
 print("")
-DEFAULT_GRAPH = "newCURRENT_GRAPH"
 
 # CANT FIND THIS DISEASE
 #disease = sys.argv[1]
 Procedure = argData['procedure'][0]
 print('Procedure', Procedure)
 
-graphString = None
-
-graphString = DEFAULT_GRAPH
+graphString = argData['kgfile']
 
 
 # CANT FIND THIS GRAPH

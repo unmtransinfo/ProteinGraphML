@@ -17,9 +17,10 @@ path_to_files = os.getcwd() + '/DataForML/'
 
 parser = argparse.ArgumentParser(description='Generate dictionary file using proteinIds')
 parser.add_argument('--file', required=True, type=str, nargs='?', help='input file')
-parser.add_argument('--symbol', type=str, nargs='?', help='does file have symbol (Y/N)')
+parser.add_argument('--dir', default=path_to_files, help='input dir')
+parser.add_argument('--symbol_or_pid', choices=('symbol', 'pid'), default='symbol', help='symbol|pid')
 argData = vars(parser.parse_args())
-symbolPresent = argData['symbol']
+symbolPresent = argData['symbol_or_pid']=='symbol'
 fileName = argData['file']
 
 #Access the adaptor
@@ -36,11 +37,11 @@ if (fileName is None):
 	print ("Please provide the input filename")
 	exit()
 
-elif (fileName is not None and symbolPresent == 'Y'): #input file contains symbols
+elif (fileName is not None and argData['symbol_or_pid']=='symbol'): #input file contains symbols
 	print ('File name given and file has symbols....>>>')
 	if ('.xlsx' in fileName or '.xls' in fileName):
-		flpath = path_to_files + fileName
-		pklFile = path_to_files + fileName.split('.')[0] + '.pkl'
+		flpath = argData['dir'] + fileName
+		pklFile = argData['dir'] + fileName.split('.')[0] + '.pkl'
 		df = pd.read_excel(flpath, sheet_name='Sheet1') #change 'Sheet1' to the name in your spreadsheet
 		symbols = df['Symbol'].values.tolist()
 		symbolLabel = df.set_index('Symbol').T.to_dict('records')[0] #DataFrame to dictionary
@@ -57,14 +58,15 @@ elif (fileName is not None and symbolPresent == 'Y'): #input file contains symbo
 		
 		#save the dictionary in pickle format
 		with open(pklFile, 'wb') as handle:
+			print("Writing file: {0}".format(pklFile))
 			pickle.dump(fileData, handle, protocol=pickle.HIGHEST_PROTOCOL)
 		
 	elif ('.txt' in fileName):
 		symbolLabel = {}
 		symbols = []
 		
-		flpath = path_to_files + fileName
-		pklFile = path_to_files + fileName.split('.')[0] + '.pkl'
+		flpath = argData['dir'] + fileName
+		pklFile = argData['dir'] + fileName.split('.')[0] + '.pkl'
 		with open(flpath, 'r') as recs:
 			for rec in recs:
 				vals = rec.strip().split(',')
@@ -83,12 +85,13 @@ elif (fileName is not None and symbolPresent == 'Y'): #input file contains symbo
 		
 		#save the dictionary in pickle format
 		with open(pklFile, 'wb') as handle:
+			print("Writing file: {0}".format(pklFile))
 			pickle.dump(fileData, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 	else: #rds file
 		filenames = next(os.walk(path_to_rds_files))[2]
 		flname = fileName + '.rds'
-		pklFile = path_to_files + fileName + '.pkl'
+		pklFile = argData['dir'] + fileName + '.pkl'
 		if (flname not in filenames):
 			print ('RDS file not found!!!')
 			exit()
@@ -101,13 +104,14 @@ elif (fileName is not None and symbolPresent == 'Y'): #input file contains symbo
 
 			#save the dictionary in pickle format
 			with open(pklFile, 'wb') as handle:
+				print("Writing file: {0}".format(pklFile))
 				pickle.dump(fileData, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-elif (fileName is not None and symbolPresent == 'N'): #input file does not contain symbols
+elif (fileName is not None and argData['symbol_or_pid']=='pid'): #input file does not contain symbols
 	print ('File name provided and file has protein ids....>>>')
 	if ('.xlsx' in fileName or '.xls' in fileName):
-		flpath = path_to_files + fileName
-		pklFile = path_to_files + fileName.split('.')[0] + '.pkl'
+		flpath = argData['dir'] + fileName
+		pklFile = argData['dir'] + fileName.split('.')[0] + '.pkl'
 		df = pd.read_excel(flpath, sheet_name='Sheet1')	#change 'Sheet1' to the name in your spreadsheet
 		proteinIdLabel = df.set_index('Protein_id').T.to_dict('records')[0] #DataFrame to dictionary
 		
@@ -122,12 +126,13 @@ elif (fileName is not None and symbolPresent == 'N'): #input file does not conta
 		
 		#save the dictionary in pickle format
 		with open(pklFile, 'wb') as handle:
+			print("Writing file: {0}".format(pklFile))
 			pickle.dump(fileData, handle, protocol=pickle.HIGHEST_PROTOCOL)
 		
 	elif ('.txt' in fileName):
 		proteinIdLabel = {}
-		flpath = path_to_files + fileName
-		pklFile = path_to_files + fileName.split('.')[0] + '.pkl'
+		flpath = argData['dir'] + fileName
+		pklFile = argData['dir'] + fileName.split('.')[0] + '.pkl'
 		
 		with open(flpath, 'r') as recs:
 			for rec in recs:
@@ -145,43 +150,48 @@ elif (fileName is not None and symbolPresent == 'N'): #input file does not conta
 		
 		#save the dictionary in pickle format
 		with open(pklFile, 'wb') as handle:
+			print("Writing file: {0}".format(pklFile))
 			pickle.dump(fileData, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-	else:
+	elif ('.rds' in fileName):
 		filenames = next(os.walk(path_to_rds_files))[2]
-		flname = fileName + '.rds'
-		pklFile = path_to_files + fileName + '.pkl'
-		if (flname not in filenames):
+		pklFile = argData['dir'] + fileName + '.pkl'
+		if (fileName not in filenames):
 			print ('RDS file not found!!! ')
 			exit()
 		else:
 			print ('Loading data from RDS file to craete a dictionary')
-			rdsdata = pyreadr.read_r(path_to_rds_files+flname)
+			rdsdata = pyreadr.read_r(path_to_rds_files+fileName)
 			fileData[True] = set(np.where(rdsdata[None]['Y']=='pos')[0])
 			fileData[False] = set(np.where(rdsdata[None]['Y']=='neg')[0])
 			print ('Count of positive labels: {0}, count of negative labels: {1}'. format(len(fileData[True]), len(fileData[False])))
 				
 			#save the dictionary in pickle format
 			with open(pklFile, 'wb') as handle:
+				print("Writing file: {0}".format(pklFile))
 				pickle.dump(fileData, handle, protocol=pickle.HIGHEST_PROTOCOL)				
+	else:
+		print ('File extension unknown.')
+		exit()
 	
-elif (fileName is not None and symbolPresent is None): #input file is an RDS file
-	print ('Onlye file name provided....>>>')
+elif (fileName is not None and '.rds' in fileName): #input file is an RDS file
+	
+	print ('Only file name provided....>>>')
 	filenames = next(os.walk(path_to_rds_files))[2]
-	flname = fileName + '.rds'
-	pklFile = path_to_files + fileName + '.pkl'
-	if (flname not in filenames):
+	pklFile = argData['dir'] + fileName + '.pkl'
+	if (fileName not in filenames):
 		print ('RDS file not found!!! ')
 		exit()
 	else:
 		print ('Loading data from RDS file to craete a dictionary')
-		rdsdata = pyreadr.read_r(path_to_rds_files+flname)
+		rdsdata = pyreadr.read_r(path_to_rds_files+fileName)
 		fileData[True] = set(np.where(rdsdata[None]['Y']=='pos')[0])
 		fileData[False] = set(np.where(rdsdata[None]['Y']=='neg')[0])
 		print ('Count of positive labels: {0}, count of negative labels: {1}'. format(len(fileData[True]), len(fileData[False])))
 		
 		#save the dictionary in pickle format
 		with open(pklFile, 'wb') as handle:
+			print("Writing file: {0}".format(pklFile))
 			pickle.dump(fileData, handle, protocol=pickle.HIGHEST_PROTOCOL)
 				
 else:
