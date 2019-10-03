@@ -89,7 +89,8 @@ currentGraph = ProteinDiseaseAssociationGraph.load(graphString)
 print("GRAPH {0} LOADED".format(graphString))
 
 nodes = [ProteinInteractionNode,KeggNode,ReactomeNode,GoNode,InterproNode]
-staticFeatures = []
+#staticFeatures = []
+staticFeatures = ["gtex", "lincs", "ccle", "hpa"]
 
 print("--- USING {0} METAPATH FEATURE SETS".format(len(nodes)))
 print("--- USING {0} STATIC FEATURE SETS".format(len(staticFeatures)))

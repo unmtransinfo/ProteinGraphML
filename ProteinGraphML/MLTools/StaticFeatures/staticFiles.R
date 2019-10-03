@@ -1,6 +1,19 @@
+#!/usr/bin/env Rscript
+###
 library(data.table)
 library(RPostgreSQL)
 library(Matrix)
+
+getmode <- function(v) {
+  uniqv <- unique(v)
+  uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+
+replace_na <- function(DT, ind, replacement) {
+  for(j in ind){
+    set(DT, i = which(is.na(DT[[j]])), j = j, value = replacement)
+  }
+}
 
 scale.data.table <- function(dt) {
   col.names <- colnames(dt)[2:ncol(dt)]
@@ -27,9 +40,15 @@ scale.data.table(ccle)
 write.csv(ccle, file = "ccle.csv")
 
 
+lincs <- dbGetQuery(conn, "select protein_id,pert_id||':'||cell_id as col_id,zscore from lincs")
+setDT(lincs)
+lincs <- dcast(lincs, protein_id ~ col_id, fun.aggregate = median, value.var = "zscore", drop = T, fill = 0)
+scale.data.table(lincs)
+write.csv(lincs,file='lincs.csv')
+
+
 hpa <- dbGetQuery(conn, "select protein_id, tissue||'.'||cell_type as col_id,level from hpa_norm_tissue where reliability in ('supported','approved')")
 setDT(hpa)
-
 hpa$level <- factor(hpa$level, levels = c("not detected", "low", "medium", "high"), ordered = F)
 hpa <- unique(hpa)
 hpa[, col_id := gsub(" ", "_", col_id, fixed = T)]
@@ -41,15 +60,4 @@ replace_na(hpa, 2:ncol(hpa), "not detected")
 hpa.sparse.matrix <- sparse.model.matrix(~.-1, data = hpa)
 hpa <- as.data.table(as.matrix(hpa.sparse.matrix), keep.rownames = F)
 write.csv(hpa,file='hpa.csv')
-
-
-
-lincs <- dbGetQuery(conn, "select protein_id,pert_id||':'||cell_id as col_id,zscore from lincs")
-setDT(lincs)
-lincs <- dcast(lincs, protein_id ~ col_id, fun.aggregate = median, value.var = "zscore", drop = T, fill = 0)
-scale.data.table(lincs)
-write.csv(lincs,file='lincs.csv')
-
-
-
 
