@@ -41,17 +41,19 @@ def load_obj(name):
         return pickle.load(f)
 
 #Get the name of the disease
+dataDir = 'results/XGBFeatures/'
 parser = argparse.ArgumentParser(description='Run ML Procedure')
-parser.add_argument('--disease', metavar='disease', required=True, type=str, nargs='?',help='phenotype')
-parser.add_argument('--num', metavar='featureCount', required=True, type=str, nargs='?',help='Number of top features')
+parser.add_argument('--disease', metavar='disease', required=True, type=str, nargs='?', help='pickled file with ML features')
+parser.add_argument('--dir', default=dataDir, help='input dir')
+parser.add_argument('--num', metavar='featureCount', required=True, type=int, nargs='?',help='Number of top features')
 argData = vars(parser.parse_args())
-diseaseName = argData['disease']
-numOfFeatures = int(argData['num'])
-print ('Running visualization using disease...{0}'.format(diseaseName))
-fileName = 'results/XGBFeatures/' + diseaseName + '.pkl' #IMPORTANT: update this if folder name changes
+fileName = argData['disease']
+numOfFeatures = argData['num']
+print ('Running visualization using disease...{0}'.format(fileName))
+filePath = argData['dir'] + fileName #IMPORTANT: update this if folder name changes
 
 #fetch the saved important features
-importance = load_obj(fileName)
+importance = load_obj(filePath)
 print (importance)
 #importance = {'hsa01100': 0.31735258141642814, 'hsa04740': 0.2208299216149202, 'hsa05100': 0.1847905733996812, 'hsa04930': 0.10625980494746863, 'hsa04514': 0.047493659101048136, 'hsa04114': 0.03542724660274679, 'hsa04810': 0.03365848585388666, 'hsa04144': 0.030556051003490892}
 
@@ -67,7 +69,7 @@ if True:
 	# for the graph, we need the original importance 
 	for imp in importance.most_common(numOfFeatures):
 		print(imp)
-		Visualize(imp, currentGraph.graph, diseaseName, dbAdapter=dbAdapter) #g,currentGraph.graph,Disease)
+		Visualize(imp, currentGraph.graph, fileName, dbAdapter=dbAdapter) #g,currentGraph.graph,Disease)
 		#break
 
 #newSet = {}

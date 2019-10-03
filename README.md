@@ -104,7 +104,10 @@ This will auto load all of the static features and bind them to your data.
 ## <a name="Steps"/>Steps to run ProteinGraphML codes:
 The codes of ProteinGraphML must be executed in the following order to avoid errors:
 
-__1. `BuildKG_OlegDb.py`:__  Run this program before running any other program as it generates a graph that is required to run ML codes.
+__1. `BuildKG_OlegDb.py`:__  Run first, to generate a knowledge graph required to run ML codes.
+
+___KG produced may be re-used for multiple ML models. Re-run only required if database updated.___
+
 ```
 BuildKG_OlegDb.py
 ```
@@ -117,7 +120,7 @@ protein_id for each symbol from the database and generates the "pickle" dictiona
 
 Command line parameters:
 
-* `--file` : File that contains protein_ids/symbols and labels for a given disease, with extension (.txt|.xlsx|.rds).  __Required.__
+* `--file` : File that contains protein_ids/symbols and labels for a given disease, with extension (.txt|.xlsx|.rds).
 * `--dir` : directory where data files are found (default: DataForML).
 * `--symbol_or_pid` : "symbol" or "pid" (default: symbol).
 
@@ -143,11 +146,11 @@ important features used by the classification model.
 
 Command line parameters:
 
-* `--disease` : Use with Mammalian Phenotype ID, e.g. MP_0000180.
-* `--file` : Pickled training set file, produced by `PickleTrainingset.py`.
 * `procedure` (positional parameter):
    * `XGBCrossValPred` :  5-fold cross-validation for one iteration.
    * `XGBCrossVal` : 5-fold cross-validation for multiple iterations.
+* `--disease` : Use with Mammalian Phenotype ID, e.g. MP_0000180.
+* `--file` : Pickled training set file, produced by `PickleTrainingset.py`.
 
 E.g. 
 ```
@@ -157,10 +160,16 @@ RunML.py XGBCrossVal --disease MP_0000180
 RunML.py XGBCrossValPred --disease MP_0000180
 ```
 
-__4. `MakeVis.py`:__  This program generates HTML files containing JS/HTML codes for visualization. This program needs 2 command-line parameters: 'disease' and 'num'. Parameter 'num' represents the number of top important features that need to be selected. Parameter 'disease' is used for selecting a disease. If the disease is not present in the graph, this code will return an error. 
-```
-MakeVis.py --disease diseasename --num numberOfImportantFeatures
+__4. `MakeVis.py`:__  Generates HTML/JS files for visualization, via web browser.
+
+Command-line parameters:
+
+* `--disease` pickled features file produced by `RunML.py`, e.g. diabetes.pkl.
+* `--dir` : dir containing file (default: results/XGBFeatures/).
+* `--num` : number of top important features selected.
 
 E.g. 
-MakeVis.py --disease MP_0000180 --num 2
+
+```
+MakeVis.py --disease MP_0000180.pkl --num 2
 ```
