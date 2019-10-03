@@ -9,6 +9,12 @@ getmode <- function(v) {
   uniqv[which.max(tabulate(match(v, uniqv)))]
 }
 
+replace_na <- function(DT, ind, replacement) {
+  for(j in ind){
+    set(DT, i = which(is.na(DT[[j]])), j = j, value = replacement)
+  }
+}
+
 scale.data.table <- function(dt) {
   col.names <- colnames(dt)[2:ncol(dt)]
   dt[, (col.names) := lapply(.SD, scale), .SDcols=col.names]
