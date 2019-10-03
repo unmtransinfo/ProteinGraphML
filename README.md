@@ -21,13 +21,9 @@ needs. Comes with machine learning models in Python.
 *  PostgreSQL database `metap` accessible.
 
 
-NOTE: to begin add your DB creds to the DBcreds.yaml file, without a database you
-cannot run the 'BuildKG_OlegDb.py' code.
+To begin add your DB creds to the DBcreds.yaml file, to access database.
 
 That will build a graph on which metapath ML features are created
-
-You can use the ML Example notebook with just a graph, but you will need to generate it before hand
-
 
 
 ## <a name="Background"/>Background:
