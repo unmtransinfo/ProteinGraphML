@@ -8,6 +8,7 @@
 
 from ProteinGraphML.MLTools.Models import XGBoostModel
 import pickle
+import os
 CROSSVAL = 5
 
 def TEST(dataObject):
