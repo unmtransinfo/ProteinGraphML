@@ -1,5 +1,5 @@
+import os,time
 import networkx as nx
-import time
 
 
 from ProteinGraphML.Analysis.featureLabel import convertLabels
@@ -275,13 +275,15 @@ cy.layout(options).run();
 </script>
 	"""
 
-	fileString = "results/graphs/{0}{1}{2}.html".format(str(firstFeature[0]),str(int(time.time())),disease)
-	text_file = open(fileString, "w")
+	outDir = "results/graphs"
+	if not os.path.exists(outDir):
+		os.mkdir(outDir)
+	filePath = outDir + "/{0}{1}{2}.html".format(str(firstFeature[0]),str(int(time.time())),disease)
+	text_file = open(filePath, "w")
 	text_file.write(header+dataOut+footer)
 	text_file.close()
+	print("Output visualization file: {0}".format(filePath))
 
 	#print(header+dataOut+footer)
-
-
 
 

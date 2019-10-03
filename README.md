@@ -151,6 +151,7 @@ Command line parameters:
    * `XGBCrossVal` : 5-fold cross-validation for multiple iterations.
 * `--disease` : Use with Mammalian Phenotype ID, e.g. MP_0000180.
 * `--file` : Pickled training set file, produced by `PickleTrainingset.py`.
+* `--kgfile` : Pickled KG file, produced by `BuildKG_OlegDb.py` (default: ProteinDisease_GRAPH.pkl).
 
 E.g. 
 ```
@@ -167,6 +168,7 @@ Command-line parameters:
 * `--disease` pickled features file produced by `RunML.py`, e.g. diabetes.pkl.
 * `--dir` : dir containing file (default: results/XGBFeatures/).
 * `--num` : number of top important features selected.
+* `--kgfile` : Pickled KG file, produced by `BuildKG_OlegDb.py` (default: ProteinDisease_GRAPH.pkl).
 
 E.g. 
 

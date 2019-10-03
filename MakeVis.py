@@ -42,10 +42,12 @@ def load_obj(name):
 
 #Get the name of the disease
 dataDir = 'results/XGBFeatures/'
+DEFAULT_GRAPH = "ProteinDisease_GRAPH.pkl"
 parser = argparse.ArgumentParser(description='Run ML Procedure')
 parser.add_argument('--disease', metavar='disease', required=True, type=str, nargs='?', help='pickled file with ML features')
 parser.add_argument('--dir', default=dataDir, help='input dir')
 parser.add_argument('--num', metavar='featureCount', required=True, type=int, nargs='?',help='Number of top features')
+parser.add_argument('--kgfile', default=DEFAULT_GRAPH, help='input pickled KG')
 argData = vars(parser.parse_args())
 fileName = argData['disease']
 numOfFeatures = argData['num']
@@ -64,7 +66,7 @@ labelMap = convertLabels(importance.keys(),dbAdapter,selectAsDF,type='plot')
 print('Generate HTML files for visualization...!!!')
 
 if True:
-	currentGraph = ProteinDiseaseAssociationGraph.load("newCURRENT_GRAPH")
+	currentGraph = ProteinDiseaseAssociationGraph.load(argData['kgfile'])
 
 	# for the graph, we need the original importance 
 	for imp in importance.most_common(numOfFeatures):
