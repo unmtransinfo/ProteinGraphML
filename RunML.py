@@ -19,7 +19,6 @@ from ProteinGraphML.MLTools.Models import XGBoostModel
 from ProteinGraphML.MLTools.Procedures import *
 from ProteinGraphML.DataAdapter import OlegDB
 
-#path_to_files = '/home/pkumar/ITDC/ProteinGraphML/DataForML/'  #IMPORTANT: change it if you have saved pkl files in a different folder
 path_to_files = os.getcwd() + '/DataForML/'  #IMPORTANT: change it if you have saved pkl files in a different folder
 
 #DEFAULT_GRAPH = "newCURRENT_GRAPH"
