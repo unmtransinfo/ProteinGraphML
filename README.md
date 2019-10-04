@@ -100,16 +100,18 @@ PickleTrainingset.py --file diabetes.xlsx
 and executes specified ML procedure.  The procedure `XGBCrossVal` uses
 XGBoost, trains a model, with cross-validation and grid-search parameter optimization,
 generates a list of important features used by the classification model,
-and generates results for predictions on all proteins.  
+and generates results for predictions on all proteins. Metapath-based features
+must be generated for each model (unlike static features), since how metapath 
+semantic patterns match the KG depends on the query disease.
 
 Command line parameters:
 
 * `procedure` (positional parameter):
-   * `XGBCrossValPred` :  5-fold cross-validation for one iteration.
-   * `XGBCrossVal` : 5-fold cross-validation for multiple iterations.
+   * `XGBCrossValPred` :  5-fold cross-validation, one iteration.
+   * `XGBCrossVal` : 5-fold cross-validation, multiple iterations.
 * `--disease` : Use with Mammalian Phenotype ID, e.g. MP_0000180.
-* `--file` : Pickled training set file, produced by `PickleTrainingset.py`.
-* `--kgfile` : Pickled KG file, produced by `BuildKG_OlegDb.py` (default: ProteinDisease_GRAPH.pkl).
+* `--file` : Training set file, produced by `PickleTrainingset.py`.
+* `--kgfile` : KG file, produced by `BuildKG_OlegDb.py` (default: ProteinDisease_GRAPH.pkl).
 
 Example commands:
 
