@@ -279,7 +279,7 @@ class OlegDB(Adapter):
 
 	# the following function will be used to fetch the protein_id for the given symbols
 	def fetchProteinIdForSymbol(self, symbolList):
-		sql = "SELECT symbol, protein_id FROM protein WHERE symbol in ("
+		sql = "SELECT distinct symbol, protein_id FROM protein WHERE symbol in ("
 		for symbol in symbolList[:-1]:
 			sql = sql + "'" + symbol + "'"+ ','
 		sql = sql + "'" + symbolList[-1] + "')"
@@ -288,6 +288,12 @@ class OlegDB(Adapter):
 		logging.info("(OlegDB.fetchProteinIdForSymbol) Protein ID for Symbol: {0}".format(symbolProtein.shape[0]))
 		symbolProteinIdDict = symbolProtein.set_index('symbol').T.to_dict('records')[0] #DataFrame to dictionary
 		return symbolProteinIdDict
+	
+	def fetchAllProteinIds(self):
+		#Fetch protein_ids for tax_id 9606. 
+		allProteinIds = selectAsDF("select distinct protein_id from protein where tax_id=9606",['protein_id'],self.db)
+		logging.info("(OlegDB.fetchAllProteinIds) All Protein Ids: {0}".format(allProteinIds.shape[0]))
+		return allProteinIds
 
 
 	# the following function will be used to fetch symbol, name, and species for given protein_id 

@@ -297,6 +297,15 @@ class XGBoostModel(BaseModel):
 
 		return self.createResultObjects(testData,outputTypes,predictions)		
 
+	def predict_using_saved_model(self, testData, idDescription, idNameSymbol, outputTypes):
+		inputData = xgb.DMatrix(testData.features)
+		bst = xgb.Booster()
+		bst.load_model('0001.model')
+		predictions = bst.predict(inputData)
+		roc,acc,mcc = self.createResultObjects(testData,outputTypes,predictions)
+		self.savePredictedProbability(self.MODEL_RUN_NAME, testData, predictions, idDescription, idNameSymbol, "TEST")
+		return roc,acc,mcc
+
 	#def cross_val_predict(self,testData,outputTypes):
 	def cross_val_predict(self,testData,idDescription,idNameSymbol,outputTypes,params={},cv=1):
 		#print (params,cv)
@@ -331,7 +340,7 @@ class XGBoostModel(BaseModel):
 		self.saveImportantFeatures(self.MODEL_RUN_NAME, importance, idDescription)
 		
 		#save predicted class 1 probabilty in a text file
-		self.savePredictedProbability(self.MODEL_RUN_NAME, testData, predictions, idDescription, idNameSymbol)
+		self.savePredictedProbability(self.MODEL_RUN_NAME, testData, predictions, idDescription, idNameSymbol, "TRAIN")
 		return roc,acc,mcc, CM,report,importance
  
 
@@ -418,7 +427,7 @@ class XGBoostModel(BaseModel):
 		
 		self.saveImportantFeatures(DIR, importance, idDescription) #save important features
 		#print (avgPredictedProb)
-		self.savePredictedProbability(DIR, testData, avgPredictedProb, idDescription, idNameSymbol) #save predicted probabilities
+		self.savePredictedProbability(DIR, testData, avgPredictedProb, idDescription, idNameSymbol, "TRAIN") #save predicted probabilities
 		#with open(FINALDIR, 'wb') as f:
 		#	pickle.dump(importance, f, pickle.HIGHEST_PROTOCOL)
 		
@@ -493,13 +502,18 @@ class XGBoostModel(BaseModel):
 
 
 	#save predicted probability
-	def savePredictedProbability(self, resultsFolder, testData, predictions, idDescription, idNameSymbol):
+	def savePredictedProbability(self, resultsFolder, testData, predictions, idDescription, idNameSymbol, DataType):
 		'''
 		This function will save true labels and predicted class 1 probability of all protein ids.
 		'''
-		
-		TrueLabels = testData.labels.tolist()
+		TrueLabels = []
 		proteinIds = list(testData.labels.index.values)
+		if (DataType == "TEST"):
+			for p in proteinIds:
+				TrueLabels.append('')
+		else:
+			TrueLabels = testData.labels.tolist()
+			
 		#print (TrueLabels)
 		#print (proteinIds)
 		dataForDataframe = {'Protein Id':[], 'Symbol':[], 'Name':[], 'True Label':[], 'Predicted Probability':[]}
@@ -512,6 +526,7 @@ class XGBoostModel(BaseModel):
 			dataForDataframe['Predicted Probability'].append(predictions[i])
 			i+=1
 		df = pd.DataFrame(dataForDataframe)
+		
 		resultsFileTsv = 'results/{0}/classificationResults.tsv'.format(resultsFolder)
 		fout = open(resultsFileTsv, "w")
 		df.to_csv(fout, '\t', index=False)

@@ -65,6 +65,13 @@ def XGBCrossVal(dataObject, idDescription, idNameSymbol, diseaseName):
 	#	Visualize(g,currentGraph.graph,disease)
 
 
+def XGBPredict(dataObject, idDescription, idNameSymbol, diseaseName):
+	newModel = XGBoostModel("XGBPredict")
+	roc,acc,mcc = newModel.predict_using_saved_model(dataObject, idDescription, idNameSymbol, ["roc","acc", "mcc"])  
+	print("AUCROC --- {0}".format(roc.data))
+	print("Accuracy --- {0}".format(acc.data))
+	print("MCC --- {0}".format(mcc.data))
+
 
 def saveImportantFeaturesAsPickle(importance, diseaseName):
 	'''
