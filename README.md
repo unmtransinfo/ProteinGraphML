@@ -25,7 +25,7 @@ XGBoost is used to generate and optimize a predictive model.
 * Python 3.4+
 * Python packages: `xgboost`, `scikit-learn`, `networkx`, `pandas`, `pony`, `matplotlib`
 * PostgreSQL database `metap`.
-   * Edit `DBcreds.yaml` with valid db credentials. Database access is needed throughout the workflow.
+   * Edit `DBcreds.yaml` with valid db credentials. Needed throughout workflow.
 
 ## <a name="Howto"/>How to run the Workflow:
 
@@ -37,7 +37,7 @@ multiple ML models. Re-run only required if database updated.
 
 `BuildKG_OlegDb.py`, from the relational db, generates a knowledge graph,
 a `ProteinDiseaseAssociationGraph`, saved as a pickled `networkX` graph. 
-Via the adaptor and [`pony`]((https://docs.ponyorm.org/api_reference.html#api-reference)
+Via the adaptor and [`pony`](https://docs.ponyorm.org)
 object-relational model (ORM), nodes and edges are queried from the db to comprise the
 graph.
 
@@ -88,6 +88,7 @@ to run this program.
 Example commands:
 
 ```
+PickleTrainingset.py -h
 PickleTrainingset.py --file diabetes_pid.txt --symbol_or_pid 'pid'
 PickleTrainingset.py --file 125853.rds
 PickleTrainingset.py --file diabetes.xlsx
@@ -113,6 +114,7 @@ Command line parameters:
 Example commands:
 
 ```
+RunML.py -h
 RunML.py XGBCrossVal --file 144700.pkl
 RunML.py XGBCrossValPred --file 144700.pkl
 RunML.py XGBCrossVal --disease MP_0000180
@@ -141,7 +143,7 @@ Command-line parameters:
 * `--num` : number of top important features selected.
 * `--kgfile` : Pickled KG file, produced by `BuildKG_OlegDb.py` (default: ProteinDisease_GRAPH.pkl).
 
-E.g.
+Example command:
 
 ```
 MakeVis.py --disease MP_0000180.pkl --num 2
@@ -150,7 +152,9 @@ MakeVis.py --disease MP_0000180.pkl --num 2
 ## <a name="Notes"/>Notes
 
 * The code currently assumes that all nodes are unique, that proteins are integer IDs, and the only ints in the graph. 
-* New data sources can be supported via adding new Adapter class in `ProteinGraphML/DataAdapter/`.
-* New machine learning procedures may be added to `ProteinGraphML/MLTools/Procedures/`.
+* New data sources can be supported by adding new Adapter class in `ProteinGraphML/DataAdapter/`.
+* New ML procedures may be added to `ProteinGraphML/MLTools/Procedures/`.
+
+Workflow diagram:
 
 > <img src="MetapathDiagram.png" height="400">
