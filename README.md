@@ -12,8 +12,11 @@ XGBoost is used to generate and optimize a predictive model.
 
 * [Dependencies](#Dependencies)
 * [How to Run Workflow](#Howto)
-* [Visualization](#Vis)  
-
+   * [Build KG](#HowtoBuildKG)  
+   * [Static Features](#HowtoStaticFeatures)  
+   * [Pickle Training Set](#HowtoPickleTrainingset)  
+   * [Run ML Procedure](#HowtoRunML)  
+   * [Visualization](#HowtoVis)  
 
 ## <a name="Dependencies"/>Dependencies
 
@@ -29,7 +32,8 @@ The command-line programs of ProteinGraphML must be executed in the following or
 However, the __BuildKG__ and __StaticFeatures__ are one-time steps, re-useable for
 multiple ML models. Re-run only required if database updated.
 
-### Build KG
+
+### <a name="HowtoBuildKG"/>Build KG
 
 `BuildKG_OlegDb.py`, from the relational db, generates a knowledge graph,
 saved as a pickled `networkX` graph.  Via the adaptor and `pony` object-relational model
@@ -39,14 +43,16 @@ saved as a pickled `networkX` graph.  Via the adaptor and `pony` object-relation
 BuildKG_OlegDb.py
 ```
 
-### Static Features
+
+### <a name="HowtoStaticFeatures"/>Static Features
 
 To generate static features (not metapath-based), use R script
 `ProteinGraphML/MLTools/StaticFeatures/staticFiles.R` to generate CSV files, for ccle,
 gtex, lincs and hpa.  Then pickle pandas dataframes from the four csv
 files, for use by `RunML.py`.
 
-### Pickle Training Set
+
+### <a name="HowtoPickleTrainingset"/>Pickle Training Set
 
 `PickleTrainingset.py` generates a "pickle" dictionary that
 contains protein_ids for both class 'True' and 'False'. The "pickle" dictionary is needed
@@ -74,7 +80,8 @@ PickleTrainingset.py --file 125853.rds
 PickleTrainingset.py --file diabetes.xlsx
 ```
 
-### Run ML Procedure
+
+### <a name="HowtoRunML"/>Run ML Procedure
 
 `RunML.py`, from the input disease or training set and KG, generates feature vectors,
 and executes specified ML procedure.  The procedure `XGBCrossVal` uses
@@ -107,9 +114,13 @@ subdirectories and output files, including:
 * Predictions with probabilities for all proteins (.tsv, .xlsx).
 * Feature importance lists (.tsv, .xlsx).
 
-### Visualize _(optional)_
 
-`MakeVis.py` generates HTML/JS files for visualization, via web browser.
+### <a name="HowtoVis"/>Visualize _(optional)_
+
+`MakeVis.py` generates HTML/JS files, with feature importance, for visualization
+via web browser.  `ProteinGraphML/Analysis/` contains code for graph and feature
+visualization. Visualize has code for creating HTML/JS graphs, and featureLabel has
+code for taking a dictionary of feature importance, and giving it human readable labels.
 
 Command-line parameters:
 
@@ -123,13 +134,6 @@ E.g.
 ```
 MakeVis.py --disease MP_0000180.pkl --num 2
 ```
-
-## <a name="Vis"/>Visualization:
-
-`ProteinGraphML/Analysis/` contains code for graph and feature visualization. Visualize
-has code for creating HTML/JS graphs, and featureLabel has code for taking a dictionary
-of feature importance, and giving it human readable labels.  `MakeVis.py` generates
-HTML/JS graphs with feature importance.
 
 ## <a name="Notes"/>Notes
 
