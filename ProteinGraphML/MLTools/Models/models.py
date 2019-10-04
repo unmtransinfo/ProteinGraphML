@@ -1,25 +1,21 @@
-import time
+import os
+import time, logging
 import pickle
+from collections import Counter
+import pandas as pd
+import xgboost as xgb
+import matplotlib.pyplot as plt
 
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV, cross_val_predict, StratifiedShuffleSplit, cross_val_score
 from sklearn.linear_model import LogisticRegression
-
-import xgboost as xgb
-
 from sklearn.naive_bayes import GaussianNB
 #from sklearn.model_selection import cross_val_score,
-
 from sklearn.metrics import accuracy_score,auc,confusion_matrix,classification_report,matthews_corrcoef
 from sklearn.metrics import roc_auc_score,roc_curve #.roc_auc_score(y_true, y_score, average='macro', sample_weight=None, max_fpr=None)
 
 # this model system will hopefully make a simple API for dealing with large data 
-import matplotlib.pyplot as plt
-# iterating on our platform across domains 
 
-import time
-import os
-from collections import Counter
-import pandas as pd
+# iterating on our platform across domains 
 
 # update all of this.... later 
 OUT_DIR = "results/"
@@ -62,7 +58,7 @@ class Result:
 		 #fpr, tpr, threshold = metrics.roc_curve(y_test, preds)
 		fpr, tpr, threshold = roc_curve(self.data.labels,self.predictions)
 		rocCurve = RocCurve("rocCurve",fpr, tpr)
-		print("HERE IS THE RESULT DIR",self.resultDIR)
+		logging.info("RESULT DIR: {0}".format(self.resultDIR))
 		rocCurve.fileOutput(self.resultDIR)
 		return rocCurve
 	
@@ -90,7 +86,7 @@ class Output: # base output...
 
 			#os.mkdir(path)
 
-		print("results/"+modelName)
+		logging.info("results/"+modelName)
 		f = open(base, "w")
 		f.write(str(self.textOutput()[1])) # this needs to be some kind of representation
 		f.close()
@@ -144,7 +140,7 @@ class RocCurve(Output):
 	def fileOutput(self,file=None,fileString=None):
 		rootName = self.stringType
 		#base = modelName+"/"+rootName
-		print("ROOT",rootName)
+		logging.info("ROOT: {0}".format(rootName))
 		# root is the type...
 
 		#print('HERE IS THE BASE',base)
@@ -205,7 +201,7 @@ class BaseModel:
 		return writeSpace
 
 	def createDirectoryIfNeed(self,dir):
-		print("AYYEE",dir)
+		logging.info("AYYEE: {0}".format(dir))
 
 		if not os.path.isdir(dir):
 			os.mkdir(dir)
@@ -229,7 +225,7 @@ class BaseModel:
 			for resultType in outputTypes:
 
 				print(resultType,file=writeSpace)
-				print("HERES MODEL NAME",self.MODEL_RUN_NAME)
+				logging.info("HERES MODEL NAME: {0}".format(self.MODEL_RUN_NAME))
 				newResultObject = getattr(resultObject,resultType)() #self.MODEL_RUN_NAME
 				#print(type(newResultObject))
 				resultList.append(newResultObject)
@@ -351,27 +347,25 @@ class XGBoostModel(BaseModel):
 		dummyModel = XGBoostModel(self.MODEL_DIR)
 		#DIR = "results/{0}-{1}".format(self.MODEL_DIR,str(int(time.time())))
 		
-		print("THING",dummyModel.MODEL_RUN_NAME)
+		logging.info("THING: {0}".format(dummyModel.MODEL_RUN_NAME))
 		
 		DIR = dummyModel.MODEL_RUN_NAME # This will get us a model with a specific timestamp
 		
-		print("")
-		print("THIS IS THE DIR {0}".format(DIR))
-		print("")
+		logging.info("THIS IS THE DIR {0}".format(DIR))
 
 		metrics = {"average-roc":0., "average-mcc":0., "average-acc":0.} #add mcc and accuracy too
-		print("=== RUNNING {0} FOLDS".format(folds))
+		logging.info("=== RUNNING {0} FOLDS".format(folds))
 		
 		#Initialize variable to store predicted probs
 		predictedProb = []
 		totalData = len(testData.labels.tolist())
-		print ('Total records...{0}'.format(totalData))
+		logging.info('Total records...{0}'.format(totalData))
 		for r in range(totalData):
 			predictedProb.append([])
 		#print (predictedProb)
 		
 		for k in range(0,folds):
-			print("DOING {0} FOLD".format(k+1))
+			logging.info("DOING {0} FOLD".format(k+1))
 			
 			#newModel = XGBoostModel(self.MODEL_DIR)
 			#train,test = testData.splitSet(split)
@@ -420,7 +414,7 @@ class XGBoostModel(BaseModel):
 			avgPredictedProb.append(sum(predictedProb[r])/folds)
 			
 			
-		print("METRTCS",metrics) # write this metric to a file...
+		logging.info("METRICS: {0}".format(str(metrics))) # write this metric to a file...
 		
 		self.saveImportantFeatures(DIR, importance, idDescription) #save important features
 		#print (avgPredictedProb)
@@ -467,10 +461,7 @@ class XGBoostModel(BaseModel):
 		'''
 		This function saves the important features in a text file.
 		'''
-		
-		impFile = 'results/{0}/featImportance.xlsx'.format(impFolder)
-		print("WRITE IMPORTANT FEATURES TO {0}".format(impFile))
-		
+
 		dataForDataframe = {'Feature':[], 'Name':[], 'Gain Value':[]}
 		for feature,gain in importance.items():
 			dataForDataframe['Feature'].append(feature)
@@ -480,18 +471,25 @@ class XGBoostModel(BaseModel):
 					dataForDataframe['Name'].append(idDescription[feature])
 				except:
 					dataForDataframe['Name'].append(feature)
-					print (feature)
+					logging.debug(feature)
 			else:
 				try:
 					dataForDataframe['Name'].append(idDescription[int(feature)])
 				except:
 					dataForDataframe['Name'].append(feature)
-					print (feature)
+					logging.debug(feature)
 		
 		df = pd.DataFrame(dataForDataframe)
-		writer = pd.ExcelWriter(impFile, engine='xlsxwriter')
+		impFileTsv = 'results/{0}/featImportance.tsv'.format(impFolder)
+		fout = open(impFileTsv, "w")
+		df.to_csv(fout, '\t', index=False)
+		fout.close()
+		logging.info("IMPORTANT FEATURES WRITTEN TO {0}".format(impFileTsv))
+		impFileXlsx = 'results/{0}/featImportance.xlsx'.format(impFolder)
+		writer = pd.ExcelWriter(impFileXlsx, engine='xlsxwriter')
 		df.to_excel(writer, sheet_name='Sheet1', index=False)
 		writer.save() 
+		logging.info("IMPORTANT FEATURES WRITTEN TO {0}".format(impFileXlsx))
 
 
 	#save predicted probability
@@ -499,8 +497,6 @@ class XGBoostModel(BaseModel):
 		'''
 		This function will save true labels and predicted class 1 probability of all protein ids.
 		'''
-		resultsFile = 'results/{0}/classificationResults.xlsx'.format(resultsFolder)
-		print("WRITE CLASSIFICATION RESULTS TO {0}".format(resultsFile))
 		
 		TrueLabels = testData.labels.tolist()
 		proteinIds = list(testData.labels.index.values)
@@ -516,9 +512,16 @@ class XGBoostModel(BaseModel):
 			dataForDataframe['Predicted Probability'].append(predictions[i])
 			i+=1
 		df = pd.DataFrame(dataForDataframe)
-		writer = pd.ExcelWriter(resultsFile, engine='xlsxwriter')
+		resultsFileTsv = 'results/{0}/classificationResults.tsv'.format(resultsFolder)
+		fout = open(resultsFileTsv, "w")
+		df.to_csv(fout, '\t', index=False)
+		fout.close()
+		logging.info("CLASSIFICATION RESULTS WRITTEN TO {0}".format(resultsFileTsv))
+		resultsFileXlsx = 'results/{0}/classificationResults.xlsx'.format(resultsFolder)
+		writer = pd.ExcelWriter(resultsFileXlsx, engine='xlsxwriter')
 		df.to_excel(writer, sheet_name='Sheet1', index=False)
 		writer.save()
+		logging.info("CLASSIFICATION RESULTS WRITTEN TO {0}".format(resultsFileXlsx))
 
 
 
