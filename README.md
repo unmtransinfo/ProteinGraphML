@@ -12,11 +12,11 @@ XGBoost is used to generate and optimize a predictive model.
 
 * [Dependencies](#Dependencies)
 * [How to Run Workflow](#Howto)
-   * [Build KG](#HowtoBuildKG)  
-   * [Static Features](#HowtoStaticFeatures)  
-   * [Pickle Training Set](#HowtoPickleTrainingset)  
-   * [Run ML Procedure](#HowtoRunML)  
-   * [Visualization](#HowtoVis)  
+   * [Build KG](#HowtoBuildKG)
+   * [Static Features](#HowtoStaticFeatures)
+   * [Training Set Preparation](#HowtoTrainingsetPrep)  _(For custom labeled training set.)_
+   * [Run ML Procedure](#HowtoRunML)
+   * [Visualization](#HowtoVis) _(Optional.)_
 
 ## <a name="Dependencies"/>Dependencies
 
@@ -25,13 +25,13 @@ XGBoost is used to generate and optimize a predictive model.
 * Python 3.4+
 * Python packages: `xgboost`, `scikit-learn`, `networkx`, `pandas`, `pony`, `matplotlib`
 * PostgreSQL database `metap`.
+   * Edit `DBcreds.yaml` with valid db credentials. Database access is needed throughout the workflow.
 
 ## <a name="Howto"/>How to run the Workflow:
 
 The command-line programs of ProteinGraphML must be executed in the following order.
 However, the __BuildKG__ and __StaticFeatures__ are one-time steps, re-useable for
 multiple ML models. Re-run only required if database updated.
-
 
 ### <a name="HowtoBuildKG"/>Build KG
 
@@ -43,7 +43,6 @@ saved as a pickled `networkX` graph.  Via the adaptor and `pony` object-relation
 BuildKG_OlegDb.py
 ```
 
-
 ### <a name="HowtoStaticFeatures"/>Static Features
 
 To generate static features (not metapath-based), use R script
@@ -51,14 +50,15 @@ To generate static features (not metapath-based), use R script
 gtex, lincs and hpa.  Then pickle pandas dataframes from the four csv
 files, for use by `RunML.py`.
 
+### <a name="HowtoTrainingsetPrep"/>Training Set Preparation  _(For custom labeled training set.)_
 
-### <a name="HowtoPickleTrainingset"/>Pickle Training Set
-
-`PickleTrainingset.py` generates a "pickle" dictionary that
-contains protein_ids for both class 'True' and 'False'. The "pickle" dictionary is needed
-if you are running ML codes for a disease that does not have MP_TERM_ID. Also, if you
-have gene symbols instead of protein_ids for a disease, this code fetches the corresponding
-protein_id for each symbol from the database and generates the "pickle" dictionary.
+`PickleTrainingset.py` generates a `pickle`ed Python dictionary that
+contains protein_ids for both class 'True' and 'False'. This training set file is needed
+for running ML for a disease defined by a custom labeled training set,
+rather than a Mammalian Phenotype (MP) term ID. The custome labeled training set may
+reference proteins via `protein_id`s or gene symbols; if gene symbols, this code fetches
+the corresponding `protein_id` for each symbol from the database. The prepared,
+picked training set uses `protein_id`s.
 
 Command line parameters:
 
@@ -79,7 +79,6 @@ PickleTrainingset.py --file diabetes_pid.txt --symbol_or_pid 'pid'
 PickleTrainingset.py --file 125853.rds
 PickleTrainingset.py --file diabetes.xlsx
 ```
-
 
 ### <a name="HowtoRunML"/>Run ML Procedure
 
@@ -137,9 +136,7 @@ MakeVis.py --disease MP_0000180.pkl --num 2
 
 ## <a name="Notes"/>Notes
 
-* The current system is designed for mammalian phenotype data assuming a human-to-mouse map.
-* To begin add your DB creds to the DBcreds.yaml file.
-* The graph currently makes assumptions that all nodes are unique. Proteins are integer IDs, these are the only Ints in the graph, the current protein logic counts on this being true, so make sure you do not violate this, otherwise calculations may be off!
+* The code currently assumes that all nodes are unique, that proteins are integer IDs, and the only ints in the graph. 
 * New data sources can be supported via adding new Adapter class in `ProteinGraphML/DataAdapter/`.
 * New machine learning procedures may be added to `ProteinGraphML/MLTools/Procedures/`.
 
