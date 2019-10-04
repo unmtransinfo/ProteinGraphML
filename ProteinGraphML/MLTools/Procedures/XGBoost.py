@@ -14,24 +14,26 @@ CROSSVAL = 5
 def TEST(dataObject):
 	print('tehe')
 
-def XGBCrossValPred(dataObject, idDescription, diseaseName):
+def XGBCrossValPred(dataObject, idDescription, idNameSymbol, diseaseName):
 	newModel = XGBoostModel("XGBCrossValPred")
 	params = {'scale_pos_weight':dataObject.posWeight, 'n_jobs':8} 		#XGboost parameters	
 	
 	#roc,acc,CM,report = newModel.cross_val_predict(dataObject,["roc","acc","ConfusionMatrix","report"]) 
 	
-	roc,acc,mcc, CM,report,importance = newModel.cross_val_predict(dataObject, idDescription, ["roc","acc", "mcc", "ConfusionMatrix","report"], params=params,cv=CROSSVAL) #Pass parameters 
-	saveImportantFeatures(importance, diseaseName)
-	#print("AUCROC --- {0}".format(roc.data))
-	#print("Accuracy --- {0}".format(acc.data))
-	#print("MCC --- {0}".format(mcc.data))
+	roc,acc,mcc, CM,report,importance = newModel.cross_val_predict(dataObject, idDescription, idNameSymbol, ["roc","acc", "mcc", "ConfusionMatrix","report"], params=params,cv=CROSSVAL) #Pass parameters 
+	saveImportantFeaturesAsPickle(importance, diseaseName)
+	print("AUCROC --- {0}".format(roc.data))
+	print("Accuracy --- {0}".format(acc.data))
+	print("MCC --- {0}".format(mcc.data))
+	#save the model
+	newModel.train(dataObject,param=params)
 	#print("ConfusionMatrix:\n")
 	#print(CM.data)
 	#print("Report:\n")
 	#print(report.data)
 	#roc.printOutput() #plot roc
 
-def XGBCrossVal(dataObject, idDescription, diseaseName):
+def XGBCrossVal(dataObject, idDescription, idNameSymbol, diseaseName):
 	newModel = XGBoostModel("XGBCrossVal")
 	params = {'scale_pos_weight':dataObject.posWeight, 'n_jobs':8} 		#XGboost parameters	
 	
@@ -39,8 +41,11 @@ def XGBCrossVal(dataObject, idDescription, diseaseName):
 	#params={'max_depth':10,'gamma':0.2}
 	#importance = newModel.average_cross_val(dataObject, ["roc","acc","ConfusionMatrix","report"], folds=2, params=params)
 
-	importance = newModel.average_cross_val(dataObject, idDescription, ["roc","rocCurve","acc","mcc"], folds=2, params=params,cv=CROSSVAL)
-	saveImportantFeatures(importance, diseaseName)
+	importance = newModel.average_cross_val(dataObject, idDescription, idNameSymbol, ["roc","rocCurve","acc","mcc"], folds=2, params=params,cv=CROSSVAL)
+	saveImportantFeaturesAsPickle(importance, diseaseName) 
+	#save the model
+	newModel.train(dataObject,param=params)
+	
 	#print (importance)
 	##"seed"	"max_depth"	"eta"	"gamma"	"min_child_weight"	"subsample"	"colsample_bytree"	"nrounds"	"auc"
 		#1001	                      10	0.2	                 0.1	0	                                   0.9	  
@@ -61,7 +66,7 @@ def XGBCrossVal(dataObject, idDescription, diseaseName):
 
 
 
-def saveImportantFeatures(importance, diseaseName):
+def saveImportantFeaturesAsPickle(importance, diseaseName):
 	'''
 	Save important features in a pickle dictionary
 	'''

@@ -1,6 +1,7 @@
 import itertools
 import logging
 import pandas as pd
+import os
 
 from .nodes import ProteinInteractionNode
 
@@ -114,11 +115,13 @@ def metapathFeatures(disease,proteinGraph,featureList,idDescription,staticFeatur
 
 
 def joinStaticFeatures(dataFrame,featureList):
-	
+	path_to_static_features_files = os.getcwd() + '/ProteinGraphML/MLTools/StaticFeatures/'
+	#print (path_to_static_features_files)
 	for feature in featureList:
 		# if the file doesn't exist, call it's function.... from an adapter?
 
-		unpickled_df = pd.read_pickle("./"+feature+".csv.pkl")
+		#unpickled_df = pd.read_pickle("./"+feature+".csv.pkl")
+		unpickled_df = pd.read_pickle(path_to_static_features_files+feature+".csv.pkl")
 		# these are needed edits right now for the joins we do, drop the unnamed column and set the index to the protein id
 		unpickled_df = unpickled_df.drop(["Unnamed: 0"],axis=1)
 		unpickled_df = unpickled_df.set_index('protein_id')

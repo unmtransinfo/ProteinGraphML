@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 import time
 import os
 from collections import Counter
+import pandas as pd
 
 # update all of this.... later 
 OUT_DIR = "results/"
@@ -287,6 +288,7 @@ class XGBoostModel(BaseModel):
 		#bst = xgb.train(param, dtrain,num_boost_round=50)
 		bst = xgb.train(param, dtrain) #use the default values of parameters
 		self.m = bst
+		bst.save_model('0001.model')
 	
 	def predict(self,testData,outputTypes):
 		inputData = xgb.DMatrix(testData.features)
@@ -300,7 +302,7 @@ class XGBoostModel(BaseModel):
 		return self.createResultObjects(testData,outputTypes,predictions)		
 
 	#def cross_val_predict(self,testData,outputTypes):
-	def cross_val_predict(self,testData,idDescription,outputTypes,params={},cv=1):
+	def cross_val_predict(self,testData,idDescription,idNameSymbol,outputTypes,params={},cv=1):
 		#print (params,cv)
 		# other model options 
 		#clf = LogisticRegression(random_state=0, solver='lbfgs',multi_class='multinomial')#.fit(X, y)
@@ -324,33 +326,20 @@ class XGBoostModel(BaseModel):
 		
 		clf = xgb.XGBClassifier(**params)
 		self.m = clf
-		class01Probs = cross_val_predict(self.m,testData.features,y=testData.labels,cv=cv,method='predict_proba') #calls sklearn's cross_val_predict
+		class01Probs = cross_val_predict(self.m, testData.features, y=testData.labels, cv=cv, method='predict_proba') #calls sklearn's cross_val_predict
 		predictions = [i[1] for i in class01Probs] #select class1 probability
 		roc,acc,mcc, CM,report = self.createResultObjects(testData,outputTypes,predictions) 
 				
-		#add the logic to find the imporant features -START
+		#find imporant features and save them in a text file
 		importance = Counter(clf.fit(testData.features,testData.labels).get_booster().get_score(importance_type='gain'))
-		#print (importance)
-		FINALDIR = 'results/{0}/featImportance.txt'.format(self.MODEL_RUN_NAME)
-		print("WRITE IMPORTANT FEATURES TO {0}".format(self.MODEL_RUN_NAME))
+		self.saveImportantFeatures(self.MODEL_RUN_NAME, importance, idDescription)
 		
-		with open(FINALDIR, 'w') as fo:
-			line = 'Feature' + '\t' + 'Name' + '\t' + 'Gain Value' + '\n' #Header	
-			fo.write(line)
-			line = '=======' + '\t' + '===================' + '\t' + '==========' + '\n'
-			fo.write(line)
-		
-			for feature,gain in importance.items():
-				if (feature.lower().islower()): #alphanumeric feature
-					line = feature + '\t' + idDescription[feature] + '\t' +  str(gain) + '\n'
-				else: #numeric feature
-					line = str(feature) + '\t' + idDescription[int(feature)] + '\t' +  str(gain) + '\n'
-				fo.write(line)
-		#add the logic to find the imporant features - END
-		
+		#save predicted class 1 probabilty in a text file
+		self.savePredictedProbability(self.MODEL_RUN_NAME, testData, predictions, idDescription, idNameSymbol)
 		return roc,acc,mcc, CM,report,importance
+ 
 
-	def average_cross_val(self,testData,idDescription,outputTypes,folds=1,split=0.8,params={},cv=1):
+	def average_cross_val(self,testData,idDescription,idNameSymbol,outputTypes,folds=1,split=0.8,params={},cv=1):
 		# this function will take the average of metrics per fold... which is a random fold
 		#print (params,cv)
 		#CROSSVAL = 10
@@ -372,6 +361,15 @@ class XGBoostModel(BaseModel):
 
 		metrics = {"average-roc":0., "average-mcc":0., "average-acc":0.} #add mcc and accuracy too
 		print("=== RUNNING {0} FOLDS".format(folds))
+		
+		#Initialize variable to store predicted probs
+		predictedProb = []
+		totalData = len(testData.labels.tolist())
+		print ('Total records...{0}'.format(totalData))
+		for r in range(totalData):
+			predictedProb.append([])
+		#print (predictedProb)
+		
 		for k in range(0,folds):
 			print("DOING {0} FOLD".format(k+1))
 			
@@ -396,10 +394,14 @@ class XGBoostModel(BaseModel):
 			predictions = [i[1] for i in class01Probs] #select class1 probability
 			roc,rc,acc,mcc = self.createResultObjects(testData,outputTypes,predictions)
 			
+			#append predicted class 1 probability 
+			for r in range(totalData):
+				predictedProb[r].append(predictions[r])
+			#print (predictedProb)
 			metrics["average-roc"] += roc.data
 			metrics["average-mcc"] += mcc.data
 			metrics["average-acc"] += acc.data
-
+			
 			#model.predict ...
 			if importance:
 				importance = importance + Counter(clf.fit(testData.features,testData.labels).get_booster().get_score(importance_type='gain'))
@@ -412,38 +414,26 @@ class XGBoostModel(BaseModel):
 
 		for key in metrics:
 			metrics[key] = metrics[key]/folds			
-
+		
+		avgPredictedProb = []
+		for r in range(totalData):
+			avgPredictedProb.append(sum(predictedProb[r])/folds)
+			
+			
 		print("METRTCS",metrics) # write this metric to a file...
 		
-		
-		FINALDIR = 'results/{0}/featImportance.txt'.format(DIR)
-		print("WRITE IMPORTANT FEATURES TO {0}".format(DIR))
-	
-		with open(FINALDIR, 'w') as fo:
-			line = 'Feature' + '\t' + 'Name' + '\t' + 'Gain Value' + '\n' #Header	
-			fo.write(line)
-			line = '=======' + '\t' + '===================' + '\t' + '==========' + '\n'
-			fo.write(line)
-			for feature,gain in importance.items():
-				if (feature.lower().islower()): #alphanumeric feature
-					line = feature + '\t' + idDescription[feature] + '\t' +  str(gain) + '\n'
-				else: #numeric feature
-					line = str(feature) + '\t' + idDescription[int(feature)] + '\t' +  str(gain) + '\n'
-				fo.write(line)
-		
-		
+		self.saveImportantFeatures(DIR, importance, idDescription) #save important features
+		#print (avgPredictedProb)
+		self.savePredictedProbability(DIR, testData, avgPredictedProb, idDescription, idNameSymbol) #save predicted probabilities
 		#with open(FINALDIR, 'wb') as f:
 		#	pickle.dump(importance, f, pickle.HIGHEST_PROTOCOL)
 		
-	
 		return importance
 
 
 
 	# FEATURE SEARCH, will create the dataset with different sets of features, and search over them to get resutls
-
 	def gridSearch(self,totalData,params):
-
 		
 		param_comb = 200
 		clf = xgb.XGBClassifier(learning_rate=0.02, n_estimators=600, objective='binary:logistic',
@@ -469,6 +459,66 @@ class XGBoostModel(BaseModel):
 			verbose=3)
 
 		a = random_search.fit(totalData.features, totalData.labels)
-
 		return a
+
+
+	# Save the important features in a text file.
+	def saveImportantFeatures(self, impFolder, importance, idDescription):
+		'''
+		This function saves the important features in a text file.
+		'''
+		
+		impFile = 'results/{0}/featImportance.xlsx'.format(impFolder)
+		print("WRITE IMPORTANT FEATURES TO {0}".format(impFile))
+		
+		dataForDataframe = {'Feature':[], 'Name':[], 'Gain Value':[]}
+		for feature,gain in importance.items():
+			dataForDataframe['Feature'].append(feature)
+			dataForDataframe['Gain Value'].append(gain)
+			if (feature.lower().islower()): #alphanumeric feature
+				try:
+					dataForDataframe['Name'].append(idDescription[feature])
+				except:
+					dataForDataframe['Name'].append(feature)
+					print (feature)
+			else:
+				try:
+					dataForDataframe['Name'].append(idDescription[int(feature)])
+				except:
+					dataForDataframe['Name'].append(feature)
+					print (feature)
+		
+		df = pd.DataFrame(dataForDataframe)
+		writer = pd.ExcelWriter(impFile, engine='xlsxwriter')
+		df.to_excel(writer, sheet_name='Sheet1', index=False)
+		writer.save() 
+
+
+	#save predicted probability
+	def savePredictedProbability(self, resultsFolder, testData, predictions, idDescription, idNameSymbol):
+		'''
+		This function will save true labels and predicted class 1 probability of all protein ids.
+		'''
+		resultsFile = 'results/{0}/classificationResults.xlsx'.format(resultsFolder)
+		print("WRITE CLASSIFICATION RESULTS TO {0}".format(resultsFile))
+		
+		TrueLabels = testData.labels.tolist()
+		proteinIds = list(testData.labels.index.values)
+		#print (TrueLabels)
+		#print (proteinIds)
+		dataForDataframe = {'Protein Id':[], 'Symbol':[], 'Name':[], 'True Label':[], 'Predicted Probability':[]}
+		i = 0
+		for proteinId in proteinIds:
+			dataForDataframe['Protein Id'].append(proteinId)
+			dataForDataframe['Name'].append(idDescription[proteinId])
+			dataForDataframe['Symbol'].append(idNameSymbol[proteinId])
+			dataForDataframe['True Label'].append(TrueLabels[i])
+			dataForDataframe['Predicted Probability'].append(predictions[i])
+			i+=1
+		df = pd.DataFrame(dataForDataframe)
+		writer = pd.ExcelWriter(resultsFile, engine='xlsxwriter')
+		df.to_excel(writer, sheet_name='Sheet1', index=False)
+		writer.save()
+
+
 

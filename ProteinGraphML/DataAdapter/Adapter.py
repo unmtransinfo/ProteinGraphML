@@ -288,3 +288,11 @@ class OlegDB(Adapter):
 		logging.info("(OlegDB.fetchProteinIdForSymbol) Protein ID for Symbol: {0}".format(symbolProtein.shape[0]))
 		symbolProteinIdDict = symbolProtein.set_index('symbol').T.to_dict('records')[0] #DataFrame to dictionary
 		return symbolProteinIdDict
+
+
+	# the following function will be used to fetch symbol, name, and species for given protein_id 
+	def fetchSymbolForProteinId(self):
+		proteinIdSymbol = selectAsDF("select distinct protein_id, symbol from protein",['protein_id','symbol'],self.db)
+		logging.info("(OlegDB.fetchProteinIdForSymbol) Protein Name for Id: {0}".format(proteinIdSymbol.shape[0]))
+		proteinIdSymbolDict = proteinIdSymbol.set_index('protein_id').T.to_dict('records')[0] #DataFrame to dictionary
+		return proteinIdSymbolDict

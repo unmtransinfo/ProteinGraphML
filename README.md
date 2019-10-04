@@ -1,40 +1,107 @@
 # ProteinGraphML
 
-The goal of this software is to predict disease-protein (a.k.a. protein-coding gene) associations from heterogeneous knowledge graphs, embedded as feature vectors by meta-path for XGBoost machine learning (ML). In this repository the ML engineering problem is abstracted from the data sources and domain knowledge. Thus, this code and approach can be adapted for other applications.
+Protein Graph in Python for MetaPath-ML and for any other graph machine learning
+needs. Comes with machine learning models in Python.
 
 ## Table of Contents  
 
 * [Dependencies](#Dependencies)
-* [Overview of Workflow](#Overview)
-* [How to Run the Workflow](#Howto)
+* [Background](#Background)
+* [Database Integration](#Database)  
+* [Machine Learning](#MachineLearning)  
 * [Visualization](#Vis)  
+* [Pipeline to run script](#Pipeline)
+* [Steps to run script](#Steps)
+
+
 
 ## <a name="Dependencies"/>Dependencies
 
-* Python 3.5+
-* Python packages: `xgboost`, `scikit-learn`, `networkx`, `pandas`, `pony`, `matplotlib`
-* R 3.4+
-* R packages: `data.table`, `RPostgreSQL`, `Matrix`
-* PostgreSQL database `metap` (not included in repo).
-
-## <a name="Overview"/>Overview of Workflow:
-
-1. From a `PostgreSQL` relational db, generate a `networkX` knowledge graph (KG). Db “adapters” return `pandas` data frames, containing nodes and edges specified via the `pony` Object Relational Model (ORM) API.
-1. From the KG, and a training dataset, ML feature vectors are generated. The training dataset may be specified via Mammalian Phenotype ID or custom labeled gene list.
-1. From the training dataset, an `XGBoost` predictive model is trained, using cross-validation and a grid search to optimize parameters.
-1. Feature importance is inferred during training with output available for analysis.
-1. The optimized `XGBoost` model is run on all genes to generate predictions as scores interpretable as probabilities of association.
-1. Generation of interactive visualizations (HTML/JS) of important features as an evidence graph.
+* `xgboost`, `scikit-learn`, `networkx`, `pandas`, `pony`, `matplotlib`
+*  PostgreSQL database `metap` accessible.
 
 
->   <img height="460px" alt="Workflow diagram" src="MetapathDiagram.png">
+NOTE: to begin add your DB creds to the DBcreds.yaml file, without a database you
+cannot run the 'BuildKG_OlegDb.py' code.
+
+That will build a graph on which metapath ML features are created
+
+You can use the ML Example notebook with just a graph, but you will need to generate it before hand
+
+
+
+## <a name="Background"/>Background:
+
+The goal of this software is to enable the user to perform machine learning on disease associations.
+ This repo approaches this as an ML / engineering problem first. Thus, the code is designed to operate on structure, not on data sources specifically. Hopefully this approach is helpful for future work.
+
+The current system is designed for mammalian phenotype data assuming a human-to0mouse map, but what the data represents is not important.
+
+There are two parts to the pipe line, first we need to take data (relational, and convert this to a graph where we will synthesize new features, and perform visualization).
+
+This is done using networkx, and objects called “adapters”. We can create adapters which return data frames, then by mapping out the edges we’ve specified, the adapters can create edges. These edges are chained together to create a graph base, which is just a networkX graph.
+
+Below is a diagram of the major layout of how this works:
+![alt text](MetapathDiagram.png)
+
+## <a name="Database"/>Database:
+
+As mentioned above, if you would like to pull new data into the ProteinGraph system, you can add new adapters, this will prevent you from needing to edit any of the graph code or machine learning code, instead you can merely define a new Adapter class in: <br>
+`ProteinGraphML/DataAdapter/`
+<br>
+
+### Note:
+
+<i>The graph currently makes assumptions that all nodes are unique. Proteins are integer IDs, these are the only Ints in the graph, the current protein logic counts on this being true, so make sure you do not violate this, otherwise calculations may be off!</i>
+
+
+## <a name="MachineLearning"/>Machine Learning:
+
+After a graph has been generated, you can run machine learning on a given set of
+labels, or on a given disease by using RunML.py.
+
+The script can be run as:<br>
+`RunML.py <PROCEDURE> --disease <DISEASE STRING> | --file <FILE WITH LABELS>`<br>
+
+
+This script will automatically generate a set of features... which you can expose to any "Procedure". These are machine learning functions which you can just add to <br>
+`ProteinGraphML/MLTools/Procedures/`<br>
+
+Then to run a given Procedure, in this case `XGBCrossValPred`, with a given disease exposed in graph we can use:<br>
+`$ RunML.py XGBCrossValPred --disease MP_0000180`<br>
+(this will create features for MP_0000180, and then push that data to the procedure `XGBCrossValPred`)
+
+We can also use a file of labels as our input:
+For example:<br>
+`RunML.py XGBCrossValPred --file exampleFile`
+(the labels need to be in the form of a pickled dictionary)
+
+## <a name="Vis"/>Visualization:
+Scripts for visualization can be found in: <br>ProteinGraphML/Analysis/, which contains code for graph generation and for creating charts for feature visualization. Visualize has code for creating HTML graphs, and featureLabel has code for taking a dictionary of feature importance, and giving it human readable labels.
+( this has old code I wrote as well, which is not integrated w/ the current system but might be useful as you integrate new parts of the system)
+
+Also, there is an included MakeVis.py script, which can autogenerate HTML graphs given feature importance. This is an experimental file, so you may need to edit it a bit to get it to work for all situations.
+
+
+## <a name="Pipeline"/>Pipeline:
+To run a completed pipeline, you can use `BuildKG_OlegDb.py` which will generte
+a graph, and then you can use `ML_Example.py`, or `RunML.py` to generate a set of results. Results will be recorded in `ProteinGraphML/results`. (Some example results have already been created). You can find the code to change settings for models in `ProteinGraphML/MLTools/Models`.
+
 
 
 ## <a name="Static"/>Static Features:
-The static features (features which don't use metapaths) are generated by `ProteinGraphML/MLTools/StaticFeatures/staticFiles.R` as CSV files `{ccle,gtex,lincs,hpa}.csv`.
-The csv files must be pickled for use by RunML.py. The static features are effectively appended to the KG-based feature vectors.
+To generate static features (features which don't use metapaths), there is an attached R script which you can use `ProteinGraphML/MLTools/StaticFeatures/staticFiles.R` which will generte four CSV files. One for ccle,gtex,lincs, and hpa, based on Oleg's transformations and his database.
+Once you run this script, all you need to do is pickle the four csv files, and then
+you can use them w/ as features. For example in RunML.py (line ~75): <br>
 
-## <a name="Howto"/>How to Run the Workflow:
+`nodes = [ProteinInteractionNode,KeggNode,ReactomeNode,GoNode,InterproNode]`<br>
+`staticFeatures = [] becomes -> ["gtex","lincs","ccle","hpa"]`<br>
+`trainData = metapathFeatures(disease,currentGraph,nodes,staticFeatures).fillna(0)`<br>
+
+
+This will auto load all of the static features and bind them to your data.
+
+## <a name="Steps"/>Steps to run ProteinGraphML codes:
 The codes of ProteinGraphML must be executed in the following order to avoid errors:
 
 __1. `BuildKG_OlegDb.py`:__  Run first, to generate a knowledge graph required to run ML codes.
@@ -75,8 +142,7 @@ PickleTrainingset.py --file diabetes.xlsx
 
 __3. `RunML.py`:__  This is the machine learning code that uses XGboost model
 to classify the data using 5-fold cross-validation. It also generates a list of
-important features used by the classification model. Results will be recorded in `ProteinGraphML/results`. The input disease can be defined via Mammalian phenotype
-ID, or a manually created file of labeled training cases (in pickled dictionary format).
+important features used by the classification model.
 
 Command line parameters:
 
@@ -87,7 +153,7 @@ Command line parameters:
 * `--file` : Pickled training set file, produced by `PickleTrainingset.py`.
 * `--kgfile` : Pickled KG file, produced by `BuildKG_OlegDb.py` (default: ProteinDisease_GRAPH.pkl).
 
-E.g.
+E.g. 
 ```
 RunML.py XGBCrossVal --file 144700.pkl
 RunML.py XGBCrossValPred --file 144700.pkl
@@ -104,23 +170,8 @@ Command-line parameters:
 * `--num` : number of top important features selected.
 * `--kgfile` : Pickled KG file, produced by `BuildKG_OlegDb.py` (default: ProteinDisease_GRAPH.pkl).
 
-E.g.
+E.g. 
 
 ```
 MakeVis.py --disease MP_0000180.pkl --num 2
 ```
-
-## <a name="Vis"/>Visualization:
-
-`ProteinGraphML/Analysis/` contains code for graph visualization and for creating charts for feature visualization. Visualize has code for creating HTML graphs, and `featureLabel` has code for taking a dictionary of feature importance, and giving it human readable labels. MakeVis.py (_prototype, in progress_) generates HTML/JS graphs given feature importance.
-
-
-### Notes:
-
-* The current system is designed for mammalian phenotype data assuming a human-to-mouse map.
-* <i>The graph currently makes assumptions that all nodes are unique. Proteins are integer IDs, these are the only Ints in the graph, the current protein logic counts on this being true, so make sure you do not violate this, otherwise calculations may be off!</i>
-* The current database is `metap` accessed by the `OlegDB` adapter. New adapters may be defined a new Adapter class in `ProteinGraphML/DataAdapter/`.
-* To begin add your DB creds to the DBcreds.yaml file, to access database.
-* Code to change settings for models in `ProteinGraphML/MLTools/Models`.
-* `RunML.py` will generate a set of features, which you can expose to any "Procedure". These are generic machine learning functions defined and extensible at `ProteinGraphML/MLTools/Procedures/`.
-* `RunML.py` : `staticFeatures = [] becomes -> ["gtex","lincs","ccle","hpa"]`

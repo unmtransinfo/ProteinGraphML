@@ -23,7 +23,7 @@ path_to_files = os.getcwd() + '/DataForML/'  #IMPORTANT: change it if you have s
 
 #DEFAULT_GRAPH = "newCURRENT_GRAPH"
 DEFAULT_GRAPH = "ProteinDisease_GRAPH.pkl"
-
+DEFAULT_STATIC_FEATURES = "gtex,lincs,ccle,hpa"
 parser = argparse.ArgumentParser(description='Run ML Procedure')
 
 ##parser.add_argument('disease', metavar='disease', type=str, nargs='+',
@@ -34,6 +34,7 @@ parser.add_argument('--file', type=str, nargs='?', help='input file, pickled tra
 parser.add_argument('--dir', default=path_to_files, help='input dir')
 parser.add_argument('--disease', metavar='disease', type=str, nargs='?', help='Mammalian Phenotype ID, e.g. MP_0000180')
 parser.add_argument('--kgfile', default=DEFAULT_GRAPH, help='input pickled KG')
+parser.add_argument('--static_data', default=DEFAULT_STATIC_FEATURES, help='input pickled KG')
 #parser.add_argument('--disease', metavar='disease', type=str, nargs='?',help='phenotype')
 
 
@@ -57,7 +58,7 @@ elif disease is None and fileName is not None: # NO disease, use file
 		with open(pklFile, 'rb') as f:
 			fileData = pickle.load(f)
 	except:
-		print ('ERROR: Must generate pickled training set file for the given disease')
+		print ('ERROR: Must generate pickled training set file for the given disease') 
 		exit()
     		
 	#def load_obj(name):
@@ -89,8 +90,11 @@ currentGraph = ProteinDiseaseAssociationGraph.load(graphString)
 print("GRAPH {0} LOADED".format(graphString))
 
 nodes = [ProteinInteractionNode,KeggNode,ReactomeNode,GoNode,InterproNode]
+
+staticFeatures = argData['static_data'].split(',')
+print (staticFeatures)
 #staticFeatures = []
-staticFeatures = ["gtex", "lincs", "ccle", "hpa"]
+#staticFeatures = ["gtex", "lincs", "ccle", "hpa"]
 
 print("--- USING {0} METAPATH FEATURE SETS".format(len(nodes)))
 print("--- USING {0} STATIC FEATURE SETS".format(len(staticFeatures)))
@@ -99,6 +103,8 @@ print("--- USING {0} STATIC FEATURE SETS".format(len(staticFeatures)))
 #fetch the description of proteins and pathway_ids
 dbAdapter = OlegDB()
 idDescription = dbAdapter.fetchPathwayIdDescription() #fetch the description
+idNameSymbol = dbAdapter.fetchSymbolForProteinId() #fetch name and symbol for protein
+
 
 if fileData is not None:
 	#print("FOUND {0} POSITIVE LABELS".format(len(fileData[True])))
@@ -107,11 +113,12 @@ if fileData is not None:
 else:
 	trainData = metapathFeatures(disease,currentGraph,nodes,idDescription,staticFeatures).fillna(0)
 
+#call ML codes
 d = BinaryLabel()
 d.loadData(trainData)
 #XGBCrossVal(d)
 #print('calling function...', locals()[Procedure])
-locals()[Procedure](d,idDescription,diseaseName)
+locals()[Procedure](d, idDescription, idNameSymbol, diseaseName)
 
 
 #print("FEATURES CREATED, STARTING ML")
