@@ -72,7 +72,7 @@ logging.info("GO nodes: %d"%(len(goNodes)))
 logging.info("INTERPRO nodes: %d"%(len(interNodes)))
 
 # Save graph in pickle format.
-if args.op == 'build':
+if args.operation == 'build':
   logging.info("Saving pickled graph to: {0}".format(args.ofile))
   pdg.save(args.ofile)
 
