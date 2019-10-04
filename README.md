@@ -23,7 +23,7 @@ XGBoost is used to generate and optimize a predictive model.
 * R 3.5+
 * R packages: `data.table`, `Matrix`, `RPostgreSQL`
 * Python 3.4+
-* Python packages: `xgboost`, `scikit-learn`, `networkx`, `pandas`, `pony`, `matplotlib`
+* Python packages: `xgboost`, `scikit-learn`, `networkx`, `pandas`, `pony`, `matplotlib`, `xlrd`, `XlsxWriter`
 * PostgreSQL database `metap`.
    * Edit `DBcreds.yaml` with valid db credentials. Needed throughout workflow.
 
