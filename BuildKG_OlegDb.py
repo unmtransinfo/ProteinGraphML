@@ -2,8 +2,22 @@
 """
 	Create a Protein Disease graph from the DB adapter 'OlegDB'
 """
-import sys, os, time
+import sys,os,argparse,time
 import logging
+
+outputFile = "ProteinDisease_GRAPH.pkl"
+logFile = "ProteinDisease_GRAPH.log"
+
+OPS=['build', 'test']
+parser = argparse.ArgumentParser(description='Create a Protein-Disease graph from the DB adapter "OlegDB"')
+parser.add_argument('operation', metavar='OPERATION', choices=OPS, help='{0}'.format(str(OPS)))
+parser.add_argument('--ofile', default=outputFile, help='output pickled KG (default: "{0}")'.format(outputFile))
+parser.add_argument('--logfile', default=logFile, help='output KG log (default: "{0}")'.format(logFile))
+parser.add_argument("-v", "--verbose", action="count", default=0, help="verbosity")
+
+args = parser.parse_args()
+
+logging.basicConfig(format='%(levelname)s:%(message)s', level=(logging.DEBUG if args.verbose>1 else logging.INFO))
 
 logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s', level=logging.INFO)
 #logging.basicConfig(filename='Build_Graph_Example.log')
@@ -58,9 +72,9 @@ logging.info("GO nodes: %d"%(len(goNodes)))
 logging.info("INTERPRO nodes: %d"%(len(interNodes)))
 
 # Save graph in pickle format.
-picklefile="ProteinDisease_GRAPH.pkl"
-logging.info("Saving pickled graph to: {0}".format(picklefile))
-pdg.save(picklefile)
+if args.op == 'build':
+  logging.info("Saving pickled graph to: {0}".format(args.ofile))
+  pdg.save(args.ofile)
 
 # Fetch pathway information from db.
 # (Not stored in graph?)
@@ -68,8 +82,7 @@ idDescription = dbAdapter.fetchPathwayIdDescription()
 
 # Log node and edge info. Could be formatted for downstream use (e.g. Neo4j).
 edgeCount=0; nodeCount=0;
-logfile = 'graphData.log'
-with open(logfile, 'w') as flog:
+with open(args.logfile, 'w') as flog:
   allNodes = set(pdg.graph.nodes)
   for node in allNodes:
     nodeCount+=1
@@ -83,7 +96,7 @@ with open(logfile, 'w') as flog:
     edgeCount+=1
     flog.write('EDGE '+'{idSource:"'+str(edge[0])+'", idTarget:"'+str(edge[1])+'"}'+'\n')
 
-logging.info('{0} nodes, {1} edges written to {2}'.format(nodeCount, edgeCount, logfile))
+logging.info('{0} nodes, {1} edges written to {2}'.format(nodeCount, edgeCount, args.logfile))
 
 logging.info('{0}: elapsed time: {1}'.format(os.path.basename(sys.argv[0]), time.strftime('%Hh:%Mm:%Ss', time.gmtime(time.time()-t0))))
 

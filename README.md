@@ -36,11 +36,24 @@ multiple ML models. Re-run only required if database updated.
 ### <a name="HowtoBuildKG"/>Build KG
 
 `BuildKG_OlegDb.py`, from the relational db, generates a knowledge graph,
-saved as a pickled `networkX` graph.  Via the adaptor and `pony` object-relational model
-(ORM), nodes and edges are queried from the db to comprise the graph.
+a `ProteinDiseaseAssociationGraph`, saved as a pickled `networkX` graph. 
+Via the adaptor and [`pony`]((https://docs.ponyorm.org/api_reference.html#api-reference)
+object-relational model (ORM), nodes and edges are queried from the db to comprise the
+graph.
+
+Command line parameters:
+
+* `operation` (positional parameter):
+   * `build` :  build KG and write to output file.
+   * `test` : build KG, write log, but not output file.
+* `--ofile` : Pickled KG file (default: ProteinDisease_GRAPH.pkl).
+
+Example commands:
 
 ```
-BuildKG_OlegDb.py
+BuildKG_OlegDb.py -h
+BuildKG_OlegDb.py test
+BuildKG_OlegDb.py build
 ```
 
 ### <a name="HowtoStaticFeatures"/>Static Features
