@@ -16,6 +16,7 @@ XGBoost is used to generate and optimize a predictive model.
    * [Static Features](#HowtoStaticFeatures)
    * [Training Set Preparation](#HowtoTrainingsetPrep)  _(For custom labeled training set.)_
    * [Run ML Procedure](#HowtoRunML)
+   * [Test Trained Model](#HowtoPredictML)
    * [Visualization](#HowtoVis) _(Optional.)_
 
 ## <a name="Dependencies"/>Dependencies
@@ -65,13 +66,13 @@ files, for use by `RunML.py`.
 
 ### <a name="HowtoTrainingsetPrep"/>Training Set Preparation  _(For custom labeled training set.)_
 
-`PickleTrainingset.py` generates a `pickle`ed Python dictionary that
+`PickleTrainingTestSet.py` generates a `pickle`ed Python dictionary that
 contains protein_ids for both class 'True' and 'False'. This training set file is needed
 for running ML for a disease defined by a custom labeled training set,
 rather than a Mammalian Phenotype (MP) term ID. The custome labeled training set may
 reference proteins via `protein_id`s or gene symbols; if gene symbols, this code fetches
 the corresponding `protein_id` for each symbol from the database. The prepared,
-picked training set uses `protein_id`s.
+picked training set uses `protein_id`s. The picked test set is used for testing the trained model.
 
 Command line parameters:
 
@@ -130,6 +131,31 @@ subdirectories and output files, including:
 * Predictions with probabilities for all proteins (.tsv, .xlsx).
 * Feature importance lists (.tsv, .xlsx).
 
+
+### <a name="HowtoPredictML"/>Test Trained ML Model
+
+`PredictML.py`, Using the model trained on the training set and KG, predicts the probability of True class for
+proteins. The procedure `XGBPredict` uses the saved XGBoost model, and generates results for predictions on all proteins in the test set. 
+
+Command line parameters:
+
+* `procedure` (positional parameter):
+   * `XGBPredict` :  load the saved model
+* `--disease` : Use with Mammalian Phenotype ID, e.g. MP_0000180.
+* `--file` : Training set file, produced by `PickleTrainingset.py`.
+* `--kgfile` : KG file, produced by `BuildKG_OlegDb.py` (default: ProteinDisease_GRAPH.pkl).
+
+Example commands:
+
+```
+RunML.py -h
+RunML.py XGBPredict --file 144700_test.pkl
+```
+
+Results will be saved in `ProteinGraphML/results`. See logs for specific
+subdirectories and output files, including:
+
+* Predictions with probabilities for all proteins (.tsv, .xlsx).
 
 ### <a name="HowtoVis"/>Visualize _(optional)_
 
