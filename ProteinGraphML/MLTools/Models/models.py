@@ -284,7 +284,8 @@ class XGBoostModel(BaseModel):
 		#bst = xgb.train(param, dtrain,num_boost_round=50)
 		bst = xgb.train(param, dtrain) #use the default values of parameters
 		self.m = bst
-		bst.save_model('0001.model')
+		bst.save_model('0002.model')
+		#pickle.dump(bst, open('0001.model', 'wb'))
 	
 	def predict(self,testData,outputTypes):
 		inputData = xgb.DMatrix(testData.features)
@@ -300,7 +301,8 @@ class XGBoostModel(BaseModel):
 	def predict_using_saved_model(self, testData, idDescription, idNameSymbol, outputTypes):
 		inputData = xgb.DMatrix(testData.features)
 		bst = xgb.Booster()
-		bst.load_model('0001.model')
+		bst.load_model('0002.model')
+		#bst = pickle.load(open('0001.model', 'rb'))
 		predictions = bst.predict(inputData)
 		roc,acc,mcc = self.createResultObjects(testData,outputTypes,predictions)
 		self.savePredictedProbability(self.MODEL_RUN_NAME, testData, predictions, idDescription, idNameSymbol, "TEST")

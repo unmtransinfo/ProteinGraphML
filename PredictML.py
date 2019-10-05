@@ -72,7 +72,7 @@ nodes = [ProteinInteractionNode,KeggNode,ReactomeNode,GoNode,InterproNode]
 
 staticFeatures = argData['static_data'].split(',')
 logging.info(staticFeatures)
-staticFeatures = []
+#staticFeatures = []
 
 logging.info("--- USING {0} METAPATH FEATURE SETS".format(len(nodes)))
 logging.info("--- USING {0} STATIC FEATURE SETS".format(len(staticFeatures)))
