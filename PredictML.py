@@ -21,7 +21,7 @@ dataDir = os.getcwd() + '/DataForML/'  #IMPORTANT: change it if you have saved p
 DEFAULT_GRAPH = "ProteinDisease_GRAPH.pkl"
 DEFAULT_STATIC_FEATURES = "gtex,lincs,ccle,hpa"
 
-PROCEDURES = ["XGBPredict"]
+PROCEDURES = ["XGBPredict"] 
 
 parser = argparse.ArgumentParser(description='Run ML Procedure', epilog='--disease or --file must be specified; available procedures: {0}'.format(str(PROCEDURES)))
 parser.add_argument('procedure', metavar='procedure', type=str, choices=PROCEDURES, nargs='+', help='ML procedure to run')
