@@ -64,6 +64,15 @@ To generate static features (not metapath-based), use R script
 gtex, lincs and hpa.  Then pickle pandas dataframes from the four csv
 files, for use by `RunML.py`.
 
+```
+cd ProteinGraphML/MLTools/StaticFeatures
+./staticFiles.R
+./pandas_utils.py pickle --i ccle.csv --o ccle.csv.pkl
+./pandas_utils.py pickle --i gtex.csv --o gtex.csv.pkl
+./pandas_utils.py pickle --i hpa.csv --o hpa.csv.pkl
+./pandas_utils.py pickle --i lincs.csv --o lincs.csv.pkl
+```
+
 ### <a name="HowtoTrainingsetPrep"/>Training Set Preparation  _(For custom labeled training set.)_
 
 `PickleTrainingTestSet.py` generates a `pickle`ed Python dictionary that
