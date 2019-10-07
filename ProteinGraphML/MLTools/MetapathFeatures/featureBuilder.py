@@ -121,7 +121,7 @@ def joinStaticFeatures(dataFrame,featureList):
 		# if the file doesn't exist, call it's function.... from an adapter?
 
 		#unpickled_df = pd.read_pickle("./"+feature+".csv.pkl")
-		unpickled_df = pd.read_pickle(path_to_static_features_files+feature+".csv.pkl")
+		unpickled_df = pd.read_csv(path_to_static_features_files+feature+".csv")
 		# these are needed edits right now for the joins we do, drop the unnamed column and set the index to the protein id
 		unpickled_df = unpickled_df.drop(["Unnamed: 0"],axis=1)
 		unpickled_df = unpickled_df.set_index('protein_id')
