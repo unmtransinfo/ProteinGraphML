@@ -6,7 +6,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 from collections import Counter
-
+import logging
 from ProteinGraphML.Analysis.featureLabel import convertLabels
 from ProteinGraphML.Analysis import Visualize
 
@@ -41,37 +41,40 @@ def load_obj(name):
         return pickle.load(f)
 
 #Get the name of the disease
-dataDir = 'results/XGBFeatures/'
 DEFAULT_GRAPH = "ProteinDisease_GRAPH.pkl"
 parser = argparse.ArgumentParser(description='Run ML Procedure')
 parser.add_argument('--disease', metavar='disease', required=True, type=str, nargs='?', help='pickled file with ML features')
-parser.add_argument('--dir', default=dataDir, help='input dir')
+#parser.add_argument('--dir', default=dataDir, help='input dir')
+parser.add_argument('--featurefile', required=True, help='full path to the pickle feature file')
 parser.add_argument('--num', metavar='featureCount', required=True, type=int, nargs='?',help='Number of top features')
 parser.add_argument('--kgfile', default=DEFAULT_GRAPH, help='input pickled KG')
+
+logging.info('Generate HTML files for visualization...!!!')
+
 argData = vars(parser.parse_args())
-fileName = argData['disease']
+fileName = argData['featurefile']
 numOfFeatures = argData['num']
-print ('Running visualization using disease...{0}'.format(fileName))
-filePath = argData['dir'] + fileName #IMPORTANT: update this if folder name changes
+diseaseName = argData['disease']
+
+logging.info('Running visualization using file...{0}'.format(fileName))
+#filePath = argData['dir'] + fileName #IMPORTANT: update this if folder name changes
+tmpPath = fileName.split('/')[:-1]
+filePath = '/'.join(i for i in tmpPath)
 
 #fetch the saved important features
-importance = load_obj(filePath)
-print (importance)
+importance = load_obj(fileName)
 #importance = {'hsa01100': 0.31735258141642814, 'hsa04740': 0.2208299216149202, 'hsa05100': 0.1847905733996812, 'hsa04930': 0.10625980494746863, 'hsa04514': 0.047493659101048136, 'hsa04114': 0.03542724660274679, 'hsa04810': 0.03365848585388666, 'hsa04144': 0.030556051003490892}
 
 #access the database to get the description of important features
 dbAdapter = OlegDB()
 labelMap = convertLabels(importance.keys(),dbAdapter,selectAsDF,type='plot')
 
-print('Generate HTML files for visualization...!!!')
-
 if True:
 	currentGraph = ProteinDiseaseAssociationGraph.load(argData['kgfile'])
 
 	# for the graph, we need the original importance 
 	for imp in importance.most_common(numOfFeatures):
-		print(imp)
-		Visualize(imp, currentGraph.graph, fileName, dbAdapter=dbAdapter) #g,currentGraph.graph,Disease)
+		Visualize(imp, currentGraph.graph, diseaseName, filePath, dbAdapter=dbAdapter) #g,currentGraph.graph,Disease)
 		#break
 
 #newSet = {}

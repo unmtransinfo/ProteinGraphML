@@ -7,9 +7,9 @@ from ProteinGraphML.DataAdapter import OlegDB,selectAsDF
 from ProteinGraphML.MLTools.MetapathFeatures import ProteinInteractionNode	
 
 
-
-def Visualize(importance,graph,disease,dbAdapter=None):
-	#print(importance)
+def Visualize(importance,graph,disease,resultDir, dbAdapter=None):
+	#print(resultDir)
+	#exit()
 
 	#get shortest paths 
 	# make the graph, dump it to JSON, save that in an HTML template with our formatting 
@@ -275,10 +275,10 @@ cy.layout(options).run();
 </script>
 	"""
 
-	outDir = "results/graphs"
-	if not os.path.exists(outDir):
-		os.mkdir(outDir)
-	filePath = outDir + "/{0}{1}{2}.html".format(str(firstFeature[0]),str(int(time.time())),disease)
+	#outDir = "results/graphs"
+	#if not os.path.exists(outDir):
+	#	os.mkdir(outDir)
+	filePath = resultDir + "/{0}{1}{2}.html".format(str(firstFeature[0]),str(int(time.time())),disease)
 	text_file = open(filePath, "w")
 	text_file.write(header+dataOut+footer)
 	text_file.close()
