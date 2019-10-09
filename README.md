@@ -175,15 +175,15 @@ code for taking a dictionary of feature importance, and giving it human readable
 
 Command-line parameters:
 
-* `--disease` pickled features file produced by `RunML.py`, e.g. diabetes.pkl.
-* `--dir` : dir containing file (default: results/XGBFeatures/).
+* `--disease` : Disease name.
+* `--featurefile` : full path to pickled features file produced by `RunML.py`, e.g. results/104300/featImportance_XGBCrossVal.pkl.
 * `--num` : number of top important features selected.
 * `--kgfile` : Pickled KG file, produced by `BuildKG_OlegDb.py` (default: ProteinDisease_GRAPH.pkl).
 
 Example command:
 
 ```
-MakeVis.py --disease MP_0000180.pkl --num 2
+MakeVis.py --disease 104300 --featurefile results/104300/featImportance_XGBCrossVal.pkl --num 2
 ```
 
 ## <a name="Notes"/>Notes
