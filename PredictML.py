@@ -17,7 +17,6 @@ from ProteinGraphML.Analysis import Visualize
 t0 = time.time()
 
 DATA_DIR = os.getcwd() + '/DataForML/'   
-ML_MODEL_DIR = os.getcwd() + '/MLModel/' 
 
 DEFAULT_GRAPH = "ProteinDisease_GRAPH.pkl"
 DEFAULT_STATIC_FEATURES = "gtex,lincs,ccle,hpa"
@@ -26,9 +25,9 @@ PROCEDURES = ["XGBPredict"]
 
 parser = argparse.ArgumentParser(description='Run ML Procedure', epilog='--file must be specified; available procedures: {0}'.format(str(PROCEDURES)))
 parser.add_argument('procedure', metavar='procedure', type=str, choices=PROCEDURES, nargs='+', help='ML procedure to run')
-parser.add_argument('--file', type=str, nargs='?', help='input file, pickled training set, e.g. "diabetes.pkl"')
 parser.add_argument('--dir', default=DATA_DIR, help='input dir (default: "{0}")'.format(DATA_DIR))
-parser.add_argument('--modeldir', default=ML_MODEL_DIR, help='ML Model dir (default: "{0}")'.format(ML_MODEL_DIR))
+parser.add_argument('--file', type=str, nargs='?', help='input file, pickled test set, e.g. "diabetes.pkl"')
+parser.add_argument('--model', type=str, nargs='?', help='ML model name with full path')
 parser.add_argument('--kgfile', default=DEFAULT_GRAPH, help='input pickled KG (default: "{0}")'.format(DEFAULT_GRAPH))
 parser.add_argument('--static_data', default=DEFAULT_STATIC_FEATURES, help='(default: "{0}")'.format(DEFAULT_STATIC_FEATURES))
 parser.add_argument("-v", "--verbose", action="count", default=0, help="verbosity")
@@ -37,10 +36,9 @@ argData = vars(parser.parse_args())
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=(logging.DEBUG if argData['verbose']>1 else logging.INFO))
 
+#Store test set in a dictionary
 fileName = argData['file']
 fileData = None
-
-
 if (fileName is None): # NO INPUT
 	parser.error("--file must be specified.")
 elif (fileName is not None): # use file
@@ -53,21 +51,23 @@ elif (fileName is not None): # use file
 		exit()
 else:
 	logging.error('Wrong parameters passed')
+	exit()
 
+#Get ML procedure
 Procedure = argData['procedure'][0]
 logging.info('Procedure: {0}'.format(Procedure))
 
-graphString = argData['kgfile']
-
 # Current graph
+graphString = argData['kgfile']
 currentGraph = ProteinDiseaseAssociationGraph.load(graphString)
 logging.info("GRAPH {0} LOADED".format(graphString))
 
 nodes = [ProteinInteractionNode,KeggNode,ReactomeNode,GoNode,InterproNode]
 
+#Get static features
 staticFeatures = argData['static_data'].split(',')
 logging.info(staticFeatures)
-#staticFeatures = []
+staticFeatures = []
 
 logging.info("--- USING {0} METAPATH FEATURE SETS".format(len(nodes)))
 logging.info("--- USING {0} STATIC FEATURE SETS".format(len(staticFeatures)))
@@ -78,6 +78,7 @@ dbAdapter = OlegDB()
 idDescription = dbAdapter.fetchPathwayIdDescription() #fetch the description
 idNameSymbol = dbAdapter.fetchSymbolForProteinId() #fetch name and symbol for protein
 
+#Generate features for the test data
 if fileData is not None:
 	disease = None
 	#logging.info("FOUND {0} POSITIVE LABELS".format(len(fileData[True])))
@@ -87,12 +88,13 @@ else:
 	logging.error("Test data for prediction not provided")
 
 # directory and file name for the ML Model
-if ('.pkl' in fileName):
-	modelName = argData['modeldir'] + fileName.split('.')[0][:-5] + '.model'
+if (argData['model'] is None):
+	logging.error("Model name not entered")
+	exit()
 else:
-	logging.error("Test data for prediction was not generated")
+	modelName = argData['model']
+	logging.info("INFO: Model '{0}' will be used for prediction".format(modelName))
 
-logging.info('INFO: Model {0} will be used for prediction'.format(modelName))
 #call ML codes
 d = BinaryLabel()
 d.loadData(testData)

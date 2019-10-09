@@ -16,8 +16,7 @@ from ProteinGraphML.Analysis import Visualize
 
 t0 = time.time()
 
-DATA_DIR = os.getcwd() + '/DataForML/'   
-ML_MODEL_DIR = os.getcwd() + '/MLModel/'   
+DATA_DIR = os.getcwd() + '/DataForML/'
 NUM_OF_FOLDS = 2
 #DEFAULT_GRAPH = "newCURRENT_GRAPH"
 DEFAULT_GRAPH = "ProteinDisease_GRAPH.pkl"
@@ -30,7 +29,7 @@ parser.add_argument('procedure', metavar='procedure', type=str, choices=PROCEDUR
 parser.add_argument('--disease', metavar='disease', type=str, nargs='?', help='Mammalian Phenotype ID, e.g. MP_0000180')
 parser.add_argument('--file', type=str, nargs='?', help='input file, pickled training set, e.g. "diabetes.pkl"')
 parser.add_argument('--dir', default=DATA_DIR, help='input dir (default: "{0}")'.format(DATA_DIR))
-parser.add_argument('--modeldir', default=ML_MODEL_DIR, help='ML Model dir (default: "{0}")'.format(ML_MODEL_DIR))
+parser.add_argument('--resultdir', type=str, nargs='?', help='folder where results will be saved, e.g. "diabetes_no_lincs"')
 parser.add_argument('--folds', default=NUM_OF_FOLDS, help='number of folds for average CV (default: "{0}")'.format(NUM_OF_FOLDS))
 parser.add_argument('--kgfile', default=DEFAULT_GRAPH, help='input pickled KG (default: "{0}")'.format(DEFAULT_GRAPH))
 parser.add_argument('--static_data', default=DEFAULT_STATIC_FEATURES, help='(default: "{0}")'.format(DEFAULT_STATIC_FEATURES))
@@ -40,9 +39,7 @@ argData = vars(parser.parse_args())
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=(logging.DEBUG if argData['verbose']>1 else logging.INFO))
 
-#print(argData)
-#print(argData['procedure'][0])
-
+#Get data from file or disease
 disease = argData['disease']
 fileName = argData['file']
 fileData = None
@@ -51,7 +48,7 @@ if disease is None and fileName is None: # NO INPUT
 	parser.error("--disease or --file must be specified.")
 elif disease is None and fileName is not None: # NO disease, use file
 	pklFile = argData['dir'] + fileName
-	diseaseName = fileName
+	diseaseName = fileName.split('.')[0]
 	try:
 		with open(pklFile, 'rb') as f:
 			fileData = pickle.load(f)
@@ -82,10 +79,20 @@ currentGraph = ProteinDiseaseAssociationGraph.load(graphString)
 # SOME DISEASES CAUSE "DIVIDE BY 0 error"
 logging.info("GRAPH {0} LOADED".format(graphString))
 
+#Get reult directory and number of folds
+if (argData['resultdir'] is not None):
+	resultDir = argData['resultdir'] #folder where all results will be stored
+else:
+	logging.error('Result directory is needed')
+	exit()
+nfolds = int(argData['folds']) # applicable for average CV
+
+#Nodes
 nodes = [ProteinInteractionNode,KeggNode,ReactomeNode,GoNode,InterproNode]
 
-#staticFeatures = ["gtex", "lincs", "ccle", "hpa"]
-staticFeatures = argData['static_data'].split(',')
+
+#staticFeatures = argData['static_data'].split(',')
+staticFeatures = []
 logging.info(staticFeatures)
 
 logging.info("--- USING {0} METAPATH FEATURE SETS".format(len(nodes)))
@@ -105,19 +112,21 @@ if fileData is not None:
 else:
 	trainData = metapathFeatures(disease,currentGraph,nodes,idDescription,staticFeatures).fillna(0)
 
+'''
 # directory and file name for the ML Model
 if not os.path.isdir(argData['modeldir']):os.mkdir(argData['modeldir'])
 if ('.pkl' in diseaseName):
 	modelName = argData['modeldir'] + diseaseName.split('.')[0] + '.model'
 else:
 	modelName = argData['modeldir'] + diseaseName + '.model'
+'''
 
 #call ML codes
 d = BinaryLabel()
 d.loadData(trainData)
 #XGBCrossVal(d)
 #print('calling function...', locals()[Procedure])
-locals()[Procedure](d, idDescription, idNameSymbol, modelName, int(argData['folds']))
+locals()[Procedure](d, idDescription, idNameSymbol, resultDir, nfolds)
 
 
 #print("FEATURES CREATED, STARTING ML")

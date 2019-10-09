@@ -289,8 +289,8 @@ class OlegDB(Adapter):
 		symbolProteinIdDict = symbolProtein.set_index('symbol').T.to_dict('records')[0] #DataFrame to dictionary
 		return symbolProteinIdDict
 	
+	# the following function will fetch protein_ids for tax_id 9606.
 	def fetchAllProteinIds(self):
-		#Fetch protein_ids for tax_id 9606. 
 		allProteinIds = selectAsDF("select distinct protein_id from protein where tax_id=9606",['protein_id'],self.db)
 		logging.info("(OlegDB.fetchAllProteinIds) All Protein Ids: {0}".format(allProteinIds.shape[0]))
 		return allProteinIds
@@ -302,3 +302,32 @@ class OlegDB(Adapter):
 		logging.info("(OlegDB.fetchProteinIdForSymbol) Protein Name for Id: {0}".format(proteinIdSymbol.shape[0]))
 		proteinIdSymbolDict = proteinIdSymbol.set_index('protein_id').T.to_dict('records')[0] #DataFrame to dictionary
 		return proteinIdSymbolDict
+
+	# the following function with fetch all protein ids with negative class
+	def fetchNegativeClassProteinIds(self):
+		sql = "SELECT DISTINCT clinvar.protein_id \
+			 FROM clinvar_disease,	\
+				  clinvar_disease_xref, \
+				  clinvar \
+			JOIN \
+				protein ON protein.protein_id = clinvar.protein_id \
+			WHERE \
+				clinvar_disease.cv_dis_id=clinvar_disease_xref.cv_dis_id  \
+				AND clinvar_disease_xref.source = 'OMIM' \
+				AND clinvar.cv_dis_id=clinvar_disease.cv_dis_id \
+				AND clinvar.clinical_significance IN \
+					('Pathogenic, Affects','Benign, protective, risk factor','Pathogenic/Likely pathogenic','Pathogenic/Likely pathogenic, other','Pathogenic, other', \
+					'Affects','Pathogenic, other, protective','Conflicting interpretations of pathogenicity, Affects, association, other','Pathogenic/Likely pathogenic, drug response', \
+					'Pathogenic, risk factor','risk factor','Pathogenic, association','Conflicting interpretations of pathogenicity, Affects, association, risk factor', \
+					'Pathogenic/Likely pathogenic, risk factor','Affects, risk factor','Conflicting interpretations of pathogenicity, association, other, risk factor', \
+					'Likely pathogenic, association','association, protective','Likely pathogenic, Affects','Pathogenic','Conflicting interpretations of pathogenicity, association', \
+					'Pathogenic/Likely pathogenic, Affects, risk factor','Conflicting interpretations of pathogenicity, other, risk factor','association, risk factor', \
+					'Benign, protective','Conflicting interpretations of pathogenicity, risk factor','Uncertain significance, protective','association','Uncertain significance, Affects', \
+					'protective, risk factor','Pathogenic, association, protective','Pathogenic, protective','Likely pathogenic, other','Pathogenic, protective, risk factor', \
+					'Benign, association, protective','Conflicting interpretations of pathogenicity, Affects','Benign/Likely benign, protective','protective')"
+	
+		#print (sql)
+		negProteinIds = selectAsDF(sql,['protein_id'],self.db)
+		logging.info("(OlegDB.fetchNegativeClassProteinIds) Negative class Protein Ids: {0}".format(negProteinIds.shape[0]))
+		return negProteinIds
+	

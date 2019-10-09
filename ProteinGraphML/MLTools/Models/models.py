@@ -143,7 +143,7 @@ class RocCurve(Output):
 		logging.info("ROOT: {0}".format(rootName))
 		# root is the type...
 
-		#print('HERE IS THE BASE',base)
+		#print('HERE IS THE BASE',fileString)
 		
 		roc_auc = auc(self.fpr, self.tpr)
 		plt.title('Receiver Operating Characteristic')
@@ -159,7 +159,9 @@ class RocCurve(Output):
 		if fileString is not None:
 			#plt.savefig('books_read.png')
 			#print("THIS IS THE FILE STRING===",fileString)
-			plt.savefig('results/{0}/auc.png'.format(fileString))
+			pltfile = fileString + '.png'
+			logging.info("INFO: AUC-ROC curve will be saved as {0}".format(pltfile))
+			plt.savefig(pltfile)
 
 	def printOutput(self,file=None):
 		if file is not None: # if we've got a file, we wont print it
@@ -183,17 +185,19 @@ class BaseModel:
 	MODEL_DIR = ""
 	def __init__(self,MODEL_DIR,runName = None):
 		self.MODEL_DIR = MODEL_DIR
-		if runName is None:
+		if runName is None: #control will NEVER come here as runName is mandatory now
 			self.MODEL_RUN_NAME = "{0}-{1}".format(self.MODEL_DIR,str(int(time.time())))
-			self.DATA_DIR = "results/{0}".format(self.MODEL_RUN_NAME)
+			#self.DATA_DIR = "results/{0}".format(self.MODEL_RUN_NAME)
 		else:
-			self.MODEL_RUN_NAME = runName
-			self.DATA_DIR = "results/{0}".format(runName)
-	
+			#self.MODEL_RUN_NAME = runName
+			#self.DATA_DIR = "results/{0}".format(runName)
+			self.MODEL_RUN_NAME = "{0}".format(runName)
+		self.DATA_DIR = "results/{0}".format(self.MODEL_RUN_NAME)	
+		
 	def getFile(self):		
 
 		self.createDirectoryIfNeed(self.DATA_DIR)
-		WRITEFILE = '{0}/metrics.txt'.format(self.DATA_DIR)
+		WRITEFILE = self.DATA_DIR + '/metrics_' + self.MODEL_DIR + '.txt'
 		#open(WRITEDIR, 'a').close()
 
 		fileName = WRITEFILE
@@ -231,8 +235,11 @@ class BaseModel:
 				resultList.append(newResultObject)
 				#print(resultObject)	
 				#print("MODEL DIR",self.MODEL_DIR) #self.MODEL_RUN_NAME
-				if resultType == "rocCurve" and self.MODEL_DIR == "XGBCrossVal": # if it's XGB cross val we will write output (hack)
-					newResultObject.fileOutput(fileString=self.MODEL_RUN_NAME)
+				#if resultType == "rocCurve" and self.MODEL_DIR == "XGBCrossVal": # if it's XGB cross val we will write output (hack)
+				if resultType == "rocCurve":
+					aucFileName = self.DATA_DIR + '/auc_' + self.MODEL_DIR
+					#newResultObject.fileOutput(fileString=self.MODEL_RUN_NAME)
+					newResultObject.fileOutput(fileString=aucFileName)
 				else:
 					newResultObject.printOutput(file=writeSpace)
 				#resultObject.printOutput(file=writeSpace)
@@ -279,11 +286,13 @@ class XGBoostModel(BaseModel):
 	def setParam(self,):
 		self.param = param
 
-	def train(self,trainData,modelName,param):		
+	def train(self,trainData, param):
+		print (param)		
 		dtrain = xgb.DMatrix(trainData.features,label=trainData.labels)				
 		#bst = xgb.train(param, dtrain,num_boost_round=50)
 		bst = xgb.train(param, dtrain) #use the default values of parameters
 		self.m = bst
+		modelName = self.DATA_DIR + '/' + self.MODEL_DIR + '.model'
 		bst.save_model(modelName)
 		logging.info('Trained ML Model was saved as {0}'.format(modelName)) 
 		#pickle.dump(bst, open('0001.model', 'wb'))
@@ -299,15 +308,14 @@ class XGBoostModel(BaseModel):
 
 		return self.createResultObjects(testData,outputTypes,predictions)		
 
-	def predict_using_saved_model(self, testData, idDescription, idNameSymbol, outputTypes):
+	def predict_using_saved_model(self, testData, idDescription, idNameSymbol, modelName):
 		inputData = xgb.DMatrix(testData.features)
 		bst = xgb.Booster()
 		bst.load_model(modelName)
 		#bst = pickle.load(open('0001.model', 'rb'))
 		predictions = bst.predict(inputData)
-		roc,acc,mcc = self.createResultObjects(testData,outputTypes,predictions)
-		self.savePredictedProbability(self.MODEL_RUN_NAME, testData, predictions, idDescription, idNameSymbol, "TEST")
-		return roc,acc,mcc
+		self.savePredictedProbability(testData, predictions, idDescription, idNameSymbol, "TEST")
+		
 
 	#def cross_val_predict(self,testData,outputTypes):
 	def cross_val_predict(self,testData,idDescription,idNameSymbol,outputTypes,params={},cv=1):
@@ -331,20 +339,29 @@ class XGBoostModel(BaseModel):
 		#scale_pos_weight
 		#scale_pos_weight=testData.posWeight,
 		#clf = xgb.XGBClassifier(scale_pos_weight=testData.posWeight,max_depth=10,gamma=0.1,min_child_weight=0,subsample=0.9,colsample_bytree=0.5, n_jobs=8)
-		
+
+		metrics = {"roc":0., "mcc":0., "acc":0.}
 		clf = xgb.XGBClassifier(**params)
 		self.m = clf
 		class01Probs = cross_val_predict(self.m, testData.features, y=testData.labels, cv=cv, method='predict_proba') #calls sklearn's cross_val_predict
 		predictions = [i[1] for i in class01Probs] #select class1 probability
-		roc,acc,mcc, CM,report = self.createResultObjects(testData,outputTypes,predictions) 
-				
+		roc,rc,acc,mcc,CM,report = self.createResultObjects(testData,outputTypes,predictions) 
+		metrics["roc"] = roc.data
+		metrics["mcc"] = mcc.data
+		metrics["acc"] = acc.data
+
 		#find imporant features and save them in a text file
 		importance = Counter(clf.fit(testData.features,testData.labels).get_booster().get_score(importance_type='gain'))
-		self.saveImportantFeatures(self.MODEL_RUN_NAME, importance, idDescription)
+		self.saveImportantFeatures(importance, idDescription)
+		self.saveImportantFeaturesAsPickle(importance) 
 		
 		#save predicted class 1 probabilty in a text file
-		self.savePredictedProbability(self.MODEL_RUN_NAME, testData, predictions, idDescription, idNameSymbol, "TRAIN")
-		return roc,acc,mcc, CM,report,importance
+		self.savePredictedProbability(testData, predictions, idDescription, idNameSymbol, "TRAIN")
+		
+		#train the model using all train data and save it
+		self.train(testData, param=params)
+		#return roc,acc,mcc, CM,report,importance
+		logging.info("METRICS: {0}".format(str(metrics)))
  
 
 	def average_cross_val(self,testData,idDescription,idNameSymbol,outputTypes,folds=1,split=0.8,params={},cv=1):
@@ -356,14 +373,14 @@ class XGBoostModel(BaseModel):
 		#WRITEDIR = OUT_DIR+"stuff" # create a new file
 		#self.DIR = 
 		#self.MODEL_DIR+"-"+
-		dummyModel = XGBoostModel(self.MODEL_DIR)
+		#dummyModel = XGBoostModel(self.MODEL_DIR)
 		#DIR = "results/{0}-{1}".format(self.MODEL_DIR,str(int(time.time())))
 		
-		logging.info("THING: {0}".format(dummyModel.MODEL_RUN_NAME))
+		#logging.info("THING: {0}".format(dummyModel.MODEL_RUN_NAME))
 		
-		DIR = dummyModel.MODEL_RUN_NAME # This will get us a model with a specific timestamp
+		#DIR = dummyModel.MODEL_RUN_NAME # This will get us a model with a specific timestamp
 		
-		logging.info("THIS IS THE DIR {0}".format(DIR))
+		#logging.info("THIS IS THE DIR {0}".format(DIR))
 
 		metrics = {"average-roc":0., "average-mcc":0., "average-acc":0.} #add mcc and accuracy too
 		logging.info("=== RUNNING {0} FOLDS".format(folds))
@@ -428,13 +445,17 @@ class XGBoostModel(BaseModel):
 			
 		logging.info("METRICS: {0}".format(str(metrics))) # write this metric to a file...
 		
-		self.saveImportantFeatures(DIR, importance, idDescription) #save important features
+		self.saveImportantFeatures(importance, idDescription) #save important features
+		self.saveImportantFeaturesAsPickle(importance)
 		#print (avgPredictedProb)
-		self.savePredictedProbability(DIR, testData, avgPredictedProb, idDescription, idNameSymbol, "TRAIN") #save predicted probabilities
+		self.savePredictedProbability(testData, avgPredictedProb, idDescription, idNameSymbol, "TRAIN") #save predicted probabilities
+	
+		#train the model using all train data and save it
+		self.train(testData, param=params)
+
 		#with open(FINALDIR, 'wb') as f:
 		#	pickle.dump(importance, f, pickle.HIGHEST_PROTOCOL)
-		
-		return importance
+		#return importance
 
 
 
@@ -467,9 +488,18 @@ class XGBoostModel(BaseModel):
 		a = random_search.fit(totalData.features, totalData.labels)
 		return a
 
+	#Save important features as pickle file. It will be used by visualization code
+	def saveImportantFeaturesAsPickle(self, importance):
+		'''
+		Save important features in a pickle dictionary
+		'''
+		featureFile = self.DATA_DIR + '/featImportance_' + self.MODEL_DIR + '.pkl'
+		logging.info("IMPORTANT FEATURES WRITTEN TO PICKLE FILE {0}".format(featureFile))
+		with open(featureFile, 'wb') as ff:
+			pickle.dump(importance, ff, pickle.HIGHEST_PROTOCOL)
 
 	# Save the important features in a text file.
-	def saveImportantFeatures(self, impFolder, importance, idDescription):
+	def saveImportantFeatures(self, importance, idDescription):
 		'''
 		This function saves the important features in a text file.
 		'''
@@ -483,21 +513,21 @@ class XGBoostModel(BaseModel):
 					dataForDataframe['Name'].append(idDescription[feature])
 				except:
 					dataForDataframe['Name'].append(feature)
-					logging.debug(feature)
+					logging.debug('INFO: saveImportantFeatures - Unknown feature = {0}'.format(feature))
 			else:
 				try:
 					dataForDataframe['Name'].append(idDescription[int(feature)])
 				except:
 					dataForDataframe['Name'].append(feature)
-					logging.debug(feature)
+					logging.debug('INFO: saveImportantFeatures - Unknown feature = {0}'.format(feature))
 		
 		df = pd.DataFrame(dataForDataframe)
-		impFileTsv = 'results/{0}/featImportance.tsv'.format(impFolder)
+		impFileTsv = self.DATA_DIR + '/featImportance_'  + self.MODEL_DIR + '.tsv'
 		fout = open(impFileTsv, "w")
 		df.to_csv(fout, '\t', index=False)
 		fout.close()
 		logging.info("IMPORTANT FEATURES WRITTEN TO {0}".format(impFileTsv))
-		impFileXlsx = 'results/{0}/featImportance.xlsx'.format(impFolder)
+		impFileXlsx = self.DATA_DIR + '/featImportance_'  + self.MODEL_DIR + '.xlsx'
 		writer = pd.ExcelWriter(impFileXlsx, engine='xlsxwriter')
 		df.to_excel(writer, sheet_name='Sheet1', index=False)
 		writer.save() 
@@ -505,7 +535,7 @@ class XGBoostModel(BaseModel):
 
 
 	#save predicted probability
-	def savePredictedProbability(self, resultsFolder, testData, predictions, idDescription, idNameSymbol, DataType):
+	def savePredictedProbability(self, testData, predictions, idDescription, idNameSymbol, DataType):
 		'''
 		This function will save true labels and predicted class 1 probability of all protein ids.
 		'''
@@ -523,19 +553,29 @@ class XGBoostModel(BaseModel):
 		i = 0
 		for proteinId in proteinIds:
 			dataForDataframe['Protein Id'].append(proteinId)
-			dataForDataframe['Name'].append(idDescription[proteinId])
-			dataForDataframe['Symbol'].append(idNameSymbol[proteinId])
 			dataForDataframe['True Label'].append(TrueLabels[i])
 			dataForDataframe['Predicted Probability'].append(predictions[i])
+			try:
+				dataForDataframe['Name'].append(idDescription[proteinId])
+			except:
+				dataForDataframe['Name'].append(proteinId)
+				logging.debug('INFO: savePredictedProbability - Unknown Protein Id = {0}'.format(proteinId))
+
+			try:
+				dataForDataframe['Symbol'].append(idNameSymbol[proteinId])
+			except:
+				dataForDataframe['Symbol'].append(proteinId)
+				logging.debug('INFO: savePredictedProbability - Unknown Protein Id = {0}'.format(proteinId))
+
 			i+=1
 		df = pd.DataFrame(dataForDataframe)
 		
-		resultsFileTsv = 'results/{0}/classificationResults.tsv'.format(resultsFolder)
+		resultsFileTsv = self.DATA_DIR + '/classificationResults_' + self.MODEL_DIR + '.tsv'
 		fout = open(resultsFileTsv, "w")
 		df.to_csv(fout, '\t', index=False)
 		fout.close()
 		logging.info("CLASSIFICATION RESULTS WRITTEN TO {0}".format(resultsFileTsv))
-		resultsFileXlsx = 'results/{0}/classificationResults.xlsx'.format(resultsFolder)
+		resultsFileXlsx = self.DATA_DIR + '/classificationResults_' + self.MODEL_DIR + '.xlsx'
 		writer = pd.ExcelWriter(resultsFileXlsx, engine='xlsxwriter')
 		df.to_excel(writer, sheet_name='Sheet1', index=False)
 		writer.save()
