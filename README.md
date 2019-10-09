@@ -88,6 +88,7 @@ Command line parameters:
 * `--file` : File that contains protein_ids/symbols and labels for a given disease, with extension (.txt|.xlsx|.rds).
 * `--dir` : directory where data files are found (default: DataForML).
 * `--symbol_or_pid` : "symbol" or "pid" (default: symbol).
+* `--neglabel` : Does the input file have negative label? (Y|N, default 'Y'). 
 
 If the file is a spreadsheet, the header should have "Protein_id Label" or "Symbol Label".
 If the file is a text file, the Protein_id/symbol and
@@ -100,8 +101,9 @@ Example commands:
 ```
 PickleTrainingset.py -h
 PickleTrainingset.py --file diabetes_pid.txt --symbol_or_pid 'pid'
+PickleTrainingTestSet.py --file autophagy_test20191003.xlsx --neglabel Y
 PickleTrainingset.py --file 125853.rds
-PickleTrainingset.py --file diabetes.xlsx
+PickleTrainingset.py --file diabetes.xlsx --neglabel N
 ```
 
 ### <a name="HowtoRunML"/>Run ML Procedure
@@ -121,16 +123,17 @@ Command line parameters:
    * `XGBCrossVal` : 5-fold cross-validation, multiple iterations.
 * `--disease` : Use with Mammalian Phenotype ID, e.g. MP_0000180.
 * `--file` : Training set file, produced by `PickleTrainingset.py`.
+* `--resultdir` : Name of the directory where results will be stored (e.g. MP_0000180).
 * `--kgfile` : KG file, produced by `BuildKG_OlegDb.py` (default: ProteinDisease_GRAPH.pkl).
 
 Example commands:
 
 ```
 RunML.py -h
-RunML.py XGBCrossVal --file 144700.pkl
-RunML.py XGBCrossValPred --file 144700.pkl
-RunML.py XGBCrossVal --disease MP_0000180
-RunML.py XGBCrossValPred --disease MP_0000180
+RunML.py XGBCrossVal --file 144700.pkl --resultdir 144700
+RunML.py XGBCrossValPred --file 144700.pkl --resultdir 144700
+RunML.py XGBCrossVal --disease MP_0000180 --resultdir MP_0000180
+RunML.py XGBCrossValPred --disease MP_0000180 --resultdir MP_0000180
 ```
 
 Results will be saved in `ProteinGraphML/results`. See logs for specific
@@ -150,15 +153,15 @@ Command line parameters:
 
 * `procedure` (positional parameter):
    * `XGBPredict` :  load the saved model
-* `--disease` : Use with Mammalian Phenotype ID, e.g. MP_0000180.
-* `--file` : Training set file, produced by `PickleTrainingset.py`.
+* `--model` : Full path to the trained model (results/autophagy_test20191003/XGBCrossVal.model).
+* `--file` : Test set file, produced by `PickleTrainingset.py`.
 * `--kgfile` : KG file, produced by `BuildKG_OlegDb.py` (default: ProteinDisease_GRAPH.pkl).
 
 Example commands:
 
 ```
 RunML.py -h
-RunML.py XGBPredict --file 144700_test.pkl
+PredictML.py XGBPredict --file autophagy_test20191003_test.pkl --model results/autophagy_test20191003/XGBCrossVal.model
 ```
 
 Results will be saved in `ProteinGraphML/results`. See logs for specific
@@ -176,7 +179,7 @@ code for taking a dictionary of feature importance, and giving it human readable
 Command-line parameters:
 
 * `--disease` : Disease name.
-* `--featurefile` : full path to pickled features file produced by `RunML.py`, e.g. results/104300/featImportance_XGBCrossVal.pkl.
+* `--featurefile` : full path to the pickled features file produced by `RunML.py`, e.g. results/104300/featImportance_XGBCrossVal.pkl.
 * `--num` : number of top important features selected.
 * `--kgfile` : Pickled KG file, produced by `BuildKG_OlegDb.py` (default: ProteinDisease_GRAPH.pkl).
 
