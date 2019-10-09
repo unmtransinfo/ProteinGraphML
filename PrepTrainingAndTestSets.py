@@ -180,7 +180,7 @@ parser = argparse.ArgumentParser(description='Generate dictionary file using pro
 parser.add_argument('--file', required=True, type=str, nargs='?', help='input file')
 parser.add_argument('--dir', default=path_to_files, help='input dir')
 parser.add_argument('--symbol_or_pid', choices=('symbol', 'pid'), default='symbol', help='symbol|pid')
-parser.add_argument('--neglabel', choices=('Y', 'N'), default='Y', help='Y|N')
+parser.add_argument('--use_default_negatives', default=False, action='store_true')
 parser.add_argument("-v", "--verbose", action="count", default=0, help="verbosity")
 
 args = parser.parse_args()
@@ -195,7 +195,7 @@ allProteinIds = dbAdapter.fetchAllProteinIds()
 allProteinIds = set(allProteinIds['protein_id'].tolist())
 
 # check if negative labels need to be fetched from the database
-if (args.neglabel == 'N'):
+if (args.use_default_negatives):
 	logging.info('INFO: Default protein ids will be selected for negative labels')	
 	negProteinIds = dbAdapter.fetchNegativeClassProteinIds()
 	negProteinIds = set(negProteinIds['protein_id'].tolist())
@@ -217,26 +217,26 @@ if (fileName is None):
 elif (fileName is not None and args.symbol_or_pid=='symbol'): 
 	logging.info('File name given and file contains symbols....>>>')
 	if ('.xlsx' in fileName or '.xls' in fileName):
-		if (args.neglabel == 'Y'):
-			trainData,testData = generateTrainTestFromExcel()
-		else:
+		if (args.use_default_negatives):
 			trainData,testData = generateTrainTestFromExcel(negProtein=negProteinIds)
+		else:
+			trainData,testData = generateTrainTestFromExcel()
 		
 		#save the training/test data dictionary in pickle format
 		saveTrainTestSet(trainData, testData)
 	elif ('.txt' in fileName):
-		if (args.neglabel == 'Y'):
-			trainData,testData = generateTrainTestFromText()
-		else:
+		if (args.use_default_negatives):
 			trainData,testData = generateTrainTestFromText(negProtein=negProteinIds)
+		else:
+			trainData,testData = generateTrainTestFromText()
 		
 		#save the training/test data dictionary in pickle format
 		saveTrainTestSet(trainData, testData)
 	elif ('.rds' in fileName): #rds file
-		if (args.neglabel == 'Y'):
-			trainData,testData = generateTrainTestFromRDS()
-		else:
+		if (args.use_default_negatives):
 			trainData,testData = generateTrainTestFromRDS(negProtein=negProteinIds)
+		else:
+			trainData,testData = generateTrainTestFromRDS()
 		
 		#save the training/test data dictionary in pickle format
 		saveTrainTestSet(trainData, testData)
@@ -248,26 +248,26 @@ elif (fileName is not None and args.symbol_or_pid=='symbol'):
 elif (fileName is not None and args.symbol_or_pid=='pid'): 
 	logging.info('File name given and file has protein ids....>>>')
 	if ('.xlsx' in fileName or '.xls' in fileName):
-		if (args.neglabel == 'Y'):
-			trainData,testData = generateTrainTestFromExcel()
-		else:
+		if (args.use_default_negatives):
 			trainData,testData = generateTrainTestFromExcel(negProtein=negProteinIds)
+		else:
+			trainData,testData = generateTrainTestFromExcel()
 		
 		#save the training/test data dictionary in pickle format
 		saveTrainTestSet(trainData, testData)
 	elif ('.txt' in fileName):
-		if (args.neglabel == 'Y'):
-			trainData,testData = generateTrainTestFromText()
-		else:
+		if (args.use_default_negatives):
 			trainData,testData = generateTrainTestFromText(negProtein=negProteinIds)
+		else:
+			trainData,testData = generateTrainTestFromText()
 		
 		#save the training/test data dictionary in pickle format
 		saveTrainTestSet(trainData, testData)
 	elif ('.rds' in fileName):
-		if (args.neglabel == 'Y'):
-			trainData,testData = generateTrainTestFromRDS()
-		else:
+		if (args.use_default_negatives):
 			trainData,testData = generateTrainTestFromRDS(negProtein=negProteinIds)
+		else:
+			trainData,testData = generateTrainTestFromRDS()
 		
 		#save the training/test data dictionary in pickle format
 		saveTrainTestSet(trainData, testData)

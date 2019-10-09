@@ -65,9 +65,9 @@ logging.info("GRAPH {0} LOADED".format(graphString))
 nodes = [ProteinInteractionNode,KeggNode,ReactomeNode,GoNode,InterproNode]
 
 #Get static features
+#staticFeatures = []
 staticFeatures = argData['static_data'].split(',')
 logging.info(staticFeatures)
-staticFeatures = []
 
 logging.info("--- USING {0} METAPATH FEATURE SETS".format(len(nodes)))
 logging.info("--- USING {0} STATIC FEATURE SETS".format(len(staticFeatures)))

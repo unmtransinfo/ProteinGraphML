@@ -75,20 +75,24 @@ cd ProteinGraphML/MLTools/StaticFeatures
 
 ### <a name="HowtoTrainingsetPrep"/>Training Set Preparation  _(For custom labeled training set.)_
 
-`PickleTrainingTestSet.py` generates a `pickle`ed Python dictionary that
+`PrepTrainingAndTestSets.py` generates two files:
+
+1.  A `pickle`ed Python dictionary that
 contains protein_ids for both class 'True' and 'False'. This training set file is needed
 for running ML for a disease defined by a custom labeled training set,
 rather than a Mammalian Phenotype (MP) term ID. The custome labeled training set may
 reference proteins via `protein_id`s or gene symbols; if gene symbols, this code fetches
 the corresponding `protein_id` for each symbol from the database. The prepared,
-picked training set uses `protein_id`s. The picked test set is used for testing the trained model.
+picked training set uses `protein_id`s.
+1. A `pickle`ed test set of protein_ids, unlabeled, defining the predictions of
+interest, for testing the trained model.
 
 Command line parameters:
 
 * `--file` : File that contains protein_ids/symbols and labels for a given disease, with extension (.txt|.xlsx|.rds).
 * `--dir` : directory where data files are found (default: DataForML).
 * `--symbol_or_pid` : "symbol" or "pid" (default: symbol).
-* `--neglabel` : Does the input file have negative label? (Y|N, default 'Y'). 
+* `--use_default_negatives` : Use default negatives, ~3500 genes with known associations but not with query disease. If false, input training set must include negatives.
 
 If the file is a spreadsheet, the header should have "Protein_id Label" or "Symbol Label".
 If the file is a text file, the Protein_id/symbol and
@@ -99,11 +103,11 @@ to run this program.
 Example commands:
 
 ```
-PickleTrainingset.py -h
-PickleTrainingset.py --file diabetes_pid.txt --symbol_or_pid 'pid'
-PickleTrainingTestSet.py --file autophagy_test20191003.xlsx --neglabel Y
-PickleTrainingset.py --file 125853.rds
-PickleTrainingset.py --file diabetes.xlsx --neglabel N
+PrepTrainingAndTestSets.py -h
+PrepTrainingAndTestSets.py --file diabetes_pid.txt --symbol_or_pid 'pid'
+PrepTrainingAndTestSets.py --file autophagy_test20191003.xlsx
+PrepTrainingAndTestSets.py --file 125853.rds
+PrepTrainingAndTestSets.py --file diabetes.xlsx --use_default_negatives
 ```
 
 ### <a name="HowtoRunML"/>Run ML Procedure
@@ -122,7 +126,7 @@ Command line parameters:
    * `XGBCrossValPred` :  5-fold cross-validation, one iteration.
    * `XGBCrossVal` : 5-fold cross-validation, multiple iterations.
 * `--disease` : Use with Mammalian Phenotype ID, e.g. MP_0000180.
-* `--file` : Training set file, produced by `PickleTrainingset.py`.
+* `--file` : Training set file, produced by `PrepTrainingAndTestSets.py`.
 * `--resultdir` : Name of the directory where results will be stored (e.g. MP_0000180).
 * `--kgfile` : KG file, produced by `BuildKG_OlegDb.py` (default: ProteinDisease_GRAPH.pkl).
 
@@ -154,7 +158,7 @@ Command line parameters:
 * `procedure` (positional parameter):
    * `XGBPredict` :  load the saved model
 * `--model` : Full path to the trained model (results/autophagy_test20191003/XGBCrossVal.model).
-* `--file` : Test set file, produced by `PickleTrainingset.py`.
+* `--file` : Test set file, produced by `PrepTrainingAndTestSets.py`.
 * `--kgfile` : KG file, produced by `BuildKG_OlegDb.py` (default: ProteinDisease_GRAPH.pkl).
 
 Example commands:

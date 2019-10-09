@@ -30,7 +30,7 @@ parser.add_argument('--disease', metavar='disease', type=str, nargs='?', help='M
 parser.add_argument('--file', type=str, nargs='?', help='input file, pickled training set, e.g. "diabetes.pkl"')
 parser.add_argument('--dir', default=DATA_DIR, help='input dir (default: "{0}")'.format(DATA_DIR))
 parser.add_argument('--resultdir', type=str, nargs='?', help='folder where results will be saved, e.g. "diabetes_no_lincs"')
-parser.add_argument('--folds', default=NUM_OF_FOLDS, help='number of folds for average CV (default: "{0}")'.format(NUM_OF_FOLDS))
+parser.add_argument('--crossval_folds', type=int, default=NUM_OF_FOLDS, help='number of folds for average CV (default: "{0}")'.format(NUM_OF_FOLDS))
 parser.add_argument('--kgfile', default=DEFAULT_GRAPH, help='input pickled KG (default: "{0}")'.format(DEFAULT_GRAPH))
 parser.add_argument('--static_data', default=DEFAULT_STATIC_FEATURES, help='(default: "{0}")'.format(DEFAULT_STATIC_FEATURES))
 parser.add_argument("-v", "--verbose", action="count", default=0, help="verbosity")
@@ -85,14 +85,14 @@ if (argData['resultdir'] is not None):
 else:
 	logging.error('Result directory is needed')
 	exit()
-nfolds = int(argData['folds']) # applicable for average CV
+nfolds = argData['crossval_folds'] # applicable for average CV
 
 #Nodes
 nodes = [ProteinInteractionNode,KeggNode,ReactomeNode,GoNode,InterproNode]
 
 
-#staticFeatures = argData['static_data'].split(',')
-staticFeatures = []
+#staticFeatures = []
+staticFeatures = argData['static_data'].split(',')
 logging.info(staticFeatures)
 
 logging.info("--- USING {0} METAPATH FEATURE SETS".format(len(nodes)))
