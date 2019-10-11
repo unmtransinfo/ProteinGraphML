@@ -27,8 +27,8 @@ def saveTrainTestSet(allData):
 	'''
 	logging.info('Number of rows and features in allData: {0}'.format(allData.shape))
 	if (disease is not None):
-		pklTrainFile = outputDir + disease + '_TrainingData.pkl'
-		pklTestFile = outputDir + disease + '_TestData.pkl'
+		pklTrainFile = outputDir + '/' + disease + '_TrainingData.pkl'
+		pklTestFile = outputDir + '/' + disease + '_TestData.pkl'
 		
 		# extract train data from the dataframe
 		trainData = allData.loc[allData['Y'].isin([0,1])]
@@ -46,13 +46,13 @@ def saveTrainTestSet(allData):
 		#print (testData)
 	
 	elif (testfile is None and trainingfile is not None):
-		pklTrainFile = outputDir + trainingfile.split('.')[0] + '_TrainingData.pkl'
+		pklTrainFile = outputDir + '/' + os.path.basename(trainingfile).split('.')[0] + '_TrainingData.pkl'
 		logging.info("Writing train data to file: {0}".format(pklTrainFile))
 		savePickleObject(pklTrainFile, allData)
 
 	elif (testfile is not None and trainingfile is not None):
-		pklTrainFile = outputDir + trainingfile.split('.')[0] + '_TrainingData.pkl'
-		pklTestFile = outputDir + testfile.split('.')[0] + '_TestData.pkl'
+		pklTrainFile = outputDir + '/' + os.path.basename(trainingfile).split('.')[0] + '_TrainingData.pkl'
+		pklTestFile = outputDir + '/' + os.path.basename(testfile).split('.')[0] + '_TestData.pkl'
 
 		# extract train data from the dataframe
 		trainData = allData.loc[allData['Y'].isin([0,1])]
@@ -83,7 +83,6 @@ parser = argparse.ArgumentParser(description='Generate features for training and
 parser.add_argument('--disease', metavar='disease', type=str, nargs='?', help='Mammalian Phenotype ID, e.g. MP_0000180')
 parser.add_argument('--trainingfile', type=str, nargs='?', help='pickled training set, e.g. "diabetes.pkl"')
 parser.add_argument('--testfile', type=str, nargs='?', help='pickled test set, e.g. "diabetes_test.pkl"')
-parser.add_argument('--inputdir', default=DATA_DIR, type=str, nargs='?', help='input dir for arguments trainingfile and testfile(default: "{0}")'.format(DATA_DIR))
 parser.add_argument('--outputdir', default=DATA_DIR, type=str, nargs='?', help='directory where train and test data with features will be saved, e.g. "diabetes_no_lincs"')
 parser.add_argument('--kgfile', default=DEFAULT_GRAPH, help='input pickled KG (default: "{0}")'.format(DEFAULT_GRAPH))
 parser.add_argument('--static_data', default=DEFAULT_STATIC_FEATURES, help='(default: "{0}")'.format(DEFAULT_STATIC_FEATURES))
@@ -99,23 +98,24 @@ trainingfile = argData['trainingfile']
 testfile = argData['testfile']
 fileData = None
 
+#folder where train and test data with features will be stored
+outputDir = argData['outputdir'] 
+
+#check whether file or disease was given
+if (trainingfile is None and disease is None): 
+	parser.error("--disease or -- training file must be specified.")
+
 #fetch KG data
 graphString = argData['kgfile']
 currentGraph = ProteinDiseaseAssociationGraph.load(graphString)
 logging.info("GRAPH {0} LOADED".format(graphString))
 
-#folder where train and test data with features will be stored
-outputDir = argData['outputdir'] 
-
 #Access the adapter
 dbAdapter = OlegDB()
 
-#check whether file or disease was given
-if (trainingfile is None and disease is None): 
-	parser.error("--disease or -- training file must be specified.")
-elif (trainingfile is not None and disease is None): 
-	trainingPklFile = argData['inputdir'] + trainingfile
-	logging.info('Input Training pickle file is... {0}'.format(trainingPklFile))
+if (trainingfile is not None and disease is None): 
+	trainingPklFile = trainingfile
+	logging.info('Input training file: {0}'.format(trainingPklFile))
 	try:
 		with open(trainingPklFile, 'rb') as f:
 			fileData = pickle.load(f)
@@ -125,8 +125,8 @@ elif (trainingfile is not None and disease is None):
 
 	#Also add test data if provided
 	if (testfile is not None):
-		testPklFile = argData['inputdir'] + testfile
-		logging.info('Input Test pickle file is... {0}'.format(testPklFile))
+		testPklFile = testfile
+		logging.info('Input test file: {0}'.format(testPklFile))
 		try:
 			with open(testPklFile, 'rb') as f:
 				fileData.update(pickle.load(f)) #fileData will now have both train and test set

@@ -17,9 +17,6 @@ from sklearn.metrics import roc_auc_score,roc_curve #.roc_auc_score(y_true, y_sc
 
 # iterating on our platform across domains 
 
-# update all of this.... later 
-OUT_DIR = "results/"
-
 class Result:
 	
 	data = None
@@ -374,7 +371,6 @@ class XGBoostModel(BaseModel):
 		#CROSSVAL = 10
 		collection = []
 		importance = None
-		#WRITEDIR = OUT_DIR+"stuff" # create a new file
 		#self.DIR = 
 		#self.MODEL_DIR+"-"+
 		#dummyModel = XGBoostModel(self.MODEL_DIR)

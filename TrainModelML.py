@@ -16,14 +16,12 @@ from ProteinGraphML.Analysis import Visualize
 
 t0 = time.time()
 
-DATA_DIR = os.getcwd() + '/DataForML/'
 NUM_OF_FOLDS = 2
 PROCEDURES = ["XGBCrossVal", "XGBCrossValPred"]
 
 parser = argparse.ArgumentParser(description='Run ML Procedure', epilog='--disease or --file must be specified; available procedures: {0}'.format(str(PROCEDURES)))
 parser.add_argument('procedure', metavar='procedure', type=str, choices=PROCEDURES, nargs='+', help='ML procedure to run')
-parser.add_argument('--trainingdatafile', type=str, nargs='?', help='input file, pickled training data, e.g. "diabetesTrainData.pkl"')
-parser.add_argument('--dir', default=DATA_DIR, help='input dir (default: "{0}")'.format(DATA_DIR))
+parser.add_argument('--trainingDataFile', type=str, nargs='?', help='input file, pickled training data, e.g. "diabetesTrainData.pkl"')
 parser.add_argument('--resultdir', type=str, nargs='?', help='folder where results will be saved, e.g. "diabetes_no_lincs"')
 parser.add_argument('--crossval_folds', type=int, default=NUM_OF_FOLDS, help='number of folds for average CV (default: "{0}")'.format(NUM_OF_FOLDS))
 parser.add_argument("-v", "--verbose", action="count", default=0, help="verbosity")
@@ -33,14 +31,13 @@ argData = vars(parser.parse_args())
 logging.basicConfig(format='%(levelname)s:%(message)s', level=(logging.DEBUG if argData['verbose']>1 else logging.INFO))
 
 #Get data from file 
-fileName = argData['trainingdatafile']
+trainingDataFile = argData['trainingDataFile']
 
-if fileName is None:
-	parser.error("--training data file must be specified.")
+if trainingDataFile is None:
+	parser.error("--trainingDataFile must be specified.")
 else:
-	pklFile = argData['dir'] + fileName
 	try:
-		with open(pklFile, 'rb') as f:
+		with open(trainingDataFile, 'rb') as f:
 			trainData = pickle.load(f)
 	except:
 		logging.error('Must generate pickled training data file') 
@@ -52,7 +49,7 @@ logging.info('Procedure: {0}'.format(Procedure))
 #Get reult directory and number of folds
 if (argData['resultdir'] is not None):
 	resultDir = argData['resultdir'] #folder where all results will be stored
-	logging.info('Results will be saved in directory: {0}'.format('results/'+resultDir))
+	logging.info('Results will be saved in directory: {0}'.format(resultDir))
 else:
 	logging.error('Result directory is needed')
 	exit()

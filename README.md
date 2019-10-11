@@ -13,9 +13,10 @@ XGBoost is used to generate and optimize a predictive model.
 * [Dependencies](#Dependencies)
 * [How to Run Workflow](#Howto)
    * [Build KG](#HowtoBuildKG)
-   * [Static Features](#HowtoStaticFeatures)
-   * [Training Set Preparation](#HowtoTrainingsetPrep)  _(For custom labeled training set.)_
-   * [Run ML Procedure](#HowtoRunML)
+   * [Generate Metapath Features](#HowtoMetapathFeatures)
+   * [Generate Static Features](#HowtoStaticFeatures)
+   * [Prepare Training and Test Sets](#HowtoPrep)  _(For custom labeled training set.)_
+   * [Train ML Model](#HowtoTrainML)
    * [Test Trained Model](#HowtoPredictML)
    * [Visualization](#HowtoVis) _(Optional.)_
 
@@ -57,23 +58,7 @@ BuildKG_OlegDb.py test
 BuildKG_OlegDb.py build
 ```
 
-### <a name="HowtoStaticFeatures"/>Static Features
-
-To generate static features (not metapath-based), use R script
-`ProteinGraphML/MLTools/StaticFeatures/staticFiles.R` to generate CSV files, for ccle,
-gtex, lincs and hpa.  Then pickle pandas dataframes from the four csv
-files, for use by `RunML.py`.
-
-```
-cd ProteinGraphML/MLTools/StaticFeatures
-./staticFiles.R
-./pandas_utils.py pickle --i ccle.csv --o ccle.csv.pkl
-./pandas_utils.py pickle --i gtex.csv --o gtex.csv.pkl
-./pandas_utils.py pickle --i hpa.csv --o hpa.csv.pkl
-./pandas_utils.py pickle --i lincs.csv --o lincs.csv.pkl
-```
-
-### <a name="HowtoTrainingsetPrep"/>Training Set Preparation  _(For custom labeled training set.)_
+### <a name="HowtoPrep"/>Prepare Training and Test Sets _(For custom labeled training set.)_
 
 `PrepTrainingAndTestSets.py` generates two files:
 
@@ -110,15 +95,41 @@ PrepTrainingAndTestSets.py --file 125853.rds
 PrepTrainingAndTestSets.py --file diabetes.xlsx --use_default_negatives
 ```
 
-### <a name="HowtoRunML"/>Run ML Procedure
+### <a name="HowtoMetapathFeatures"/>Metapath Features
 
-`RunML.py`, from the input disease or training set and KG, generates feature vectors,
-and executes specified ML procedure.  The procedure `XGBCrossVal` uses
-XGBoost, trains a model, with cross-validation and grid-search parameter optimization,
-generates a list of important features used by the classification model,
-and generates results for predictions on all proteins. Metapath-based features
+To generate metapath features from the KG, use `GenerateFeatures.py`. From the KG
+and hard coded metapath patterns, plus the positively labeled proteins in the
+training set, feature vectors are generated for all training cases and optionally
+test cases. Normally, any human proteins not in the labeled training set 
+will be in the test set.  Metapath-based features
 must be generated for each model (unlike static features), since how metapath 
 semantic patterns match the KG depends on the query disease.
+
+```
+./GenerateFeatures.py --trainingfile DataForML/autophagy_test20191003.pkl --test DataForML/autophagy_test20191003_test.pkl --outputdir results/autophagy/
+```
+
+### <a name="HowtoStaticFeatures"/>Static Features
+
+To generate static features (not metapath-based), use R script
+`ProteinGraphML/MLTools/StaticFeatures/staticFiles.R` to generate CSV files, for ccle,
+gtex, lincs and hpa, for use by `TrainModelML.py`. Static features are _not_ dependent on
+trainging set labels, only the database, so the same CSV files can be reused for
+all models, and only needs to be re-run if the database changes.
+
+```
+cd ProteinGraphML/MLTools/StaticFeatures
+./staticFiles.R
+```
+
+### <a name="HowtoTrainML"/>Train ML Model
+
+`TrainModelML.py`, from the training set feature vectors, or a training set
+implicated by specified disease (Mammalian Phenotype ID), 
+executes the specified ML procedure, training a predictive model, then saved to a
+reusable file (.model).  The procedure `XGBCrossVal` uses
+XGBoost, trains a model with cross-validation and grid-search parameter optimization,
+generates a list of important features used by the classification model.
 
 Command line parameters:
 
@@ -133,20 +144,18 @@ Command line parameters:
 Example commands:
 
 ```
-RunML.py -h
-RunML.py XGBCrossVal --file 144700.pkl --resultdir 144700
-RunML.py XGBCrossValPred --file 144700.pkl --resultdir 144700
-RunML.py XGBCrossVal --disease MP_0000180 --resultdir MP_0000180
-RunML.py XGBCrossValPred --disease MP_0000180 --resultdir MP_0000180
+TrainModelML.py -h
+TrainModelML.py XGBCrossVal --file 144700.pkl --resultdir 144700
+TrainModelML.py XGBCrossValPred --file 144700.pkl --resultdir 144700
+TrainModelML.py XGBCrossVal --disease MP_0000180 --resultdir MP_0000180
+TrainModelML.py XGBCrossValPred --disease MP_0000180 --resultdir MP_0000180
 ```
 
-Results will be saved in `ProteinGraphML/results`. See logs for specific
+Results will be saved in the specified --resultsdir. See logs for specific
 subdirectories and output files, including:
 
 * Saved XGBoost model (.model).
-* Predictions with probabilities for all proteins (.tsv, .xlsx).
 * Feature importance lists (.tsv, .xlsx).
-
 
 ### <a name="HowtoPredictML"/>Test Trained ML Model
 
@@ -164,11 +173,11 @@ Command line parameters:
 Example commands:
 
 ```
-RunML.py -h
+PredictML.py -h
 PredictML.py XGBPredict --file autophagy_test20191003_test.pkl --model results/autophagy_test20191003/XGBCrossVal.model
 ```
 
-Results will be saved in `ProteinGraphML/results`. See logs for specific
+Results will be saved in the specified --resultsdir. See logs for specific
 subdirectories and output files, including:
 
 * Predictions with probabilities for all proteins (.tsv, .xlsx).
@@ -183,7 +192,7 @@ code for taking a dictionary of feature importance, and giving it human readable
 Command-line parameters:
 
 * `--disease` : Disease name.
-* `--featurefile` : full path to the pickled features file produced by `RunML.py`, e.g. results/104300/featImportance_XGBCrossVal.pkl.
+* `--featurefile` : full path to the pickled features file produced by `TrainModelML.py`, e.g. results/104300/featImportance_XGBCrossVal.pkl.
 * `--num` : number of top important features selected.
 * `--kgfile` : Pickled KG file, produced by `BuildKG_OlegDb.py` (default: ProteinDisease_GRAPH.pkl).
 
@@ -201,4 +210,4 @@ MakeVis.py --disease 104300 --featurefile results/104300/featImportance_XGBCross
 
 Workflow diagram:
 
-> <img src="MetapathDiagram.png" height="400">
+> <img src="doc/MetapathDiagram.png" height="400">

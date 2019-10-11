@@ -52,6 +52,7 @@ def generateTrainTestFromExcel(negProtein=None):
 	trainData[False] = negLabelProteinIds
 	testData['unknown'] = testProteinSet
 	logging.info('Count of positive labels: {0}, count of negative labels: {1}'. format(len(trainData[True]), len(trainData[False])))
+	logging.info('Count of test set (unlabeled): {0}'. format(len(testData['unknown'])))
 	if (len(trainData[True]) == 0 or len(trainData[False]) == 0):
 		logging.error ('ML codes cannot be run with one class')
 		exit()
