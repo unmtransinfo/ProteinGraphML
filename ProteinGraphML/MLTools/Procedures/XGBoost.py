@@ -60,11 +60,9 @@ def XGBCrossVal(dataObject, idDescription, idNameSymbol, resultDir, nfolds):
 	#for g in importance.most_common(2):
 	#	print("PRINTING THIS IMPORTANT FEATURES- {0}".format(disease),g)
 	#	Visualize(g,currentGraph.graph,disease)
+ 
 
-
-def XGBPredict(dataObject, idDescription, idNameSymbol, modelName):
-	#get the directory name where model is saved
-	resultDir = modelName.split('/')[-2:-1][0]
+def XGBPredict(dataObject, idDescription, idNameSymbol, modelName, resultDir):
 	newModel = XGBoostModel("XGBPredict", resultDir)
 	newModel.predict_using_saved_model(dataObject, idDescription, idNameSymbol, modelName)
 

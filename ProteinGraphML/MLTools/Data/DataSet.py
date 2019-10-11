@@ -39,7 +39,7 @@ class BinaryLabel(Data):
 		self.data = dataIN
 		self.labels = []
 		self.features = self.data#.drop(['Y'],axis=1)
-	
+	 
 	def loadData(self,dataIN,labelColumn='Y'):
 		self.data = dataIN
 		self.labelColumn = labelColumn
@@ -48,4 +48,14 @@ class BinaryLabel(Data):
 		self.posWeight = len([l for l in self.labels if l == 0.])/len([l for l in self.labels if l == 1.])
 		print ('Number of positive and negative class:', len([l for l in self.labels if l == 1.]), len([l for l in self.labels if l == 0.]))
 		print ('Shape of the data', self.data.shape[0], self.data.shape[1])
+		#print("SCALE POS",self.posWeight)
+
+	def loadTestData(self,dataIN,labelColumn='Y'): #used for test data only
+		self.data = dataIN
+		self.labelColumn = labelColumn
+		self.labels = self.data[self.labelColumn]
+		self.features = self.data.drop([self.labelColumn],axis=1)
+		#self.posWeight = len([l for l in self.labels if l == 0.])/len([l for l in self.labels if l == 1.])
+		#print ('Number of positive and negative class:', len([l for l in self.labels if l == 1.]), len([l for l in self.labels if l == 0.]))
+		print ('Shape of the data: ', self.data.shape[0], self.data.shape[1])
 		#print("SCALE POS",self.posWeight)

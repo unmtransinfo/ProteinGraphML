@@ -150,7 +150,7 @@ def generateTrainTestFromRDS(negProtein=None):
 		else:
 			return trainData, testData
 
-
+ 
 def saveTrainTestSet(trainData, testData):
 	'''
 	This function saves training and test in pickle format 

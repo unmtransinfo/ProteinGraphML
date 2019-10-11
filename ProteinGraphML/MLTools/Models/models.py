@@ -287,15 +287,16 @@ class XGBoostModel(BaseModel):
 		self.param = param
 
 	def train(self,trainData, param):
-		print (param)		
-		dtrain = xgb.DMatrix(trainData.features,label=trainData.labels)				
+		#print (param)		
+		#dtrain = xgb.DMatrix(trainData.features,label=trainData.labels)				
 		#bst = xgb.train(param, dtrain,num_boost_round=50)
-		bst = xgb.train(param, dtrain) #use the default values of parameters
-		self.m = bst
+		#bst = xgb.train(param, dtrain) #use the default values of parameters
+		#self.m = bst
+		bst = xgb.XGBClassifier(**param).fit(trainData.features, trainData.labels)
 		modelName = self.DATA_DIR + '/' + self.MODEL_DIR + '.model'
-		bst.save_model(modelName)
+		#bst.save_model(modelName)
 		logging.info('Trained ML Model was saved as {0}'.format(modelName)) 
-		#pickle.dump(bst, open('0001.model', 'wb'))
+		pickle.dump(bst, open(modelName, 'wb'))
 	
 	def predict(self,testData,outputTypes):
 		inputData = xgb.DMatrix(testData.features)
@@ -309,11 +310,14 @@ class XGBoostModel(BaseModel):
 		return self.createResultObjects(testData,outputTypes,predictions)		
 
 	def predict_using_saved_model(self, testData, idDescription, idNameSymbol, modelName):
-		inputData = xgb.DMatrix(testData.features)
-		bst = xgb.Booster()
-		bst.load_model(modelName)
-		#bst = pickle.load(open('0001.model', 'rb'))
-		predictions = bst.predict(inputData)
+		#inputData = xgb.DMatrix(testData.features)
+		inputData = testData.features
+		#bst = xgb.Booster()
+		#bst.load_model(modelName)
+		bst = pickle.load(open(modelName, 'rb'))
+		class01Probs = bst.predict_proba(inputData)
+		#print (class01Probs)
+		predictions = [i[1] for i in class01Probs] #select class1 probability
 		self.savePredictedProbability(testData, predictions, idDescription, idNameSymbol, "TEST")
 		
 
@@ -581,5 +585,5 @@ class XGBoostModel(BaseModel):
 		writer.save()
 		logging.info("CLASSIFICATION RESULTS WRITTEN TO {0}".format(resultsFileXlsx))
 
-
+ 
 

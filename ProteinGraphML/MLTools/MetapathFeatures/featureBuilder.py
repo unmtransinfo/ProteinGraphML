@@ -41,6 +41,14 @@ def getChildren(graph,start): # hard coded ... "association"
 	return [a for a in graph.adj[start] if "association" not in graph.edges[(start,a)].keys()]
 
 
+def getTrainingProteinIds(disease,proteinGraph):
+	'''
+	This function returns the protein ids for True and False labels.
+	'''
+	paths = getMetapaths(proteinGraph,disease) #a dictionary with 'True' and 'False' as keys and protein_id as values
+	return paths[True], paths[False]
+
+
 def metapathFeatures(disease,proteinGraph,featureList,idDescription,staticFeatures=None,test=False,loadedLists=None):
 	# we compute a genelist.... 
 	# get the proteins 
@@ -53,13 +61,19 @@ def metapathFeatures(disease,proteinGraph,featureList,idDescription,staticFeatur
 	if loadedLists is not None:
 		trueP = loadedLists[True] 
 		falseP = loadedLists[False]
+		try:
+			unknownP = loadedLists['unknown']
+		except:
+			unknownP = []
 	else:
 		paths = getMetapaths(proteinGraph,disease) #a dictionary with 'True' and 'False' as keys and protein_id as values
 		trueP = paths[True]
 		falseP = paths[False] 
+		unknownP = []
 
 	logging.info("(metapathFeatures) PREPARING TRUE ASSOCIATIONS: {0}".format(len(trueP)))
 	logging.info("(metapathFeatures) PREPARING FALSE ASSOCIATIONS: {0}".format(len(falseP)))
+	logging.info("(metapathFeatures) PREPARING UNKNOWN ASSOCIATIONS: {0}".format(len(unknownP)))
 	logging.info("(metapathFeatures) NODES IN GRAPH: {0}".format(len(G.nodes)))
 	logging.info("(metapathFeatures) EDGES IN GRAPH: {0}".format(len(G.edges)))
 
@@ -80,7 +94,6 @@ def metapathFeatures(disease,proteinGraph,featureList,idDescription,staticFeatur
 	fh = open(flog, 'w') # file to save nodes used for metapaths
 	for pair in nodeListPairs:
 		nodes = pair[1]
-		#print ('PK....', nodes)
 		nonTrueAssociations = set(proteinNodes) - trueP
 		#print(len(G.nodes), len(nodes), len(trueP), len(nonTrueAssociations))
 		METAPATH = pair[0].computeMetapaths(G, nodes, trueP, nonTrueAssociations, idDescription, fh)
@@ -94,7 +107,10 @@ def metapathFeatures(disease,proteinGraph,featureList,idDescription,staticFeatur
 		df = pd.DataFrame(fullList, columns=['protein_id'])
 		df = df.set_index('protein_id')
 	else:
-		fullList = list(itertools.product(trueP,[1])) + list(itertools.product(falseP,[0]))
+		if (len(unknownP) == 0):
+			fullList = list(itertools.product(trueP,[1])) + list(itertools.product(falseP,[0]))
+		else:
+			fullList = list(itertools.product(trueP,[1])) + list(itertools.product(falseP,[0]))	+ list(itertools.product(unknownP,[-1]))
 		df = pd.DataFrame(fullList, columns=['protein_id', 'Y'])
 		df = df.set_index('protein_id')
 
@@ -112,7 +128,7 @@ def metapathFeatures(disease,proteinGraph,featureList,idDescription,staticFeatur
 
 	return df
 
-
+ 
 
 def joinStaticFeatures(dataFrame,featureList):
 	path_to_static_features_files = os.getcwd() + '/ProteinGraphML/MLTools/StaticFeatures/'
