@@ -97,7 +97,7 @@ PrepTrainingAndTestSets.py --file diabetes.xlsx --use_default_negatives
 
 ### <a name="HowtoMetapathFeatures"/>Metapath Features
 
-To generate metapath features from the KG, use `GenerateFeatures.py`. From the KG
+To generate metapath features from the KG, use `GenTrainingAndTestFeatures.py`. From the KG
 and hard coded metapath patterns, plus the positively labeled proteins in the
 training set, feature vectors are generated for all training cases and optionally
 test cases. Normally, any human proteins not in the labeled training set 
@@ -106,7 +106,7 @@ must be generated for each model (unlike static features), since how metapath
 semantic patterns match the KG depends on the query disease.
 
 ```
-./GenerateFeatures.py --trainingfile DataForML/autophagy_test20191003.pkl --test DataForML/autophagy_test20191003_test.pkl --outputdir results/autophagy/
+./GenTrainingAndTestFeatures.py --trainingfile DataForML/autophagy_test20191003.pkl --test DataForML/autophagy_test20191003_test.pkl --outputdir results/autophagy/
 ```
 
 ### <a name="HowtoStaticFeatures"/>Static Features
