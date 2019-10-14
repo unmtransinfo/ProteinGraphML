@@ -102,7 +102,7 @@ fileData = None
 outputDir = argData['outputdir']
 if not os.path.isdir(outputDir):
 	logging.info('Create the output directory')
-	os.mkdir(outputDir)
+	os.path.makedirs(outputDir)
 logging.info('Output directory for ML data(Training/Test): {0}'.format(outputDir))
 
 #check whether file or disease was given
