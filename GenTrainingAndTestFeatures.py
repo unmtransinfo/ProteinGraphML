@@ -35,7 +35,7 @@ def saveTrainTestSet(allData):
 		logging.info('Number of rows and features in training data: {0}'.format(trainData.shape))
 		logging.info("Writing train data to file: {0}".format(pklTrainFile))
 		savePickleObject(pklTrainFile, trainData)
-		#print (trainData)
+		#print (trainData) 
 		
 		# extract test data from the dataframe
 		testData = allData.loc[allData['Y'] == -1]
