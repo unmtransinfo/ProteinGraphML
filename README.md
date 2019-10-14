@@ -103,7 +103,7 @@ must be generated for each model (unlike static features), since how metapath
 semantic patterns match the KG depends on the query disease.
 
 ```
-./GenTrainingAndTestFeatures.py --trainingfile DataForML/autophagy_test20191003.pkl --test DataForML/autophagy_test20191003_test.pkl --outputdir results/autophagy/
+./GenTrainingAndTestFeatures.py --trainingfile DataForML/autophagy_test20191003.pkl --testfile DataForML/autophagy_test20191003_test.pkl --outputdir results/autophagy/
 ```
 
 ### <a name="HowtoStaticFeatures"/>Static Features
