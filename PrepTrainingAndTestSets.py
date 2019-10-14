@@ -204,7 +204,7 @@ if __name__ == '__main__':
 	testProteinSet = set() #protein_ids for test
 	trainData = {}	#dictionary to store training protein_ids
 	testData = {}	#dictionary to store test protein_ids
-
+	
 	if fileExt.lower() == 'rds':
 		logging.info('Input file specified: {0}'.format(fileName))
 		trainData,testData = generateTrainTestFromRDS(args.ifile, negProtein=(negProteinIds if args.use_default_negatives else None))

@@ -69,21 +69,21 @@ def saveTrainTestSet(allData):
 		savePickleObject(pklTestFile, testData)
 		#print (testData)
 	else:
-		logging.error('Missing argument(s)')
+		logging.error('Missing argument(s)') 
 	
  
 ############### START OF THE CODE ##############################
 t0 = time.time()
 
-DATA_DIR = os.getcwd() + '/DataForML/'
+#DATA_DIR = os.getcwd() + '/DataForML/'
 DEFAULT_GRAPH = "ProteinDisease_GRAPH.pkl"
 DEFAULT_STATIC_FEATURES = "gtex,lincs,ccle,hpa"
 
 parser = argparse.ArgumentParser(description='Generate features for training and test set', epilog='Protein Ids with True label must be provided')
-parser.add_argument('--disease', metavar='disease', type=str, nargs='?', help='Mammalian Phenotype ID, e.g. MP_0000180')
-parser.add_argument('--trainingfile', type=str, nargs='?', help='pickled training set, e.g. "diabetes.pkl"')
-parser.add_argument('--testfile', type=str, nargs='?', help='pickled test set, e.g. "diabetes_test.pkl"')
-parser.add_argument('--outputdir', default=DATA_DIR, type=str, nargs='?', help='directory where train and test data with features will be saved, e.g. "diabetes_no_lincs"')
+parser.add_argument('--disease', metavar='disease', help='Mammalian Phenotype ID, e.g. MP_0000180')
+parser.add_argument('--trainingfile', help='pickled training set, e.g. "diabetes.pkl"')
+parser.add_argument('--testfile', help='pickled test set, e.g. "diabetes_test.pkl"')
+parser.add_argument('--outputdir', required=True, help='directory where train and test data with features will be saved, e.g. "diabetes_no_lincs"')
 parser.add_argument('--kgfile', default=DEFAULT_GRAPH, help='input pickled KG (default: "{0}")'.format(DEFAULT_GRAPH))
 parser.add_argument('--static_data', default=DEFAULT_STATIC_FEATURES, help='(default: "{0}")'.format(DEFAULT_STATIC_FEATURES))
 parser.add_argument("-v", "--verbose", action="count", default=0, help="verbosity")
@@ -99,7 +99,11 @@ testfile = argData['testfile']
 fileData = None
 
 #folder where train and test data with features will be stored
-outputDir = argData['outputdir'] 
+outputDir = argData['outputdir']
+if not os.path.isdir(outputDir):
+	logging.info('Create the output directory')
+	os.mkdir(outputDir)
+logging.info('Output directory for ML data(Training/Test): {0}'.format(outputDir))
 
 #check whether file or disease was given
 if (trainingfile is None and disease is None): 

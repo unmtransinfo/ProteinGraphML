@@ -12,7 +12,7 @@ from ProteinGraphML.MLTools.MetapathFeatures import metapathFeatures,ProteinInte
 from ProteinGraphML.MLTools.Data import BinaryLabel
 from ProteinGraphML.MLTools.Models import XGBoostModel
 from ProteinGraphML.MLTools.Procedures import *
-from ProteinGraphML.Analysis import Visualize
+from ProteinGraphML.Analysis import Visualize 
 
 t0 = time.time()
 
@@ -44,13 +44,13 @@ else:
 		logging.error('Must generate pickled training data file') 
 		exit()
 
-Procedure = argData['procedure'][0]
+Procedure = argData['procedure']
 logging.info('Procedure: {0}'.format(Procedure))
 
 #Get reult directory and number of folds
 if (argData['resultdir'] is not None):
 	resultDir = argData['resultdir'] #folder where all results will be stored
-	logging.info('Results will be saved in directory: {0}'.format(resultDir))
+	logging.info('Results will be saved in directory: {0}'.format('results/' + resultDir))
 else:
 	logging.error('Result directory is needed')
 	exit()
