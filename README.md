@@ -92,7 +92,7 @@ PrepTrainingAndTestSets.py --i data/diabetes.xlsx --use_default_negatives
 PrepTrainingAndTestSets.py --i data/Asthma.rds
 ```
 
-### <a name="HowtoMetapathFeatures"/>Metapath Features
+### <a name="HowtoMetapathFeatures"/>Generate Metapath Features
 
 To generate metapath features from the KG, use `GenTrainingAndTestFeatures.py`. From the KG
 and hard coded metapath patterns, plus the positively labeled proteins in the
@@ -102,11 +102,17 @@ will be in the test set.  Metapath-based features
 must be generated for each model (unlike static features), since how metapath 
 semantic patterns match the KG depends on the query disease.
 
+Command line parameters:
+
+* `--trainingfile` : Input training file produced by `PrepTrainingAndTestSets.py`.
+* `--testfile` : Input test file produced by `PrepTrainingAndTestSets.py`.
+* `--outputdir` : Output dir, for training and test ML-ready data files. 
+
 ```
 ./GenTrainingAndTestFeatures.py --trainingfile DataForML/autophagy_test20191003.pkl --testfile DataForML/autophagy_test20191003_test.pkl --outputdir results/autophagy/
 ```
 
-### <a name="HowtoStaticFeatures"/>Static Features
+### <a name="HowtoStaticFeatures"/>Generate Static Features
 
 To generate static features (not metapath-based), use R script
 `ProteinGraphML/MLTools/StaticFeatures/staticFiles.R` to generate CSV files, for ccle,
@@ -161,7 +167,7 @@ proteins. The procedure `XGBPredict` uses the saved XGBoost model, and generates
 
 Command line parameters:
 
-* `procedure` (positional parameter):
+* `PROCEDURE` (positional parameter):
    * `XGBPredict` :  load the saved model
 * `--model` : Full path to the trained model (results/autophagy_test20191003/XGBCrossVal.model).
 * `--file` : Test set file, produced by `PrepTrainingAndTestSets.py`.
