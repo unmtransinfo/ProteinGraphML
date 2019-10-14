@@ -74,25 +74,22 @@ interest, for testing the trained model.
 
 Command line parameters:
 
-* `--file` : File that contains protein_ids/symbols and labels for a given disease, with extension (.txt|.xlsx|.rds).
-* `--dir` : directory where data files are found (default: DataForML).
+* `--i` : Input file that contains protein_ids/symbols and labels for a given disease, with extension (csv|txt|xlsx|rds).
 * `--symbol_or_pid` : "symbol" or "pid" (default: symbol).
 * `--use_default_negatives` : Use default negatives, ~3500 genes with known associations but not with query disease. If false, input training set must include negatives.
 
 If the file is a spreadsheet, the header should have "Protein_id Label" or "Symbol Label".
 If the file is a text file, the Protein_id/symbol and
-Label should be comma-separated. There should not be any header in the text file. If the
-file is an RDS file, the parameter 'symbol'  can be omitted. Use one of the following,
-to run this program.
+Label should be comma-separated. There should not be any header in the text file. 
 
 Example commands:
 
 ```
 PrepTrainingAndTestSets.py -h
-PrepTrainingAndTestSets.py --file diabetes_pid.txt --symbol_or_pid 'pid'
-PrepTrainingAndTestSets.py --file autophagy_test20191003.xlsx
-PrepTrainingAndTestSets.py --file 125853.rds
-PrepTrainingAndTestSets.py --file diabetes.xlsx --use_default_negatives
+PrepTrainingAndTestSets.py --i data/diabetes_pid.txt --symbol_or_pid 'pid'
+PrepTrainingAndTestSets.py --i data/autophagy_test20191003.xlsx
+PrepTrainingAndTestSets.py --i data/diabetes.xlsx --use_default_negatives
+PrepTrainingAndTestSets.py --i data/Asthma.rds
 ```
 
 ### <a name="HowtoMetapathFeatures"/>Metapath Features
