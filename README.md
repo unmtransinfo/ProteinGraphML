@@ -104,6 +104,7 @@ semantic patterns match the KG depends on the query disease.
 
 ```
 ./GenTrainingAndTestFeatures.py --trainingfile DataForML/autophagy_test20191003.pkl --testfile DataForML/autophagy_test20191003_test.pkl --outputdir results/autophagy/
+./GenTrainingAndTestFeatures.py --disease MP_0000180 --outputdir results/MP_0000180
 ```
 
 ### <a name="HowtoStaticFeatures"/>Static Features
@@ -133,8 +134,7 @@ Command line parameters:
 * `procedure` (positional parameter):
    * `XGBCrossValPred` :  5-fold cross-validation, one iteration.
    * `XGBCrossVal` : 5-fold cross-validation, multiple iterations.
-* `--disease` : Use with Mammalian Phenotype ID, e.g. MP_0000180.
-* `--file` : Training set file, produced by `PrepTrainingAndTestSets.py`.
+* `--trainingfile` : Training set file, produced by `PrepTrainingAndTestSets.py`.
 * `--resultdir` : Name of the directory where results will be stored (e.g. MP_0000180).
 * `--kgfile` : KG file, produced by `BuildKG_OlegDb.py` (default: ProteinDisease_GRAPH.pkl).
 
@@ -142,10 +142,8 @@ Example commands:
 
 ```
 TrainModelML.py -h
-TrainModelML.py XGBCrossVal --file 144700.pkl --resultdir 144700
-TrainModelML.py XGBCrossValPred --file 144700.pkl --resultdir 144700
-TrainModelML.py XGBCrossVal --disease MP_0000180 --resultdir MP_0000180
-TrainModelML.py XGBCrossValPred --disease MP_0000180 --resultdir MP_0000180
+TrainModelML.py XGBCrossVal --trainingfile 144700.pkl --resultdir 144700
+TrainModelML.py XGBCrossValPred --trainingfile 144700.pkl --resultdir 144700
 ```
 
 Results will be saved in the specified --resultsdir. See logs for specific
@@ -164,14 +162,14 @@ Command line parameters:
 * `procedure` (positional parameter):
    * `XGBPredict` :  load the saved model
 * `--model` : Full path to the trained model (results/autophagy_test20191003/XGBCrossVal.model).
-* `--file` : Test set file, produced by `PrepTrainingAndTestSets.py`.
+* `--testfile` : Test set file, produced by `PrepTrainingAndTestSets.py`.
 * `--kgfile` : KG file, produced by `BuildKG_OlegDb.py` (default: ProteinDisease_GRAPH.pkl).
 
 Example commands:
 
 ```
 PredictML.py -h
-PredictML.py XGBPredict --file autophagy_test20191003_test.pkl --model results/autophagy_test20191003/XGBCrossVal.model
+PredictML.py XGBPredict --testfile autophagy_test20191003_test.pkl --model results/autophagy_test20191003/XGBCrossVal.model --resultdir autophagy
 ```
 
 Results will be saved in the specified --resultsdir. See logs for specific
