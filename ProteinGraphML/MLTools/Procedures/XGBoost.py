@@ -7,17 +7,19 @@
 # ASSUME LOCKED ALGO, PASS IN THE DATA
 
 from ProteinGraphML.MLTools.Models import XGBoostModel
-import pickle
+import pickle,logging
 import os
 CROSSVAL = 5
 
 def TEST(dataObject):
 	print('tehe')
 
-def XGBCrossValPred(dataObject, idDescription, idNameSymbol, resultDir, nfolds):
+def XGBCrossValPred(dataObject, idDescription, idNameSymbol, resultDir, params=None):
+	
 	newModel = XGBoostModel("XGBCrossValPred", resultDir)
 	
-	params = {'scale_pos_weight':dataObject.posWeight, 'n_jobs':8} 		#XGboost parameters	
+	params['scale_pos_weight'] = dataObject.posWeight
+	logging.info('Parameters for XGBoost are: {0}'.format(params))
 	
 	#roc,acc,CM,report = newModel.cross_val_predict(dataObject,["roc","acc","ConfusionMatrix","report"]) 
 	
@@ -33,14 +35,12 @@ def XGBCrossValPred(dataObject, idDescription, idNameSymbol, resultDir, nfolds):
 	#print(report.data)
 	#roc.printOutput() #plot roc
 
-def XGBCrossVal(dataObject, idDescription, idNameSymbol, resultDir, nfolds):
-	newModel = XGBoostModel("XGBCrossVal", resultDir)
-	params = {'scale_pos_weight':dataObject.posWeight, 'n_jobs':8} 		#XGboost parameters	
+def XGBCrossVal(dataObject, idDescription, idNameSymbol, resultDir, nfolds=1, params=None):
 	
-	# CUSTOM PARAMS 
-	#params={'max_depth':10,'gamma':0.2}
-	#importance = newModel.average_cross_val(dataObject, ["roc","acc","ConfusionMatrix","report"], folds=2, params=params)
-
+	newModel = XGBoostModel("XGBCrossVal", resultDir)
+	params['scale_pos_weight'] = dataObject.posWeight
+	logging.info('Parameters for XGBoost are: {0}'.format(params))
+	
 	newModel.average_cross_val(dataObject, idDescription, idNameSymbol, ["roc","rocCurve","acc","mcc"], folds=nfolds, params=params,cv=CROSSVAL)
 
 	#print (importance)
@@ -66,3 +66,26 @@ def XGBPredict(dataObject, idDescription, idNameSymbol, modelName, resultDir):
 	newModel = XGBoostModel("XGBPredict", resultDir)
 	newModel.predict_using_saved_model(dataObject, idDescription, idNameSymbol, modelName)
 
+def XGBGridSearch(dataObject, idDescription, idNameSymbol, resultDir):
+	
+	newModel = XGBoostModel("XGBGridSearch", resultDir)
+	'''
+	paramGrid = {'max_depth': [5, 7, 10],
+				 'eta': [0.05, 0.1, 0.15, 0.20, 0.25],
+				 'gamma': [0.01, 0.1, 1],
+				 'min_child_weight': [0, 1, 2],
+				 'subsample': [0.8, 0.9, 1],
+				 'colsample_bytree': [0.5, 0.6, 0.7, 0.8, 0.9, 1]
+				 }
+	'''
+	##ONLY FOR TESTING
+	paramGrid = {'max_depth': [7],
+				 'eta': [0.05],
+				 'learning_rate': [0.1],
+				 'gamma': [0.01],
+				 'min_child_weight': [0],
+				 'subsample': [0.8],
+				 'colsample_bytree': [0.5]
+				 }
+	
+	newModel.gridSearch(dataObject, idDescription, idNameSymbol, ["roc","acc","mcc"], paramGrid)

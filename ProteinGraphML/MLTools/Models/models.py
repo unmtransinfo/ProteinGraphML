@@ -1,5 +1,5 @@
 import os
-import time, logging
+import time, logging, random 
 import pickle
 from collections import Counter
 import pandas as pd
@@ -13,6 +13,7 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import accuracy_score,auc,confusion_matrix,classification_report,matthews_corrcoef
 from sklearn.metrics import roc_auc_score,roc_curve #.roc_auc_score(y_true, y_score, average='macro', sample_weight=None, max_fpr=None)
 
+#from ProteinGraphML.MLTools.Data import Data
 # this model system will hopefully make a simple API for dealing with large data 
 
 # iterating on our platform across domains 
@@ -24,10 +25,10 @@ class Result:
 	space = None
 	predLabel = None
 
-	def __init__(self,dataOut,predictions,modelName,space="",modelDIR=None):
+	def __init__(self,dataOut,predictions,space="",modelDIR=None):
 		self.data = dataOut
 		self.predictions = predictions
-		self.modelName = modelName
+		#self.modelName = modelName
 		self.space = space
 		#print("HERE IS THE MODEL")
 		self.resultDIR = modelDIR
@@ -179,22 +180,20 @@ class RocCurve(Output):
 		plt.show()
 
 class BaseModel:
-	MODEL_DIR = ""
-	def __init__(self,MODEL_DIR,runName = None):
-		self.MODEL_DIR = MODEL_DIR
-		if runName is None: #control will NEVER come here as runName is mandatory now
-			self.MODEL_RUN_NAME = "{0}-{1}".format(self.MODEL_DIR,str(int(time.time())))
-			#self.DATA_DIR = "results/{0}".format(self.MODEL_RUN_NAME)
+	MODEL_PROCEDURE = ""
+	def __init__(self,MODEL_PROCEDURE,RESULT_DIR = None):
+		self.MODEL_PROCEDURE = MODEL_PROCEDURE
+		if RESULT_DIR is None: #control will NEVER come here as RESULT_DIR is mandatory now
+			self.MODEL_RUN_NAME = "{0}-{1}".format(self.MODEL_PROCEDURE,str(int(time.time())))
+			self.MODEL_DIR = "results/{0}".format(self.MODEL_RUN_NAME)
 		else:
-			#self.MODEL_RUN_NAME = runName
-			#self.DATA_DIR = "results/{0}".format(runName)
-			self.MODEL_RUN_NAME = "{0}".format(runName)
-		self.DATA_DIR = "results/{0}".format(self.MODEL_RUN_NAME)	
+			self.MODEL_RUN_NAME = "{0}".format(self.MODEL_PROCEDURE)
+			self.MODEL_DIR = RESULT_DIR
 		
 	def getFile(self):		
 
-		self.createDirectoryIfNeed(self.DATA_DIR)
-		WRITEFILE = self.DATA_DIR + '/metrics_' + self.MODEL_DIR + '.txt'
+		self.createDirectoryIfNeed(self.MODEL_DIR)
+		WRITEFILE = self.MODEL_DIR + '/metrics_' + self.MODEL_PROCEDURE + '.txt'
 		#open(WRITEDIR, 'a').close()
 
 		fileName = WRITEFILE
@@ -222,7 +221,8 @@ class BaseModel:
 			print("",file=writeSpace) 
 
 			resultList = []
-			resultObject = Result(testData,predictions,self.MODEL_RUN_NAME,modelDIR=self.MODEL_RUN_NAME)
+			#resultObject = Result(testData,predictions,self.MODEL_RUN_NAME,modelDIR=self.MODEL_RUN_NAME)
+			resultObject = Result(testData,predictions,modelDIR=self.MODEL_DIR)
 			for resultType in outputTypes:
 
 				print(resultType,file=writeSpace)
@@ -231,10 +231,10 @@ class BaseModel:
 				#print(type(newResultObject))
 				resultList.append(newResultObject)
 				#print(resultObject)	
-				#print("MODEL DIR",self.MODEL_DIR) #self.MODEL_RUN_NAME
-				#if resultType == "rocCurve" and self.MODEL_DIR == "XGBCrossVal": # if it's XGB cross val we will write output (hack)
+				#print("MODEL DIR",self.MODEL_PROCEDURE) #self.MODEL_RUN_NAME
+				#if resultType == "rocCurve" and self.MODEL_PROCEDURE == "XGBCrossVal": # if it's XGB cross val we will write output (hack)
 				if resultType == "rocCurve":
-					aucFileName = self.DATA_DIR + '/auc_' + self.MODEL_DIR
+					aucFileName = self.MODEL_DIR + '/auc_' + self.MODEL_PROCEDURE
 					#newResultObject.fileOutput(fileString=self.MODEL_RUN_NAME)
 					newResultObject.fileOutput(fileString=aucFileName)
 				else:
@@ -290,7 +290,7 @@ class XGBoostModel(BaseModel):
 		#bst = xgb.train(param, dtrain) #use the default values of parameters
 		#self.m = bst
 		bst = xgb.XGBClassifier(**param).fit(trainData.features, trainData.labels)
-		modelName = self.DATA_DIR + '/' + self.MODEL_DIR + '.model'
+		modelName = self.MODEL_DIR + '/' + self.MODEL_PROCEDURE + '.model'
 		#bst.save_model(modelName)
 		logging.info('Trained ML Model was saved as {0}'.format(modelName)) 
 		pickle.dump(bst, open(modelName, 'wb'))
@@ -372,9 +372,9 @@ class XGBoostModel(BaseModel):
 		collection = []
 		importance = None
 		#self.DIR = 
-		#self.MODEL_DIR+"-"+
-		#dummyModel = XGBoostModel(self.MODEL_DIR)
-		#DIR = "results/{0}-{1}".format(self.MODEL_DIR,str(int(time.time())))
+		#self.MODEL_PROCEDURE+"-"+
+		#dummyModel = XGBoostModel(self.MODEL_PROCEDURE)
+		#DIR = "results/{0}-{1}".format(self.MODEL_PROCEDURE,str(int(time.time())))
 		
 		#logging.info("THING: {0}".format(dummyModel.MODEL_RUN_NAME))
 		
@@ -396,7 +396,7 @@ class XGBoostModel(BaseModel):
 		for k in range(0,folds):
 			logging.info("DOING {0} FOLD".format(k+1))
 			
-			#newModel = XGBoostModel(self.MODEL_DIR)
+			#newModel = XGBoostModel(self.MODEL_PROCEDURE)
 			#train,test = testData.splitSet(split)
 			# make a loop, so we can split it 
 			
@@ -460,11 +460,11 @@ class XGBoostModel(BaseModel):
 
 
 	# FEATURE SEARCH, will create the dataset with different sets of features, and search over them to get resutls
-	def gridSearch(self,totalData,params):
-		
-		param_comb = 200
-		clf = xgb.XGBClassifier(learning_rate=0.02, n_estimators=600, objective='binary:logistic',
-					silent=True, nthread=1)
+	def gridSearch(self, allData, idDescription, idNameSymbol, outputTypes, paramGrid):
+
+		#param_comb = 200
+		#clf = xgb.XGBClassifier(learning_rate=0.02, n_estimators=600, objective='binary:logistic',
+		#			silent=True, nthread=1)
 
 		# random_search = GridSearchCV(clf, 
 		# 	param_distributions=params, 
@@ -479,21 +479,58 @@ class XGBoostModel(BaseModel):
 		# min child weight = 2 
 		# subsample = 1 
 
+		#split test and train data
+		testSize = 0.20
+		randomState = 2000 + random.randint(1,1000)
+		trainData, testData = allData.splitSet(testSize,randomState)
+		#print (trainData.features.shape)
+		#print (testData.features.shape)
+		#print (trainData.labels)
+		#print (testData.labels)
+				
+		clf = xgb.XGBClassifier(scale_pos_weight=testData.posWeight)
 		random_search = GridSearchCV(clf, 
-			param_grid=params, 
-			# n_iter=param_comb, 
-			scoring='roc_auc', n_jobs=1, cv=None, 
+			param_grid=paramGrid, 
+			scoring='roc_auc', cv=5, 
 			verbose=3)
+		
+		random_search.fit(trainData.features, trainData.labels)
+		
+		#model trained with best parameters
+		bst = random_search.best_estimator_
+		self.m = bst
+		
+		#predict the test data using the best estimator
+		metrics = {"roc":0., "mcc":0., "acc":0.}
+		class01Probs = bst.predict_proba(testData.features)
+		predictions = [i[1] for i in class01Probs] #select class1 probability
 
-		a = random_search.fit(totalData.features, totalData.labels)
-		return a
+		roc,acc,mcc = self.createResultObjects(testData,outputTypes,predictions) 
+		metrics["roc"] = roc.data
+		metrics["mcc"] = mcc.data
+		metrics["acc"] = acc.data
+
+		#find imporant features and save them in a text file
+		importance = Counter(bst.get_booster().get_score(importance_type='gain'))
+		self.saveImportantFeatures(importance, idDescription)
+		self.saveImportantFeaturesAsPickle(importance) 
+		
+		#save predicted class 1 probabilty in a text file
+		self.savePredictedProbability(testData, predictions, idDescription, idNameSymbol, "TRAIN")
+		
+		#train the model using all train data and save it
+		self.train(allData, param=random_search.best_params_)
+
+		#return roc,acc,mcc, CM,report,importance
+		logging.info("METRICS: {0}".format(str(metrics)))
+		
 
 	#Save important features as pickle file. It will be used by visualization code
 	def saveImportantFeaturesAsPickle(self, importance):
 		'''
 		Save important features in a pickle dictionary
 		'''
-		featureFile = self.DATA_DIR + '/featImportance_' + self.MODEL_DIR + '.pkl'
+		featureFile = self.MODEL_DIR + '/featImportance_' + self.MODEL_PROCEDURE + '.pkl'
 		logging.info("IMPORTANT FEATURES WRITTEN TO PICKLE FILE {0}".format(featureFile))
 		with open(featureFile, 'wb') as ff:
 			pickle.dump(importance, ff, pickle.HIGHEST_PROTOCOL)
@@ -522,12 +559,12 @@ class XGBoostModel(BaseModel):
 					logging.debug('INFO: saveImportantFeatures - Unknown feature = {0}'.format(feature))
 		
 		df = pd.DataFrame(dataForDataframe)
-		impFileTsv = self.DATA_DIR + '/featImportance_'  + self.MODEL_DIR + '.tsv'
+		impFileTsv = self.MODEL_DIR + '/featImportance_'  + self.MODEL_PROCEDURE + '.tsv'
 		fout = open(impFileTsv, "w")
 		df.to_csv(fout, '\t', index=False)
 		fout.close()
 		logging.info("IMPORTANT FEATURES WRITTEN TO {0}".format(impFileTsv))
-		impFileXlsx = self.DATA_DIR + '/featImportance_'  + self.MODEL_DIR + '.xlsx'
+		impFileXlsx = self.MODEL_DIR + '/featImportance_'  + self.MODEL_PROCEDURE + '.xlsx'
 		writer = pd.ExcelWriter(impFileXlsx, engine='xlsxwriter')
 		df.to_excel(writer, sheet_name='Sheet1', index=False)
 		writer.save() 
@@ -570,12 +607,12 @@ class XGBoostModel(BaseModel):
 			i+=1
 		df = pd.DataFrame(dataForDataframe)
 		
-		resultsFileTsv = self.DATA_DIR + '/classificationResults_' + self.MODEL_DIR + '.tsv'
+		resultsFileTsv = self.MODEL_DIR + '/classificationResults_' + self.MODEL_PROCEDURE + '.tsv'
 		fout = open(resultsFileTsv, "w")
 		df.to_csv(fout, '\t', index=False)
 		fout.close()
 		logging.info("CLASSIFICATION RESULTS WRITTEN TO {0}".format(resultsFileTsv))
-		resultsFileXlsx = self.DATA_DIR + '/classificationResults_' + self.MODEL_DIR + '.xlsx'
+		resultsFileXlsx = self.MODEL_DIR + '/classificationResults_' + self.MODEL_PROCEDURE + '.xlsx'
 		writer = pd.ExcelWriter(resultsFileXlsx, engine='xlsxwriter')
 		df.to_excel(writer, sheet_name='Sheet1', index=False)
 		writer.save()

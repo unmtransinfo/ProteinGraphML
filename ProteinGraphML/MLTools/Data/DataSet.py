@@ -10,16 +10,20 @@ class Data:
 		self.posWeight = len([l for l in self.labels if l == 0.])/len([l for l in self.labels if l == 1.])
 		print("SCALE POS",self.posWeight)
 
-	def splitSet(self,splitSize):
+	#def splitSet(self,features,labels,testSize,randomState):
+	def splitSet(self,testSize,randomState):
 		#,random_state=565
 		#RS = 42
-		TrainFeatures,TestFeatures,TrainLabels,TestLabels = train_test_split(self.features,self.labels,test_size=(1-splitSize))
+		#Split data 
+		TrainFeatures,TestFeatures,TrainLabels,TestLabels = train_test_split(self.features,self.labels,test_size=testSize,
+																			random_state=randomState)
+		
 		train = Data()
 		train.loadFromNumpy(TrainFeatures,TrainLabels)
 		test = Data()
 		test.loadFromNumpy(TestFeatures,TestLabels)	
 		return train,test
-
+		
 
 class BRData(Data): 
 	features = []
