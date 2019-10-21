@@ -16,7 +16,7 @@ from ProteinGraphML.Analysis import Visualize
 
 t0 = time.time()
  
-PROCEDURES = ["XGBPredict", "SVMPredict"]
+PROCEDURES = ["XGBPredict"]
 
 parser = argparse.ArgumentParser(description='Run ML Procedure', epilog='--file must be specified; available procedures: {0}'.format(str(PROCEDURES)))
 parser.add_argument('procedure', choices=PROCEDURES, help='ML procedure to run')
@@ -41,8 +41,7 @@ else:
 		exit()
 
 #Get ML procedure
-Procedure = args.procedure
-logging.info('Procedure: {0}'.format(Procedure))
+logging.info('Procedure: {0} ({1})'.format(args.procedure, locals()[args.procedure]))
 
 # directory and file name for the ML Model
 if (args.modelfile is None):
@@ -68,7 +67,6 @@ idNameSymbol = dbAdapter.fetchSymbolForProteinId() #fetch name and symbol for pr
 d = BinaryLabel()
 d.loadTestData(testData) 
 
-#print('calling function...', locals()[Procedure])
-locals()[Procedure](d, idDescription, idNameSymbol, args.modelfile, args.resultdir)
+locals()[args.procedure](d, idDescription, idNameSymbol, args.modelfile, args.resultdir)
 
 logging.info('{0}: elapsed time: {1}'.format(os.path.basename(sys.argv[0]), time.strftime('%Hh:%Mm:%Ss', time.gmtime(time.time()-t0))))
