@@ -219,6 +219,6 @@ MakeVis.py --disease 104300 --featurefile results/104300/featImportance_XGBCross
 * New data sources can be supported by adding new Adapter class in `ProteinGraphML/DataAdapter/`.
 * New ML procedures may be added to `ProteinGraphML/MLTools/Procedures/`.
 
-Workflow diagram:
+Workflow overview diagram:
 
-> <img src="doc/MetapathDiagram.png" height="400">
+> <img src="doc/MPML_Workflow_Overview.png" height="400">
