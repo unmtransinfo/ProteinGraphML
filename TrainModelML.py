@@ -16,8 +16,8 @@ from ProteinGraphML.Analysis import Visualize
 
 t0 = time.time()
 
-NUM_OF_FOLDS = 2
-PROCEDURES = ["XGBCrossVal", "XGBCrossValPred", "XGBGridSearch"]
+NUM_OF_FOLDS = 10
+PROCEDURES = ["XGBCrossValPred", "XGBKfoldsRunPred", "XGBGridSearch"]
 XGB_PARAMETERS_FILE = 'XGBparams.txt'
 
 parser = argparse.ArgumentParser(description='Run ML Procedure', epilog='--disease or --file must be specified; available procedures: {0}'.format(str(PROCEDURES)))
@@ -74,7 +74,7 @@ idNameSymbol = dbAdapter.fetchSymbolForProteinId() #fetch name and symbol for pr
 #call ML codes
 d = BinaryLabel()
 d.loadData(trainData)
-if (Procedure == "XGBCrossVal"):
+if (Procedure == "XGBKfoldsRunPred"):
 	locals()[Procedure](d, idDescription, idNameSymbol, resultDir, nfolds=args.crossval_folds, params=xgbParams)
 elif (Procedure == "XGBCrossValPred"):
 	locals()[Procedure](d, idDescription, idNameSymbol, resultDir, params=xgbParams)

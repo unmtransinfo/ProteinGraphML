@@ -35,13 +35,15 @@ def XGBCrossValPred(dataObject, idDescription, idNameSymbol, resultDir, params=N
 	#print(report.data)
 	#roc.printOutput() #plot roc
 
-def XGBCrossVal(dataObject, idDescription, idNameSymbol, resultDir, nfolds=1, params=None):
+#def XGBCrossVal(dataObject, idDescription, idNameSymbol, resultDir, nfolds=1, params=None):
+def XGBKfoldsRunPred(dataObject, idDescription, idNameSymbol, resultDir, nfolds=1, params=None):
 	
-	newModel = XGBoostModel("XGBCrossVal", resultDir)
+	newModel = XGBoostModel("XGBKfoldsRunPred", resultDir)
 	params['scale_pos_weight'] = dataObject.posWeight
 	logging.info('Parameters for XGBoost are: {0}'.format(params))
 	
-	newModel.average_cross_val(dataObject, idDescription, idNameSymbol, ["roc","rocCurve","acc","mcc"], folds=nfolds, params=params,cv=CROSSVAL)
+	#newModel.average_cross_val(dataObject, idDescription, idNameSymbol, ["roc","rocCurve","acc","mcc"], folds=nfolds, params=params,cv=CROSSVAL)
+	newModel.average_cross_val(dataObject, idDescription, idNameSymbol, ["roc","acc","mcc"], folds=nfolds, params=params)
 
 	#print (importance)
 	##"seed"	"max_depth"	"eta"	"gamma"	"min_child_weight"	"subsample"	"colsample_bytree"	"nrounds"	"auc"

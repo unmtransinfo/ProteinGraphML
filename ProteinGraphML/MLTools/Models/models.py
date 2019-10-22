@@ -3,6 +3,7 @@ import time, logging, random
 import pickle
 from collections import Counter
 import pandas as pd
+import numpy as np
 import xgboost as xgb
 import matplotlib.pyplot as plt
 
@@ -57,7 +58,7 @@ class Result:
 		fpr, tpr, threshold = roc_curve(self.data.labels,self.predictions)
 		rocCurve = RocCurve("rocCurve",fpr, tpr)
 		logging.info("RESULT DIR: {0}".format(self.resultDIR))
-		rocCurve.fileOutput(self.resultDIR)
+		#rocCurve.fileOutput(self.resultDIR)
 		return rocCurve
 	
 	def report(self):
@@ -153,10 +154,34 @@ class RocCurve(Output):
 		plt.ylabel('True Positive Rate')
 		plt.xlabel('False Positive Rate')
 
-		#plt.savefig(base+'.png')
 		if fileString is not None:
-			#plt.savefig('books_read.png')
-			#print("THIS IS THE FILE STRING===",fileString)
+			pltfile = fileString + '.png'
+			logging.info("INFO: AUC-ROC curve will be saved as {0}".format(pltfile))
+			plt.savefig(pltfile)
+
+	#plt ROC curves for n folds
+	def fileOutputForAverage(self,savedData,fileString=None,folds=5):
+
+		rootName = self.stringType
+		logging.info("ROOT: {0}".format(rootName))
+		
+		for n in range(folds):
+			labels, predictions = zip(*list(savedData[n])) #unzip the data
+			#predictions = list(zip(*savedData[n])[1]) #unzip the data
+			fpr, tpr, threshold = roc_curve(labels,predictions)
+			roc_auc = auc(fpr, tpr)
+			#plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
+			plt.plot(fpr, tpr, label = 'AUC = %0.2f' % roc_auc)
+			plt.legend(loc = 'lower right')
+			plt.plot([0, 1], [0, 1],'r--')
+			plt.xlim([0, 1])
+			plt.ylim([0, 1])
+		plt.title('Receiver Operating Characteristic')
+		plt.ylabel('True Positive Rate')
+		plt.xlabel('False Positive Rate')
+
+		#logging.info("RESULT DIR: {0}".format(self.resultDIR))
+		if fileString is not None:
 			pltfile = fileString + '.png'
 			logging.info("INFO: AUC-ROC curve will be saved as {0}".format(pltfile))
 			plt.savefig(pltfile)
@@ -364,7 +389,7 @@ class XGBoostModel(BaseModel):
 		#return roc,acc,mcc, CM,report,importance
 		logging.info("METRICS: {0}".format(str(metrics)))
  
-
+	'''
 	def average_cross_val(self,testData,idDescription,idNameSymbol,outputTypes,folds=1,split=0.8,params={},cv=1):
 		# this function will take the average of metrics per fold... which is a random fold
 		#print (params,cv)
@@ -456,7 +481,82 @@ class XGBoostModel(BaseModel):
 		#with open(FINALDIR, 'wb') as f:
 		#	pickle.dump(importance, f, pickle.HIGHEST_PROTOCOL)
 		#return importance
+	'''
 
+	# This function divides the data into train and test sets 'n' (number of folds) times. 
+	# Model trained on the train data is tested on the test data. Average MCC, Accuracy and ROC
+	# is reported.
+	def average_cross_val(self,allData,idDescription,idNameSymbol,outputTypes,folds=5,testSize=0.2,params={}):
+
+		collection = []
+		importance = None
+		metrics = {"average-roc":0., "average-mcc":0., "average-acc":0.} #add mcc and accuracy too
+		logging.info("=== RUNNING {0} FOLDS".format(folds))
+		
+		#Initialize variable to store predicted probs of test data
+		predictedProb_ROC = []
+		predictedProbs = {} # will be used for o/p file
+		for r in range(folds):
+			predictedProb_ROC.append([])
+		#print (predictedProb)
+		
+		for k in range(0,folds):
+			logging.info("DOING {0} FOLD".format(k+1))
+			clf = xgb.XGBClassifier(**params)
+			self.m = clf
+			#randomState = 2000 + random.randint(1,1000)
+			randomState = 2000 + k
+			trainData, testData = allData.splitSet(testSize,randomState)
+			
+			#Train the model
+			bst = clf.fit(trainData.features, trainData.labels)
+			#test the model
+			class01Probs = bst.predict_proba(testData.features)
+			predictions = [i[1] for i in class01Probs] #select class1 probability
+			roc,acc,mcc = self.createResultObjects(testData,outputTypes,predictions)
+			
+			#append predicted probability and true class for ROC curve
+			predictedProb_ROC[k] = zip(testData.labels.tolist(),predictions)
+			proteinIds = list(testData.features.index.values)
+			#print ('Selected ids are: ', proteinIds)
+			for p in range(len(proteinIds)):
+				try:
+					predictedProbs[proteinIds[p]].append(predictions[p])
+				except:
+					predictedProbs[proteinIds[p]] = [predictions[p]]
+				
+			#print (predictedProb)
+			metrics["average-roc"] += roc.data
+			metrics["average-mcc"] += mcc.data
+			metrics["average-acc"] += acc.data
+			
+			#model.predict ...
+			if importance:
+				importance = importance + Counter(bst.get_booster().get_score(importance_type='gain'))
+			else:
+				importance = Counter(bst.get_booster().get_score(importance_type='gain'))				
+		
+		# compute average values
+		for key in importance:
+			importance[key] = importance[key]/folds
+
+		for key in metrics:
+			metrics[key] = metrics[key]/folds			
+		
+		avgPredictedProbs = {}
+		for k,v in predictedProbs.items():
+			avgPredictedProbs[k] = np.mean(v)
+				
+		logging.info("METRICS: {0}".format(str(metrics))) # write this metric to a file...
+		
+		self.saveImportantFeatures(importance, idDescription) #save important features
+		self.saveImportantFeaturesAsPickle(importance)
+		#print (avgPredictedProb)
+		self.savePredictedProbability(allData, avgPredictedProbs, idDescription, idNameSymbol, "AVERAGE") #save predicted probabilities
+		#plot ROC curves
+		rc = RocCurve("rocCurve",None, None)
+		aucFileName = self.MODEL_DIR + '/auc_' + self.MODEL_PROCEDURE
+		rc.fileOutputForAverage(predictedProb_ROC,fileString=aucFileName,folds=folds)
 
 
 	# FEATURE SEARCH, will create the dataset with different sets of features, and search over them to get resutls
@@ -520,10 +620,35 @@ class XGBoostModel(BaseModel):
 		
 		#train the model using all train data and save it
 		self.train(allData, param=random_search.best_params_)
-
+		
+		#save the XGBoost parameters for the best estimator
+		self.saveBestEstimator(str(bst))
+		
 		#return roc,acc,mcc, CM,report,importance
 		logging.info("METRICS: {0}".format(str(metrics)))
 		
+	
+	#save the xgboost parameters selected using GirdSearchCV
+	def saveBestEstimator(self, estimator):
+		
+		xgbParamFile = self.MODEL_DIR + '/XGBParameters.txt'
+		logging.info("XGBoost parameters for the best estimator written to: {0}".format(xgbParamFile))
+		paramVals = estimator.strip().split('(')[1].split(',')
+		with open(xgbParamFile, 'w') as fo:
+			fo.write('{')
+			for vals in paramVals:
+				keyVal = vals.strip(' ').split('=')
+				if ('scale_pos_weight' in keyVal[0] or 
+					'n_jobs' in keyVal[0] or
+					'nthread' in keyVal[0] or
+					'None' in keyVal[1]):
+					continue
+				elif(')' in keyVal[1]): #last parameter
+					line = "'" + keyVal[0].strip().strip(' ') + "': " + keyVal[1].strip().strip(' ').strip(')') + '\n'
+				else:
+					line = "'" + keyVal[0].strip().strip(' ') + "': " + keyVal[1].strip().strip(' ').strip(')') + ',\n'	
+				fo.write(line)
+			fo.write('}')
 
 	#Save important features as pickle file. It will be used by visualization code
 	def saveImportantFeaturesAsPickle(self, importance):
@@ -577,10 +702,27 @@ class XGBoostModel(BaseModel):
 		This function will save true labels and predicted class 1 probability of all protein ids.
 		'''
 		TrueLabels = []
-		proteinIds = list(testData.labels.index.values)
+		proteinIds = list(testData.features.index.values)
 		if (DataType == "TEST"):
 			for p in proteinIds:
 				TrueLabels.append('')
+		elif(DataType == "AVERAGE"):
+			avgPredictions = []
+			trueClass = []
+			pids = []
+			j = 0
+			TrueLabels = testData.labels.tolist()
+			for p in proteinIds:
+				try:
+					avgPredictions.append(predictions[p])
+					trueClass.append(TrueLabels[j])
+					pids.append(p)
+				except:
+					continue
+				j+=1
+			predictions = avgPredictions
+			TrueLabels = trueClass
+			proteinIds = pids
 		else:
 			TrueLabels = testData.labels.tolist()
 			
