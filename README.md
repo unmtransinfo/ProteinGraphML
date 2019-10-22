@@ -45,10 +45,11 @@ graph.
 
 Command line parameters:
 
-* `operation` (positional parameter):
+* `OPERATION` (positional parameter):
    * `build` :  build KG and write to output file.
    * `test` : build KG, write log, but not output file.
 * `--ofile` : Pickled KG file (default: ProteinDisease_GRAPH.pkl).
+* `--logfile` : KG log file (default: ProteinDisease_GRAPH.log).
 
 Example commands:
 
@@ -102,9 +103,20 @@ will be in the test set.  Metapath-based features
 must be generated for each model (unlike static features), since how metapath 
 semantic patterns match the KG depends on the query disease.
 
+Command line parameters:
+
+* `--disease` : Mammalian Phenotype ID, e.g. MP_0000180
+*  `--trainingfile` : pickled training set, e.g. "diabetes.pkl"
+*  `--testfile` : pickled test set, e.g. "diabetes_test.pkl"
+*  `--outputdir` : directory where train and test data with features will be saved, e.g. "diabetes_no_lincs"
+*  `--kgfile` : input pickled KG (default: "ProteinDisease_GRAPH.pkl")
+*  `--static_data` : (default: "gtex,lincs,ccle,hpa")
+
+Example commands:
+
 ```
 GenTrainingAndTestFeatures.py -h
-GenTrainingAndTestFeatures.py --trainingfile DataForML/autophagy_test20191003.pkl --testfile DataForML/autophagy_test20191003_test.pkl --outputdir results/autophagy/
+GenTrainingAndTestFeatures.py --trainingfile data/autophagy_test20191003.pkl --testfile data/autophagy_test20191003_test.pkl --outputdir results/autophagy/
 GenTrainingAndTestFeatures.py --disease MP_0000180 --outputdir results/MP_0000180
 ```
 
@@ -132,19 +144,22 @@ generates a list of important features used by the classification model.
 
 Command line parameters:
 
-* `procedure` (positional parameter):
+* `PROCEDURE` (positional parameter):
+   * `XGBGridSearch` :  Grid search for optimal XGBoost parameters.
    * `XGBCrossValPred` :  5-fold cross-validation, one iteration.
-   * `XGBCrossVal` : 5-fold cross-validation, multiple iterations.
+   * `XGBKfoldsRunPred` : 5-fold cross-validation, multiple iterations.
+* `--crossval_folds` : number of cross-validation folds
+* `--xgboost_param_file` : XGBoost configuration parameter file (e.g. XGBparams.txt)
 * `--trainingfile` : Training set file, produced by `PrepTrainingAndTestSets.py`.
-* `--resultdir` : Name of the directory where results will be stored (e.g. MP_0000180).
-* `--kgfile` : KG file, produced by `BuildKG_OlegDb.py` (default: ProteinDisease_GRAPH.pkl).
+* `--resultdir` : directory for output results
+* `--kgfile` : KG file, as produced by `BuildKG_OlegDb.py` (default: ProteinDisease_GRAPH.pkl).
 
 Example commands:
 
 ```
 TrainModelML.py -h
-TrainModelML.py XGBCrossVal --trainingfile 144700.pkl --resultdir 144700
-TrainModelML.py XGBCrossValPred --trainingfile 144700.pkl --resultdir 144700
+TrainModelML.py XGBCrossVal --trainingfile 144700.pkl --resultdir results/144700
+TrainModelML.py XGBCrossValPred --trainingfile 144700.pkl --resultdir results/144700
 ```
 
 Results will be saved in the specified --resultsdir. See logs for specific
@@ -160,17 +175,17 @@ proteins. The procedure `XGBPredict` uses the saved XGBoost model, and generates
 
 Command line parameters:
 
-* `procedure` (positional parameter):
+* `PROCEDURE` (positional parameter):
    * `XGBPredict` :  load the saved model
-* `--model` : Full path to the trained model (results/autophagy_test20191003/XGBCrossVal.model).
-* `--testfile` : Test set file, produced by `PrepTrainingAndTestSets.py`.
-* `--kgfile` : KG file, produced by `BuildKG_OlegDb.py` (default: ProteinDisease_GRAPH.pkl).
+* `--modelfile` : trained model (e.g. results/autophagy_test20191003/XGBCrossVal.model).
+* `--testfile` : test data file, produced by `PrepTrainingAndTestSets.py` (e.g.  "diabetesTestData.pkl")
+* `--resultdir` : directory for output results
 
 Example commands:
 
 ```
 PredictML.py -h
-PredictML.py XGBPredict --testfile autophagy_test20191003_test.pkl --model results/autophagy_test20191003/XGBCrossVal.model --resultdir autophagy
+PredictML.py XGBPredict --testfile autophagy_test20191003_test.pkl --model results/autophagy_test20191003/XGBCrossVal.model --resultdir results/autophagy
 ```
 
 Results will be saved in the specified --resultsdir. See logs for specific
