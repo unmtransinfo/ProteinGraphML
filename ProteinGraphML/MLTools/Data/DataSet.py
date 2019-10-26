@@ -2,7 +2,7 @@
 from sklearn.model_selection import train_test_split
 
 
-class Data:    
+class Data:     
 
 	def loadFromNumpy(self,features,labels):
 		self.features = features
@@ -54,7 +54,7 @@ class BinaryLabel(Data):
 		print ('Shape of the data', self.data.shape[0], self.data.shape[1])
 		#print("SCALE POS",self.posWeight)
 
-	def loadTestData(self,dataIN,labelColumn='Y'): #used for test data only
+	def loadPredictData(self,dataIN,labelColumn='Y'): #used for predict data only
 		self.data = dataIN
 		self.labelColumn = labelColumn
 		self.labels = self.data[self.labelColumn]

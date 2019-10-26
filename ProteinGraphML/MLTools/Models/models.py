@@ -164,19 +164,22 @@ class RocCurve(Output):
 
 		rootName = self.stringType
 		logging.info("ROOT: {0}".format(rootName))
-		
+		rocValues = []
 		for n in range(folds):
 			labels, predictions = zip(*list(savedData[n])) #unzip the data
 			#predictions = list(zip(*savedData[n])[1]) #unzip the data
 			fpr, tpr, threshold = roc_curve(labels,predictions)
 			roc_auc = auc(fpr, tpr)
-			#plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
-			plt.plot(fpr, tpr, label = 'AUC = %0.2f' % roc_auc)
-			plt.legend(loc = 'lower right')
-			plt.plot([0, 1], [0, 1],'r--')
-			plt.xlim([0, 1])
-			plt.ylim([0, 1])
-		plt.title('Receiver Operating Characteristic')
+			rocValues.append(roc_auc)
+			plt.plot(fpr, tpr, color='gainsboro')
+
+		plt.plot(fpr, tpr, color='darkblue', label = 'Mean AUC = %0.3f' % np.mean(rocValues))
+		plt.plot(fpr, tpr, color='darkred', label = 'Median AUC = %0.3f' % np.median(rocValues))
+		plt.legend(loc = 'lower right')
+		plt.plot([0, 1], [0, 1],'r--')
+		plt.xlim([0, 1])
+		plt.ylim([0, 1])
+		plt.title('Receiver Operating Characteristic,' + 'Range: ' + str('%.3f'%np.min(rocValues)) + ' - ' +str('%.3f'%np.max(rocValues)))
 		plt.ylabel('True Positive Rate')
 		plt.xlabel('False Positive Rate')
 

@@ -5,9 +5,9 @@ import numpy as np
 import pandas as pd
 from ProteinGraphML.DataAdapter import OlegDB,selectAsDF
 
-def generateTrainTestFromExcel(inFile, idType, negProtein=None):
+def generateTrainPredictFromExcel(inFile, idType, negProtein=None):
 	'''
-	This function reads the XLS file and generates training/test set
+	This function reads the XLS file and generates training/predict set
 	using the given symbols and labels.
 	'''
 	df = pd.read_excel(inFile, sheet_name='Sheet1') #change 'Sheet1' to the name in your spreadsheet
@@ -45,22 +45,22 @@ def generateTrainTestFromExcel(inFile, idType, negProtein=None):
 		negLabelProteinIds.update(negProtein)
 		trainProteinSet.update(negProtein)
 	
-	#determine train and test set
-	testProteinSet = allProteinIds.difference(trainProteinSet)
+	#determine train and predict set
+	predictProteinSet = allProteinIds.difference(trainProteinSet)
 	trainData[True] = posLabelProteinIds
 	trainData[False] = negLabelProteinIds
-	testData['unknown'] = testProteinSet
+	predictData['unknown'] = predictProteinSet
 	logging.info('Count of positive labels: {0}, count of negative labels: {1}'. format(len(trainData[True]), len(trainData[False])))
-	logging.info('Count of test set (unlabeled): {0}'. format(len(testData['unknown'])))
+	logging.info('Count of predict set (unlabeled): {0}'. format(len(predictData['unknown'])))
 	if (len(trainData[True]) == 0 or len(trainData[False]) == 0):
 		logging.error ('ML codes cannot be run with one class')
 		exit()
 	else:
-		return trainData, testData
+		return trainData, predictData
 
-def generateTrainTestFromText (inFile, idType, negProtein=None):
+def generateTrainPredictFromText (inFile, idType, negProtein=None):
 	'''
-	This function reads the text file and generates training/test set
+	This function reads the text file and generates training/predict set
 	using the given symbols and labels.
 	'''
 	symbolLabel = {}
@@ -106,21 +106,21 @@ def generateTrainTestFromText (inFile, idType, negProtein=None):
 		negLabelProteinIds.update(negProtein)
 		trainProteinSet.update(negProtein)
 	
-	#determine train and test set
-	testProteinSet = allProteinIds.difference(trainProteinSet) 
+	#determine train and predict set
+	predictProteinSet = allProteinIds.difference(trainProteinSet) 
 	trainData[True] = posLabelProteinIds
 	trainData[False] = negLabelProteinIds
-	testData['unknown'] = testProteinSet
+	predictData['unknown'] = predictProteinSet
 	logging.info('Count of positive labels: {0}, count of negative labels: {1}'. format(len(trainData[True]), len(trainData[False])))
 	if (len(trainData[True]) == 0 or len(trainData[False]) == 0):
 		logging.error('ML codes cannot be run with one class')
 		exit()	
 	else:
-		return trainData, testData
+		return trainData, predictData
 
-def generateTrainTestFromRDS(inFile, negProtein=None):
+def generateTrainPredictFromRDS(inFile, negProtein=None):
 	'''
-	This function reads the rds file and generates training/test set
+	This function reads the rds file and generates training/predict set
 	using the given symbols and labels.
 	'''
 	logging.info('Loading data from RDS file to create a dictionary')
@@ -132,24 +132,24 @@ def generateTrainTestFromRDS(inFile, negProtein=None):
 	if (negProtein is not None):
 		trainData[False].update(negProtein)
 		
-	#determine train and test set			
-	testProteinSet = allProteinIds.difference(trainData[True])
-	testProteinSet = testProteinSet.difference(trainData[False])
-	testData['unknown'] = testProteinSet
+	#determine train and predict set			
+	predictProteinSet = allProteinIds.difference(trainData[True])
+	predictProteinSet = predictProteinSet.difference(trainData[False])
+	predictData['unknown'] = predictProteinSet
 	logging.info('Count of positive labels: {0}, count of negative labels: {1}'. format(len(trainData[True]), len(trainData[False])))
 	if (len(trainData[True]) == 0 or len(trainData[False]) == 0):
 		logging.error('ML codes cannot be run with one class')
 		exit()
 	else:
-		return trainData, testData
+		return trainData, predictData
 
  
-def saveTrainTestSet(trainData, testData, outDir, outBaseName):
+def saveTrainPredictSet(trainData, predictData, outDir, outBaseName):
 	'''
-	This function saves training and test in pickle format.
+	This function saves training and predict in pickle format.
 	'''
 	pklTrainFile = outDir + '/' + outBaseName + '.pkl'
-	pklTestFile = outDir + '/' + outBaseName + '_test.pkl'
+	pklPredictFile = outDir + '/' + outBaseName + '_predict.pkl'
 
 	#Save the training set
 	with open(pklTrainFile, 'wb') as handle:
@@ -157,16 +157,16 @@ def saveTrainTestSet(trainData, testData, outDir, outBaseName):
 		logging.info("Writing train data to file: {0}".format(pklTrainFile))
 		pickle.dump(trainData, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-	#save the test set
-	with open(pklTestFile, 'wb') as handle:
-		logging.info("Test dataset: {0} cases".format(len(testData['unknown'])))
-		logging.info("Writing test data to file: {0}".format(pklTestFile))
-		pickle.dump(testData, handle, protocol=pickle.HIGHEST_PROTOCOL)	
+	#save the predict set
+	with open(pklPredictFile, 'wb') as handle:
+		logging.info("Predict dataset: {0} cases".format(len(predictData['unknown'])))
+		logging.info("Writing predict data to file: {0}".format(pklPredictFile))
+		pickle.dump(predictData, handle, protocol=pickle.HIGHEST_PROTOCOL)	
 
 ###########START OF MAIN PROGRAM###########################	
 if __name__ == '__main__':
 	#dataDirRDS = '/home/oleg/workspace/metap/data/input/' 
-	parser = argparse.ArgumentParser(description='Generate training and test set definition files.', epilog='Output files to same dir as input file, pickled dictionary files suffixed ".pkl" and "_test.pkl".')
+	parser = argparse.ArgumentParser(description='Generate training and predict set definition files.', epilog='Output files to same dir as input file, pickled dictionary files suffixed ".pkl" and "_predict.pkl".')
 	parser.add_argument('--i', dest='ifile', metavar='INPUT_FILE', required=True, help='input file, with protein IDs or symbols, positive and optionally negative labels (CSV|XLSX)')
 	parser.add_argument('--symbol_or_pid', choices=('symbol', 'pid'), default='symbol', help='symbol|pid')
 	parser.add_argument('--use_default_negatives', default=False, action='store_true', help='required if negatives not specified by input')
@@ -201,20 +201,20 @@ if __name__ == '__main__':
 	posLabelProteinIds = set()	#protein_ids for class 1
 	negLabelProteinIds = set()	#protein_ids for class 0
 	trainProteinSet = set() #protein_ids for training
-	testProteinSet = set() #protein_ids for test
+	predictProteinSet = set() #protein_ids for predict
 	trainData = {}	#dictionary to store training protein_ids
-	testData = {}	#dictionary to store test protein_ids
+	predictData = {}	#dictionary to store predict protein_ids
 	
 	if fileExt.lower() == 'rds':
 		logging.info('Input file specified: {0}'.format(fileName))
-		trainData,testData = generateTrainTestFromRDS(args.ifile, negProtein=(negProteinIds if args.use_default_negatives else None))
+		trainData,predictData = generateTrainPredictFromRDS(args.ifile, negProtein=(negProteinIds if args.use_default_negatives else None))
 	elif fileExt.lower() in ('xlsx', 'xls'):
 		logging.info('Input file with ID type "{0}" specified: {1}'.format(args.symbol_or_pid, fileName))
-		trainData,testData = generateTrainTestFromExcel(args.ifile, args.symbol_or_pid, negProtein=(negProteinIds if args.use_default_negatives else None))
+		trainData,predictData = generateTrainPredictFromExcel(args.ifile, args.symbol_or_pid, negProtein=(negProteinIds if args.use_default_negatives else None))
 	elif fileExt.lower() in ('csv', 'tsv', 'txt'):
 		logging.info('Input file with ID type "{0}" specified: {1}'.format(args.symbol_or_pid, fileName))
-		trainData,testData = generateTrainTestFromText(args.ifile, args.symbol_or_pid, negProtein=(negProteinIds if args.use_default_negatives else None))
+		trainData,predictData = generateTrainPredictFromText(args.ifile, args.symbol_or_pid, negProtein=(negProteinIds if args.use_default_negatives else None))
 	else:
 		pass #ERROR
 	logging.info('Writing output to: {0}'.format(dataDir))
-	saveTrainTestSet(trainData, testData, dataDir, outBaseName)
+	saveTrainPredictSet(trainData, predictData, dataDir, outBaseName)

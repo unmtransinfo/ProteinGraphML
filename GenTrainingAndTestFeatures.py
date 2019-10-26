@@ -21,14 +21,14 @@ def savePickleObject(fileName, data):
 	with open(fileName, 'wb') as handle:
 		pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-def saveTrainTestSet(allData, outputDir, disease=None, trainingfile=None, testfile=None):
+def saveTrainPredictSet(allData, outputDir, disease=None, trainingfile=None, predictfile=None):
 	'''
-	This function saves training and test in pickle format 
+	This function saves training and predict in pickle format 
 	'''
 	logging.info('Number of rows and features in allData: {0}'.format(allData.shape))
 	if (disease is not None):
 		pklTrainFile = outputDir + '/' + disease + '_TrainingData.pkl'
-		pklTestFile = outputDir + '/' + disease + '_TestData.pkl'
+		pklPredictFile = outputDir + '/' + disease + '_PredictData.pkl'
 		
 		# extract train data from the dataframe
 		trainData = allData.loc[allData['Y'].isin([0,1])]
@@ -37,22 +37,22 @@ def saveTrainTestSet(allData, outputDir, disease=None, trainingfile=None, testfi
 		savePickleObject(pklTrainFile, trainData)
 		#print (trainData) 
 		
-		# extract test data from the dataframe
-		testData = allData.loc[allData['Y'] == -1]
-		#testData = testData.drop('Y', axis=1) #drop label from the test data
-		logging.info('Number of rows and features in test data: {0}'.format(testData.shape))
-		logging.info("Writing test data to file: {0}".format(pklTestFile))
-		savePickleObject(pklTestFile, testData)
-		#print (testData)
+		# extract predict data from the dataframe
+		PredictData = allData.loc[allData['Y'] == -1]
+		#PredictData = PredictData.drop('Y', axis=1) #drop label from the predict data
+		logging.info('Number of rows and features in predict data: {0}'.format(PredictData.shape))
+		logging.info("Writing predict data to file: {0}".format(pklPredictFile))
+		savePickleObject(pklPredictFile, PredictData)
+		#print (PredictData)
 	
-	elif (testfile is None and trainingfile is not None):
+	elif (predictfile is None and trainingfile is not None):
 		pklTrainFile = outputDir + '/' + os.path.basename(trainingfile).split('.')[0] + '_TrainingData.pkl'
 		logging.info("Writing train data to file: {0}".format(pklTrainFile))
 		savePickleObject(pklTrainFile, allData)
 
-	elif (testfile is not None and trainingfile is not None):
+	elif (predictfile is not None and trainingfile is not None):
 		pklTrainFile = outputDir + '/' + os.path.basename(trainingfile).split('.')[0] + '_TrainingData.pkl'
-		pklTestFile = outputDir + '/' + os.path.basename(testfile).split('.')[0] + '_TestData.pkl'
+		pklPredictFile = outputDir + '/' + os.path.basename(predictfile).split('.')[0] + '_PredictData.pkl'
 
 		# extract train data from the dataframe
 		trainData = allData.loc[allData['Y'].isin([0,1])]
@@ -61,13 +61,13 @@ def saveTrainTestSet(allData, outputDir, disease=None, trainingfile=None, testfi
 		savePickleObject(pklTrainFile, trainData)
 		#print (trainData)
 		
-		# extract test data from the dataframe
-		testData = allData.loc[allData['Y'] == -1]
-		#testData = testData.drop('Y', axis=1) #drop label from the test data
-		logging.info('Number of rows and features in test data: {0}'.format(testData.shape))
-		logging.info("Writing test data to file: {0}".format(pklTestFile))
-		savePickleObject(pklTestFile, testData)
-		#print (testData)
+		# extract predict data from the dataframe
+		PredictData = allData.loc[allData['Y'] == -1]
+		#PredictData = PredictData.drop('Y', axis=1) #drop label from the predict data
+		logging.info('Number of rows and features in predict data: {0}'.format(PredictData.shape))
+		logging.info("Writing predict data to file: {0}".format(pklPredictFile))
+		savePickleObject(pklPredictFile, PredictData)
+		#print (PredictData)
 	else:
 		logging.error('Missing argument(s)') 
 	
@@ -80,11 +80,11 @@ if __name__ == '__main__':
 	DEFAULT_STATIC_FEATURES = "gtex,lincs,ccle,hpa"
 	
 	#Command-line arguments
-	parser = argparse.ArgumentParser(description='Generate features for training and test set', epilog='Protein Ids with True label must be provided')
+	parser = argparse.ArgumentParser(description='Generate features for training and predict set', epilog='Protein Ids with True label must be provided')
 	parser.add_argument('--disease', metavar='disease', help='Mammalian Phenotype ID, e.g. MP_0000180')
 	parser.add_argument('--trainingfile', help='pickled training set, e.g. "diabetes.pkl"')
-	parser.add_argument('--testfile', help='pickled test set, e.g. "diabetes_test.pkl"')
-	parser.add_argument('--outputdir', required=True, help='directory where train and test data with features will be saved, e.g. "diabetes_no_lincs"')
+	parser.add_argument('--predictfile', help='pickled predict set, e.g. "diabetes_predict.pkl"')
+	parser.add_argument('--outputdir', required=True, help='directory where train and predict data with features will be saved, e.g. "diabetes_no_lincs"')
 	parser.add_argument('--kgfile', default=DEFAULT_GRAPH, help='input pickled KG (default: "{0}")'.format(DEFAULT_GRAPH))
 	parser.add_argument('--static_data', default=DEFAULT_STATIC_FEATURES, help='(default: "{0}")'.format(DEFAULT_STATIC_FEATURES))
 	parser.add_argument("-v", "--verbose", action="count", default=0, help="verbosity")
@@ -96,15 +96,15 @@ if __name__ == '__main__':
 	#Get data from file or disease
 	#disease = argData['disease']
 	#trainingfile = argData['trainingfile']
-	#testfile = argData['testfile']
+	#predictfile = argData['predictfile']
 	fileData = None
 
-	#folder where train and test data with features will be stored
+	#folder where train and predict data with features will be stored
 	#outputDir = argData['outputdir']
 	if not os.path.isdir(args.outputdir):
 		logging.info('Create the output directory')
 		os.makedirs(args.outputdir)
-	logging.info('Output directory for ML data(Training/Test): {0}'.format(args.outputdir))
+	logging.info('Output directory for ML data(Training/predict): {0}'.format(args.outputdir))
 
 	#check whether file or disease was given
 	if (args.trainingfile is None and args.disease is None): 
@@ -128,15 +128,15 @@ if __name__ == '__main__':
 			logging.error('Invalid pickled training set file') 
 			exit()
 
-		#Also add test data if provided
-		if (args.testfile is not None):
-			#testPklFile = testfile
-			logging.info('Input test file: {0}'.format(args.testfile))
+		#Also add predict data if provided
+		if (args.predictfile is not None):
+			#predictPklFile = predictfile
+			logging.info('Input predict file: {0}'.format(args.predictfile))
 			try:
-				with open(args.testfile, 'rb') as f:
-					fileData.update(pickle.load(f)) #fileData will now have both train and test set
+				with open(args.predictfile, 'rb') as f:
+					fileData.update(pickle.load(f)) #fileData will now have both train and predict set
 			except:
-				logging.error('Invalid pickled test set file') 
+				logging.error('Invalid pickled predict set file') 
 				exit()	    		
 	elif (args.trainingfile is None and args.disease is not None): 
 		logging.info("running on this disease: {0}".format(args.disease))
@@ -148,10 +148,10 @@ if __name__ == '__main__':
 		#get all protein ids
 		allProteinIds = dbAdapter.fetchAllProteinIds()
 		allProteinIds = set(allProteinIds['protein_id'].tolist())
-		#prepare test set
-		testProteinSet = allProteinIds.difference(trainP)
-		testProteinSet = testProteinSet.difference(trainF)
-		fullData['unknown'] = testProteinSet
+		#prepare predict set
+		predictProteinSet = allProteinIds.difference(trainP)
+		predictProteinSet = predictProteinSet.difference(trainF)
+		fullData['unknown'] = predictProteinSet
 		fileData = fullData
 	else:
 		logging.error('Wrong parameters passed')	
@@ -181,7 +181,7 @@ if __name__ == '__main__':
 		exit()
 		
 
-	#Divide allData into training/test set and save them
-	saveTrainTestSet(allData, args.outputdir, args.disease, args.trainingfile, args.testfile)
+	#Divide allData into training/predict set and save them
+	saveTrainPredictSet(allData, args.outputdir, args.disease, args.trainingfile, args.predictfile)
 
 	logging.info('{0}: elapsed time: {1}'.format(os.path.basename(sys.argv[0]), time.strftime('%Hh:%Mm:%Ss', time.gmtime(time.time()-t0))))
