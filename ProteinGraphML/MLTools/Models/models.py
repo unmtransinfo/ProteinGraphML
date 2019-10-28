@@ -1,4 +1,4 @@
-import os
+import os, sys
 import time, logging, random 
 import pickle
 from collections import Counter
@@ -597,38 +597,41 @@ class XGBoostModel(BaseModel):
 			scoring='roc_auc', cv=5, 
 			verbose=3)
 		
+		#save the output of each iteration of gridsearch to a file
+		tuneFileName = self.MODEL_DIR + '/tune.tsv'
+		sys.stdout = open(tuneFileName, 'w')
 		random_search.fit(trainData.features, trainData.labels)
 		
 		#model trained with best parameters
 		bst = random_search.best_estimator_
-		self.m = bst
+		#self.m = bst
 		
 		#predict the test data using the best estimator
-		metrics = {"roc":0., "mcc":0., "acc":0.}
-		class01Probs = bst.predict_proba(testData.features)
-		predictions = [i[1] for i in class01Probs] #select class1 probability
+		#metrics = {"roc":0., "mcc":0., "acc":0.}
+		#class01Probs = bst.predict_proba(testData.features)
+		#predictions = [i[1] for i in class01Probs] #select class1 probability
 
-		roc,acc,mcc = self.createResultObjects(testData,outputTypes,predictions) 
-		metrics["roc"] = roc.data
-		metrics["mcc"] = mcc.data
-		metrics["acc"] = acc.data
+		#roc,acc,mcc = self.createResultObjects(testData,outputTypes,predictions) 
+		#metrics["roc"] = roc.data
+		#metrics["mcc"] = mcc.data
+		#metrics["acc"] = acc.data
 
 		#find imporant features and save them in a text file
-		importance = Counter(bst.get_booster().get_score(importance_type='gain'))
-		self.saveImportantFeatures(importance, idDescription)
-		self.saveImportantFeaturesAsPickle(importance) 
+		#importance = Counter(bst.get_booster().get_score(importance_type='gain'))
+		#self.saveImportantFeatures(importance, idDescription)
+		#self.saveImportantFeaturesAsPickle(importance) 
 		
 		#save predicted class 1 probabilty in a text file
-		self.savePredictedProbability(testData, predictions, idDescription, idNameSymbol, "TRAIN")
+		#self.savePredictedProbability(testData, predictions, idDescription, idNameSymbol, "TRAIN")
 		
 		#train the model using all train data and save it
-		self.train(allData, param=random_search.best_params_)
+		#self.train(allData, param=random_search.best_params_)
 		
 		#save the XGBoost parameters for the best estimator
 		self.saveBestEstimator(str(bst))
 		
 		#return roc,acc,mcc, CM,report,importance
-		logging.info("METRICS: {0}".format(str(metrics)))
+		#logging.info("METRICS: {0}".format(str(metrics)))
 		
 	
 	#save the xgboost parameters selected using GirdSearchCV
