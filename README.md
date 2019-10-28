@@ -98,8 +98,8 @@ PrepTrainingAndTestSets.py --i data/Asthma.rds
 To generate metapath features from the KG, use `GenTrainingAndTestFeatures.py`. From the KG
 and hard coded metapath patterns, plus the positively labeled proteins in the
 training set, feature vectors are generated for all training cases and optionally
-test cases. Normally, any human proteins not in the labeled training set 
-will be in the test set.  Metapath-based features
+predict cases. Normally, any human proteins not in the labeled training set 
+will be in the predict set.  Metapath-based features
 must be generated for each model (unlike static features), since how metapath 
 semantic patterns match the KG depends on the query disease.
 
@@ -107,7 +107,7 @@ Command line parameters:
 
 * `--disease` : Mammalian Phenotype ID, e.g. MP_0000180
 *  `--trainingfile` : pickled training set, e.g. "diabetes.pkl"
-*  `--testfile` : pickled test set, e.g. "diabetes_test.pkl"
+*  `--predictfile` : pickled predict set, e.g. "diabetes_test.pkl"
 *  `--outputdir` : directory where train and test data with features will be saved, e.g. "diabetes_no_lincs"
 *  `--kgfile` : input pickled KG (default: "ProteinDisease_GRAPH.pkl")
 *  `--static_data` : (default: "gtex,lincs,ccle,hpa")
@@ -116,7 +116,7 @@ Example commands:
 
 ```
 GenTrainingAndTestFeatures.py -h
-GenTrainingAndTestFeatures.py --trainingfile data/autophagy_test20191003.pkl --testfile data/autophagy_test20191003_test.pkl --outputdir results/autophagy/
+GenTrainingAndTestFeatures.py --trainingfile data/autophagy_test20191003.pkl --predictfile data/autophagy_test20191003_test.pkl --outputdir results/autophagy/
 GenTrainingAndTestFeatures.py --disease MP_0000180 --outputdir results/MP_0000180
 ```
 
@@ -178,14 +178,14 @@ Command line parameters:
 * `PROCEDURE` (positional parameter):
    * `XGBPredict` :  load the saved model
 * `--modelfile` : trained model (e.g. results/autophagy_test20191003/XGBCrossVal.model).
-* `--testfile` : test data file, produced by `PrepTrainingAndTestSets.py` (e.g.  "diabetesTestData.pkl")
+* `--predictfile` : predict data file, produced by `PrepTrainingAndTestSets.py` (e.g.  "diabetesPredictData.pkl")
 * `--resultdir` : directory for output results
 
 Example commands:
 
 ```
 PredictML.py -h
-PredictML.py XGBPredict --testfile autophagy_test20191003_test.pkl --model results/autophagy_test20191003/XGBCrossVal.model --resultdir results/autophagy
+PredictML.py XGBPredict --predictfile autophagy_test20191003_predict.pkl --model results/autophagy_test20191003/XGBCrossVal.model --resultdir results/autophagy
 ```
 
 Results will be saved in the specified --resultsdir. See logs for specific
