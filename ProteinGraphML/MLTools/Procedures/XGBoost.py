@@ -81,7 +81,7 @@ def XGBGridSearch(dataObject, idDescription, idNameSymbol, resultDir):
 				 }
 	'''
 	##ONLY FOR TESTING
-	paramGrid = {'max_depth': [7],
+	paramGrid = {'max_depth': [7,8],
 				 'eta': [0.05],
 				 'learning_rate': [0.1],
 				 'gamma': [0.01],

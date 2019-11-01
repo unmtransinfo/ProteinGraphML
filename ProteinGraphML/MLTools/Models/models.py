@@ -313,11 +313,11 @@ class XGBoostModel(BaseModel):
 
 	def train(self,trainData, param):
 		#print (param)		
-		#dtrain = xgb.DMatrix(trainData.features,label=trainData.labels)				
+		dtrain = xgb.DMatrix(trainData.features,label=trainData.labels)				
 		#bst = xgb.train(param, dtrain,num_boost_round=50)
-		#bst = xgb.train(param, dtrain) #use the default values of parameters
+		bst = xgb.train(param, dtrain) #use the default values of parameters
 		#self.m = bst
-		bst = xgb.XGBClassifier(**param).fit(trainData.features, trainData.labels)
+		#bst = xgb.XGBClassifier(**param).fit(trainData.features, trainData.labels)
 		modelName = self.MODEL_DIR + '/' + self.MODEL_PROCEDURE + '.model'
 		#bst.save_model(modelName)
 		logging.info('Trained ML Model was saved as {0}'.format(modelName)) 
@@ -335,14 +335,14 @@ class XGBoostModel(BaseModel):
 		return self.createResultObjects(testData,outputTypes,predictions)		
 
 	def predict_using_saved_model(self, testData, idDescription, idNameSymbol, modelName):
-		#inputData = xgb.DMatrix(testData.features)
-		inputData = testData.features
 		#bst = xgb.Booster()
 		#bst.load_model(modelName)
 		bst = pickle.load(open(modelName, 'rb'))
-		class01Probs = bst.predict_proba(inputData)
-		#print (class01Probs)
-		predictions = [i[1] for i in class01Probs] #select class1 probability
+		#inputData = testData.features	#for wrapper
+		#class01Probs = bst.predict_proba(inputData) #for wrapper
+		#predictions = [i[1] for i in class01Probs] #select class1 probability - wrapper
+		inputData = xgb.DMatrix(testData.features)
+		predictions = bst.predict(inputData)
 		self.savePredictedProbability(testData, predictions, idDescription, idNameSymbol, "TEST")
 		
 
@@ -598,13 +598,14 @@ class XGBoostModel(BaseModel):
 			verbose=3)
 		
 		#save the output of each iteration of gridsearch to a file
-		tuneFileName = self.MODEL_DIR + '/tune.tsv'
-		sys.stdout = open(tuneFileName, 'w')
+		tempFileName = self.MODEL_DIR + '/temp.tsv'
+		sys.stdout = open(tempFileName, 'w')
 		random_search.fit(trainData.features, trainData.labels)
 		
 		#model trained with best parameters
 		bst = random_search.best_estimator_
 		#self.m = bst
+		sys.stdout.close()
 		
 		#predict the test data using the best estimator
 		#metrics = {"roc":0., "mcc":0., "acc":0.}
@@ -639,6 +640,8 @@ class XGBoostModel(BaseModel):
 		
 		xgbParamFile = self.MODEL_DIR + '/XGBParameters.txt'
 		logging.info("XGBoost parameters for the best estimator written to: {0}".format(xgbParamFile))
+		
+		#save the optimized parameters for XGboost
 		paramVals = estimator.strip().split('(')[1].split(',')
 		with open(xgbParamFile, 'w') as fo:
 			fo.write('{')
@@ -655,7 +658,39 @@ class XGBoostModel(BaseModel):
 					line = "'" + keyVal[0].strip().strip(' ') + "': " + keyVal[1].strip().strip(' ').strip(')') + ',\n'	
 				fo.write(line)
 			fo.write('}')
-
+		
+		# save parameters used in each iteration
+		tuneFileName = self.MODEL_DIR + '/tune.tsv'
+		logging.info("Parameter values in each iteration of GridSearchCV written to: {0}".format(tuneFileName))
+		ft = open(tuneFileName, 'w')
+		headerWritten = 'N'
+		tempFileName = self.MODEL_DIR + '/temp.tsv'
+		with open(tempFileName, 'r') as fin:
+			for line in fin:
+				header = ''
+				rec = ''
+				if ('score' in line):
+					if (headerWritten == 'N'):
+						vals = line.strip().strip('[CV]').split(',')
+						for val in vals:
+							k,v = val.strip(' ').split('=')
+							header = header + k + '\t'
+							rec = rec + v + '\t'
+						ft.write(header + '\n')
+						ft.write(rec + '\n')
+						headerWritten = 'Y'
+					else:
+						vals = line.strip().strip('[CV]').split(',')
+						for val in vals:
+							k,v = val.strip(' ').split('=')
+							rec = rec + v + '\t'
+						ft.write(rec + '\n')
+		ft.close()
+		os.remove(tempFileName)	#delete temp file
+		
+			
+			
+		
 	#Save important features as pickle file. It will be used by visualization code
 	def saveImportantFeaturesAsPickle(self, importance):
 		'''
