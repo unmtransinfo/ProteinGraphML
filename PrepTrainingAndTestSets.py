@@ -33,7 +33,7 @@ def generateTrainPredictFromExcel(inFile, idType, negProtein=None):
 			trainProteinSet.add(int(proteinId))
 			if (label == 1):	
 				posLabelProteinIds.add(int(proteinId))
-			elif (symbolLabel[symbol] == 0):	
+			elif (label == 0):	
 				negLabelProteinIds.add(int(proteinId))
 			else:
 				logging.error('Invalid label')	
