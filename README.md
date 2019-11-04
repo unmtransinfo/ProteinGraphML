@@ -158,8 +158,7 @@ Example commands:
 
 ```
 TrainModelML.py -h
-TrainModelML.py XGBCrossVal --trainingfile 144700.pkl --resultdir results/144700
-TrainModelML.py XGBCrossValPred --trainingfile 144700.pkl --resultdir results/144700
+TrainModelML.py XGBCrossValPred --trainingfile results/144700.pkl --resultdir results/144700
 ```
 
 Results will be saved in the specified --resultsdir. See logs for specific
