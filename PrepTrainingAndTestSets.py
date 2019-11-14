@@ -125,8 +125,11 @@ def generateTrainPredictFromRDS(inFile, negProtein=None):
 	'''
 	logging.info('Loading data from RDS file to create a dictionary')
 	rdsdata = pyreadr.read_r(inFile)
-	trainData[True] = set(np.where(rdsdata[None]['Y']=='pos')[0])
-	trainData[False] = set(np.where(rdsdata[None]['Y']=='neg')[0])
+	df = rdsdata[None]
+	trainData[True] = set(df.loc[(df['Y']=='pos') & (df['subset'] == 'train')]["id1"])
+	trainData[False] = set(df.loc[(df['Y']=='neg') & (df['subset'] == 'train')]["id1"])
+	#trainData[True] = set(np.where(rdsdata[None]['Y']=='pos')[0])
+	#trainData[False] = set(np.where(rdsdata[None]['Y']=='neg')[0])
 
 	# if negative label was not provided, use default protein ids
 	if (negProtein is not None):

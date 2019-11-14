@@ -313,15 +313,18 @@ class XGBoostModel(BaseModel):
 
 	def train(self,trainData, param):
 		#print (param)		
-		dtrain = xgb.DMatrix(trainData.features,label=trainData.labels)				
-		#bst = xgb.train(param, dtrain,num_boost_round=50)
-		bst = xgb.train(param, dtrain) #use the default values of parameters
+		#dtrain = xgb.DMatrix(trainData.features,label=trainData.labels)				
+		#bst = xgb.train(param, dtrain, num_boost_round=43) #use the default values of parameters
 		#self.m = bst
-		#bst = xgb.XGBClassifier(**param).fit(trainData.features, trainData.labels)
-		modelName = self.MODEL_DIR + '/' + self.MODEL_PROCEDURE + '.model'
+		#modelName = self.MODEL_DIR + '/' + self.MODEL_PROCEDURE + '.model'
 		#bst.save_model(modelName)
-		logging.info('Trained ML Model was saved as {0}'.format(modelName)) 
+		
+		###FOR SKLEARN WRAPPER###
+		bst = xgb.XGBClassifier(**param).fit(trainData.features, trainData.labels)
+		#self.m = bst
+		modelName = self.MODEL_DIR + '/' + self.MODEL_PROCEDURE + '.model'
 		pickle.dump(bst, open(modelName, 'wb'))
+		logging.info('Trained ML Model was saved as {0}'.format(modelName)) 
 	
 	def predict(self,testData,outputTypes):
 		inputData = xgb.DMatrix(testData.features)
@@ -335,14 +338,17 @@ class XGBoostModel(BaseModel):
 		return self.createResultObjects(testData,outputTypes,predictions)		
 
 	def predict_using_saved_model(self, testData, idDescription, idNameSymbol, modelName):
-		#bst = xgb.Booster()
+		#bst = xgb.Booster({'nthread': 4})
 		#bst.load_model(modelName)
+		#inputData = xgb.DMatrix(testData.features)
+		#predictions = bst.predict(inputData)
+		
+		###FOR SKLEARN WRAPPER###	
 		bst = pickle.load(open(modelName, 'rb'))
-		#inputData = testData.features	#for wrapper
-		#class01Probs = bst.predict_proba(inputData) #for wrapper
-		#predictions = [i[1] for i in class01Probs] #select class1 probability - wrapper
-		inputData = xgb.DMatrix(testData.features)
-		predictions = bst.predict(inputData)
+		print(bst.get_xgb_params())
+		inputData = testData.features	#for wrapper
+		class01Probs = bst.predict_proba(inputData) #for wrapper
+		predictions = [i[1] for i in class01Probs] #select class1 probability - wrapper
 		self.savePredictedProbability(testData, predictions, idDescription, idNameSymbol, "TEST")
 		
 

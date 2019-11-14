@@ -161,8 +161,10 @@ if __name__ == '__main__':
 	nodes = [ProteinInteractionNode,KeggNode,ReactomeNode,GoNode,InterproNode]
 
 	#Static features that need to be included
-	staticFeatures = args.static_data.split(',')
-	#staticFeatures = []
+	if len(args.static_data) == 0:
+		staticFeatures = []
+	else:
+		staticFeatures = args.static_data.split(',')
 	logging.info(staticFeatures)
 	logging.info("--- USING {0} METAPATH FEATURE SETS".format(len(nodes)))
 	logging.info("--- USING {0} STATIC FEATURE SETS".format(len(staticFeatures)))
@@ -180,7 +182,6 @@ if __name__ == '__main__':
 		logging.error('fileData should not be None')
 		exit()
 		
-
 	#Divide allData into training/predict set and save them
 	saveTrainPredictSet(allData, args.outputdir, args.disease, args.trainingfile, args.predictfile)
 
