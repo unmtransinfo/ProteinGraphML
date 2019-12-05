@@ -1,6 +1,6 @@
 import os, sys
 import time, logging, random 
-import pickle
+import pickle, random
 from collections import Counter
 import pandas as pd
 import numpy as np
@@ -313,13 +313,15 @@ class XGBoostModel(BaseModel):
 
 	def train(self,trainData, param):
 		#print (param)		
+		#np.random.seed(1234)
+		#random.seed(1234) 
 		#dtrain = xgb.DMatrix(trainData.features,label=trainData.labels)				
-		#bst = xgb.train(param, dtrain, num_boost_round=43) #use the default values of parameters
+		#bst = xgb.train(param, dtrain, num_boost_round=47) #use the default values of parameters
 		#self.m = bst
 		#modelName = self.MODEL_DIR + '/' + self.MODEL_PROCEDURE + '.model'
 		#bst.save_model(modelName)
 		
-		###FOR SKLEARN WRAPPER###
+		###FOR SKLEARN WRAPPER### 
 		bst = xgb.XGBClassifier(**param).fit(trainData.features, trainData.labels)
 		#self.m = bst
 		modelName = self.MODEL_DIR + '/' + self.MODEL_PROCEDURE + '.model'
@@ -334,11 +336,11 @@ class XGBoostModel(BaseModel):
 		#ypred_bst  = ypred_bst > 0.5  
 		#ypred_bst = ypred_bst.astype(int)  
 		#if "report" in outputTypes: # small hack for the report feature, we can use this to make sure 
-
 		return self.createResultObjects(testData,outputTypes,predictions)		
 
+
 	def predict_using_saved_model(self, testData, idDescription, idNameSymbol, modelName):
-		#bst = xgb.Booster({'nthread': 4})
+		#bst = xgb.Booster({'nthread':8})
 		#bst.load_model(modelName)
 		#inputData = xgb.DMatrix(testData.features)
 		#predictions = bst.predict(inputData)
@@ -348,7 +350,7 @@ class XGBoostModel(BaseModel):
 		print(bst.get_xgb_params())
 		inputData = testData.features	#for wrapper
 		class01Probs = bst.predict_proba(inputData) #for wrapper
-		predictions = [i[1] for i in class01Probs] #select class1 probability - wrapper
+		predictions = [i[1] for i in class01Probs] #select class1 probability - wrapper 
 		self.savePredictedProbability(testData, predictions, idDescription, idNameSymbol, "TEST")
 		
 
