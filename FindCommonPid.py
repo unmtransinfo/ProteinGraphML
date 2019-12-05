@@ -28,7 +28,7 @@ def find_common_pid(searchList, RList, pythonList):
     """
     Find the common pid in R and Python list
     """
-    print('How many PIDs are common in R and Python outcomes')
+    print('Fnd common PIDs in R and Python outcomes')
     commonInBoth = []
     for v in searchList:
         vals = np.intersect1d(RList[:v], pythonList[:v])
@@ -73,6 +73,7 @@ def draw_bar_plot(xdataTr, xdataPr, train, predict, imgfile):
     """
     Draw bar chart using the given data.
     """
+    print("Draw bar plot using the data")
     xTr = np.arange(len(xdataTr))  # the label locations
     xPr = np.arange(len(xdataPr))  # the label locations
     width = 0.40  # the width of the bars
@@ -92,7 +93,7 @@ def draw_bar_plot(xdataTr, xdataPr, train, predict, imgfile):
     autolabel(rects2, ax)
 
     fig.tight_layout()
-
+    fig.savefig(imgfile)
     plt.show()
 
 
@@ -100,15 +101,14 @@ if __name__ == '__main__':
     '''
     start of the code
     '''
-    imgFile = 'ATG_NEG_NO_LINCS/ATG_NEG_NO_LINCS_common1.png'
     maxLimit = 1100
     parser = argparse.ArgumentParser(description='Find what percentage of PID are common in R and Python predictions')
     parser.add_argument('--pythonTr', required=True, help='Python classification results file for training data')
     parser.add_argument('--pythonPr', required=True, help='Python classification results file for prediction data')
     parser.add_argument('--rTr', required=True, help='R classification results file for training data')
     parser.add_argument('--rPr', required=True, help='R classification results file for prediction data')
-    parser.add_argument('--imgfile', default=imgFile, help='Filename to save the plot')
-    parser.add_argument('--maxlimit', default=maxLimit, help='Max number of proteins to compare')
+    parser.add_argument('--imgfile', help='Filename to save the plot')
+    parser.add_argument('--maxlimit', default=maxLimit, type=int, help='Max number of proteins to compare')
     parser.add_argument("-v", "--verbose", action="count", default=0, help="verbosity")
 
     args = parser.parse_args()
@@ -125,9 +125,10 @@ if __name__ == '__main__':
     # find common PID in prediction data
     pythonListPr = read_python_file(args.pythonPr)
     RListPr = read_r_file(args.rPr)
-    searchListPr = [i for i in range(100, args.maxlimit, 100)]
+    searchListPr = [i for i in range(100, args.maxlimit+100, 100)]
     commonInPr = find_common_pid(searchListPr, RListPr, pythonListPr)
 
     # Draw plot using the data
     # draw_plot(searchList, commonInTr, commonInPr, imgFile)
-    draw_bar_plot(searchListTr, searchListPr, commonInTr, commonInPr, imgFile)
+    draw_bar_plot(searchListTr, searchListPr, commonInTr, commonInPr, args.imgfile)
+    print("Program finished successfully!!!")

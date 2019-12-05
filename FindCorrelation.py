@@ -48,7 +48,7 @@ def find_correlation_coefficient(probs):
     Find the Pearson correlation coefficient using the probabilities.
     """
     df = pd.DataFrame(data=probs)
-    print("Pearson correlation coefficient:")
+    print("\nPearson correlation coefficient:")
     print(df.corr(method='pearson'))
 
 
@@ -56,7 +56,7 @@ def save_data_in_tsv(rec, tsvfile):
     """
     Save the protein symbol, name and probabilities in a TSV file.
     """
-    print("Save data in a TSV file")
+    print("\nSave data in a TSV file")
     df = pd.DataFrame(rec)
     df.to_csv(tsvfile, sep="\t", index=False)
 
@@ -65,13 +65,12 @@ if __name__ == '__main__':
     """
     Start of the code
     """
-    tsvFile = 'ATG_NEG_NO_LINCS/ATG_NEG_NO_LINCS_common_proteins.tsv'
     maxLimit = 100
     parser = argparse.ArgumentParser(description='Find correlation between R and Python predictions')
     parser.add_argument('--pythonfile', required=True, help='Python classification results file')
     parser.add_argument('--rfile', required=True, help='R classification results file')
-    parser.add_argument('--tsvfile', default=tsvFile, help='File to save common proteins')
-    parser.add_argument('--maxlimit', default=maxLimit, help='Max number of proteins to compare')
+    parser.add_argument('--tsvfile', help='File to save common proteins')
+    parser.add_argument('--maxlimit', default=maxLimit, type=int, help='Max number of proteins to compare')
     parser.add_argument("-v", "--verbose", action="count", default=0, help="verbosity")
 
     # create dictionaries using R and Python files.
