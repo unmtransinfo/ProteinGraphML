@@ -157,10 +157,25 @@ class OlegDB(Adapter):
 
 	# static features
 	def loadGTEX(self):
-		gtex = selectAsDF("select protein_id,median_tpm,tissue_type_detail from gtex",["protein_id","median_tpm","tissue_type_detail"],self.db)
+		gtex = selectAsDF("SELECT protein_id, median_tpm, tissue_type_detail FROM gtex", ["protein_id", "median_tpm", "tissue_type_detail"], self.db)
 		logging.info("(OlegDB.loadGTEX) GTEx rows returned: {0}".format(gtex.shape[0]))
 		return gtex
 
+	def loadCCLE(self):
+		ccle = selectAsDF("SELECT protein_id, cell_id, tissue, expression FROM ccle", ["protein_id", "cell_id", "tissue", "expression"], self.db)
+		logging.info("(OlegDB.loadCCLE) CCLE rows returned: {0}".format(ccle.shape[0]))
+		return ccle
+
+	def loadLINCS(self):
+		lincs = selectAsDF("SELECT protein_id, pert_id||':'||cell_id AS col_id, zscore FROM lincs", ["protein_id", "col_id", "zscore"], self.db)
+		logging.info("(OlegDB.loadLINCS) LINCS rows returned: {0}".format(lincs.shape[0]))
+		return lincs
+
+	def loadHPA(self):
+		hpa = selectAsDF("SELECT protein_id, tissue||'.'||cell_type AS col_id, level FROM hpa_norm_tissue WHERE reliability IN ('supported','approved')", ["protein_id", "col_id", "level"], self.db)
+		logging.info("(OlegDB.loadHPA) HPA rows returned: {0}".format(hpa.shape[0]))
+		return hpa
+	#
 
 	def load(self):
 		# MOVE THE DB INFO TO A CONST FILE 
