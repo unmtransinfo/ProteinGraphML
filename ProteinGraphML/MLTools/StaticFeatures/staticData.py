@@ -6,30 +6,30 @@ def basicPivot(df, key, column, value):
 
 def gtex(DBadapter):
   df = DBadapter.loadGTEX()
+  logging.info("staticData: GTEX DBadapter: rows: {0}; cols: {1}".format(df.shape[0], df.shape[1]))
   df = basicPivot(df, "protein_id", "tissue_type_detail", "median_tpm")
-  logging.info("staticData: GTEX: rows: {0}; cols: {1}".format(df.shape[0], df.shape[1]))
+  logging.info("staticData: GTEX proteins: rows: {0}; cols: {1}".format(df.shape[0], df.shape[1]))
   return df
 
 def lincs(DBadapter):
   df = DBadapter.loadLINCS()
+  logging.info("staticData: LINCS DBadapter: rows: {0}; cols: {1}".format(df.shape[0], df.shape[1]))
   df = basicPivot(df, "protein_id", "col_id", "zscore")
-  logging.info("staticData: LINCS: rows: {0}; cols: {1}".format(df.shape[0], df.shape[1]))
+  logging.info("staticData: LINCS proteins: rows: {0}; cols: {1}".format(df.shape[0], df.shape[1]))
   return df
 
-#def ccle(DBadapter):
-#  df = DBadapter.loadCCLE()
+def ccle(DBadapter):
+  df = DBadapter.loadCCLE()
+  logging.info("staticData: CCLE DBadapter: rows: {0}; cols: {1}".format(df.shape[0], df.shape[1]))
+  df["col_id"] = df.cell_id
+  df.loc[df.tissue.notna(), "col_id"] = (df.cell_id.str+"_"+df.tissue.str)
+  df = df[["protein_id", "col_id", "expression"]].drop_duplicates()
+  logging.info("staticData: CCLE proteins: rows: {0}; cols: {1}".format(df.shape[0], df.shape[1]))
+  return df
 
-  #ccle[is.na(tissue), col_id := cell_id]
-  #ccle[!is.na(tissue), col_id := sprintf("%s_%s", cell_id,tissue)]
-  #ccle[, `:=`(tissue = NULL, cell_id = NULL)]
-
-#  df = basicPivot(df, "protein_id", "col_id", "expression")
-#  logging.info("staticData: CCLE: rows: {0}; cols: {1}".format(df.shape[0], df.shape[1]))
-#  return df
-
-
-#def hpa(DBadapter):
-#  df = DBadapter.loadHPA()
+def hpa(DBadapter):
+  df = DBadapter.loadHPA()
+  logging.info("staticData: HPA DBadapter: rows: {0}; cols: {1}".format(df.shape[0], df.shape[1]))
 
   #hpa$level <- factor(hpa$level, levels = c("not detected", "low", "medium", "high"), ordered=F)
   #hpa <- unique(hpa)
@@ -42,9 +42,12 @@ def lincs(DBadapter):
   #hpa.sparse.matrix <- sparse.model.matrix(~.-1, data = hpa)
   #hpa <- as.data.table(as.matrix(hpa.sparse.matrix), keep.rownames = F)
 
-#  df = basicPivot(df, "protein_id", "col_id", "level")
-#  logging.info("staticData: HPA: rows: {0}; cols: {1}".format(df.shape[0], df.shape[1]))
-#  return df
-
+  hpa = hpa.drop_duplicates()
+  hpa.col_id = hpa.col_id.str.replace(",", "", regex=False)
+  hpa.col_id = hpa.col_id.str.replace("[ /-]", "_")
+  df = basicPivot(df, "protein_id", "col_id", "level")
+  df.loc[df.level.isna(), "level"] = "not detected"
+  logging.info("staticData: HPA proteins: rows: {0}; cols: {1}".format(df.shape[0], df.shape[1]))
+  return df
 
 ###
