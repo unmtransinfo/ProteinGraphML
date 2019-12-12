@@ -87,9 +87,9 @@ if __name__ == '__main__':
 	parser.add_argument('--outputdir', required=True, help='directory where train and predict data with features will be saved, e.g. "diabetes_no_lincs"')
 	parser.add_argument('--kgfile', default=DEFAULT_GRAPH, help='input pickled KG (default: "{0}")'.format(DEFAULT_GRAPH))
 	parser.add_argument('--static_data', default=DEFAULT_STATIC_FEATURES, help='(default: "{0}")'.format(DEFAULT_STATIC_FEATURES))
+	parser.add_argument('--static_dir', default=os.getcwd()+"/ProteinGraphML/MLTools/StaticFeatures", )
 	parser.add_argument("-v", "--verbose", action="count", default=0, help="verbosity")
 
-	#argData = vars(parser.parse_args())
 	args = parser.parse_args()
 	logging.basicConfig(format='%(levelname)s:%(message)s', level=(logging.DEBUG if args.verbose>1 else logging.INFO))
 
@@ -166,8 +166,9 @@ if __name__ == '__main__':
 	else:
 		staticFeatures = args.static_data.split(',')
 	logging.info(staticFeatures)
-	logging.info("--- USING {0} METAPATH FEATURE SETS".format(len(nodes)))
-	logging.info("--- USING {0} STATIC FEATURE SETS".format(len(staticFeatures)))
+	logging.info("--- METAPATH FEATURE SETS: {0}".format(len(nodes)))
+	logging.info("--- STATIC FEATURE SETS: {0}".format(len(staticFeatures)))
+	logging.info("--- STATIC FEATURE DIR: {0}".format(args.static_dir))
 
 	#fetch the description of proteins
 	idDescription = dbAdapter.fetchPathwayIdDescription() #fetch the description
@@ -176,9 +177,8 @@ if __name__ == '__main__':
 	if fileData is not None:
 		#logging.info("FOUND {0} POSITIVE LABELS".format(len(fileData[True])))
 		#logging.info("FOUND {0} NEGATIVE LABELS".format(len(fileData[False])))
-		allData = metapathFeatures(args.disease,currentGraph,nodes,idDescription,staticFeatures,loadedLists=fileData).fillna(0) 
+		allData = metapathFeatures(args.disease, currentGraph, nodes, idDescription, staticFeatures, args.static_dir, loadedLists=fileData).fillna(0) 
 	else:
-		#allData = metapathFeatures(args.disease,currentGraph,nodes,idDescription,staticFeatures).fillna(0)
 		logging.error('fileData should not be None')
 		exit()
 		

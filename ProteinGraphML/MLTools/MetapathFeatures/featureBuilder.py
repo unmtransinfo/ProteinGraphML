@@ -1,7 +1,7 @@
+import os,re
 import itertools
 import logging
 import pandas as pd
-import os
 
 from .nodes import ProteinInteractionNode
 
@@ -49,7 +49,7 @@ def getTrainingProteinIds(disease,proteinGraph):
 	return paths[True], paths[False]
 
 
-def metapathFeatures(disease,proteinGraph,featureList,idDescription,staticFeatures=None,test=False,loadedLists=None):
+def metapathFeatures(disease, proteinGraph, featureList, idDescription, staticFeatures=None, staticDir=None, test=False, loadedLists=None):
 	# we compute a genelist.... 
 	# get the proteins 
 	# for each of the features, compute their metapaths, given an object, and graph+list... then they get joined 
@@ -124,27 +124,24 @@ def metapathFeatures(disease,proteinGraph,featureList,idDescription,staticFeatur
 	
 
 	if staticFeatures is not None:
-		df = joinStaticFeatures(df,staticFeatures)
+		df = joinStaticFeatures(df, staticFeatures, staticDir)
 
 	return df
 
  
 
-def joinStaticFeatures(dataFrame,featureList):
-	path_to_static_features_files = os.getcwd() + '/ProteinGraphML/MLTools/StaticFeatures/'
-	#print (path_to_static_features_files)
-	for feature in featureList:
-		# if the file doesn't exist, call it's function.... from an adapter?
-
-		#unpickled_df = pd.read_pickle("./"+feature+".csv.pkl")
-		unpickled_df = pd.read_csv(path_to_static_features_files+feature+".csv")
-		# these are needed edits right now for the joins we do, drop the unnamed column and set the index to the protein id
-		unpickled_df = unpickled_df.drop(["Unnamed: 0"],axis=1)
-		unpickled_df = unpickled_df.set_index('protein_id')
-
-		if feature == "gtex" or feature == "ccle":  # we normed it all except hpa
-			unpickled_df = (unpickled_df - unpickled_df.mean())/unpickled_df.std()
-		
-		dataFrame = dataFrame.join(unpickled_df,on="protein_id")
-
-	return dataFrame
+def joinStaticFeatures(df, features, datadir):
+	#datadir = os.getcwd()+'/ProteinGraphML/MLTools/StaticFeatures/'
+	for feature in features:
+		try: #newer, TSVs
+			df_this = pd.read_csv(datadir+"/"+feature+".tsv", '\t')
+		except: #older, CSVs
+			df_this = pd.read_csv(datadir+"/"+feature+".csv")
+		# 
+		df_this = df_this.set_index('protein_id')
+		df_this = df_this.drop(df_this.columns[0], axis=1)
+		#
+		if feature == "gtex" or feature == "ccle":  # Kludge: all normed but hpa.
+			df_this = (df_this - df_this.mean())/df_this.std()
+		df = df.join(df_this, on="protein_id")
+	return df
