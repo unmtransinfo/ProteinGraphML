@@ -28,6 +28,7 @@ XGBoost is used to generate and optimize a predictive model.
 * Python packages: `xgboost`, `scikit-learn`, `networkx`, `pandas`, `pony`, `matplotlib`, `xlrd`, `XlsxWriter`
 * PostgreSQL database `metap`.
    * Edit `DBcreds.yaml` with valid db credentials. Needed throughout workflow.
+* Hardware: Some of the programs need 20+ GB RAM and Xgboost takes several minutes to train and test the data if the number of CPU cores is less than 8. So, a machine with 20+ GB RAM and 8+ CPU core is preferable for running these codes.
 
 ## <a name="Howto"/>How to run the Workflow:
 
