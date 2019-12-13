@@ -13,9 +13,9 @@ XGBoost is used to generate and optimize a predictive model.
 * [Dependencies](#Dependencies)
 * [How to Run Workflow](#Howto)
    * [Build KG](#HowtoBuildKG)
-   * [Generate Metapath Features](#HowtoMetapathFeatures)
    * [Generate Static Features](#HowtoStaticFeatures)
-   * [Prepare Training and Test Sets](#HowtoPrep)  _(For custom labeled training set.)_
+   * [Prepare Training and Test Sets](#HowtoPrep)
+   * [Generate Metapath Features](#HowtoMetapathFeatures)
    * [Train ML Model](#HowtoTrainML)
    * [Test Trained Model](#HowtoPredictML)
    * [Visualization](#HowtoVis) _(Optional.)_
@@ -57,9 +57,24 @@ Example commands:
 BuildKG_OlegDb.py -h
 BuildKG_OlegDb.py test
 BuildKG_OlegDb.py build
+BuildKG_OlegDb.py build --ofile ProteinDisease_GRAPH.pkl --logfile ProteinDisease_GRAPH.log
 ```
 
-### <a name="HowtoPrep"/>Prepare Training and Test Sets _(For custom labeled training set.)_
+### <a name="HowtoStaticFeatures"/>Static Features
+
+`GenStaticFeatures.py` generates 4 files for static features: lincs.tsv, hpa.tsv, gtex.tsv, and ccle.tsv for use by `TrainModelML.py`. Static features are _not_ dependent on trainging set labels, only the database, 
+so the same TSV files can be reused for all models, and only needs to be re-run if the database changes.
+
+Command line parameters:
+
+* `--outputdir` : output folder to save TSV files.
+* `--sources` : static features (default: ["gtex", "lincs", "ccle", "hpa"]).
+* `--decimals` : decimal place for the values (default:3)
+```
+GenStaticFeatures.py --outputdir data
+```
+
+### <a name="HowtoPrep"/>Prepare Training and Test Sets
 
 `PrepTrainingAndTestSets.py` generates two files:
 
@@ -82,6 +97,7 @@ Command line parameters:
 If the file is a spreadsheet, the header should have "Protein_id Label" or "Symbol Label".
 If the file is a text file, the Protein_id/symbol and
 Label should be comma-separated. There should not be any header in the text file. 
+If a disease is not present in the graph, use the corresponding RDS file in this program to generate sets of training and predict protein ids. E.g. 104300.rds, PS168600.rds
 
 Example commands:
 
@@ -105,32 +121,22 @@ semantic patterns match the KG depends on the query disease.
 
 Command line parameters:
 
-* `--disease` : Mammalian Phenotype ID, e.g. MP_0000180
+*  `--disease` : Mammalian Phenotype ID, e.g. MP_0000180 (Diseases without MP_TERM_ID may give error. So, use their 
+RDS files to create sets of training and predict protein ids using `PrepTrainingAndTestSets.py`)
 *  `--trainingfile` : pickled training set, e.g. "diabetes.pkl"
 *  `--predictfile` : pickled predict set, e.g. "diabetes_test.pkl"
 *  `--outputdir` : directory where train and test data with features will be saved, e.g. "diabetes_no_lincs"
 *  `--kgfile` : input pickled KG (default: "ProteinDisease_GRAPH.pkl")
 *  `--static_data` : (default: "gtex,lincs,ccle,hpa")
+*  `--static_dir` : directory of static features files: lincs.tsv, hpa.tsv, gtex.tsv, and ccle.tsv
 
 Example commands:
 
 ```
 GenTrainingAndTestFeatures.py -h
-GenTrainingAndTestFeatures.py --trainingfile data/autophagy_test20191003.pkl --predictfile data/autophagy_test20191003_test.pkl --outputdir results/autophagy/
-GenTrainingAndTestFeatures.py --disease MP_0000180 --outputdir results/MP_0000180
-```
-
-### <a name="HowtoStaticFeatures"/>Static Features
-
-To generate static features (not metapath-based), use R script
-`ProteinGraphML/MLTools/StaticFeatures/staticFiles.R` to generate CSV files, for ccle,
-gtex, lincs and hpa, for use by `TrainModelML.py`. Static features are _not_ dependent on
-trainging set labels, only the database, so the same CSV files can be reused for
-all models, and only needs to be re-run if the database changes.
-
-```
-cd ProteinGraphML/MLTools/StaticFeatures
-./staticFiles.R
+GenTrainingAndTestFeatures.py --trainingfile data/ATG.pkl --predictfile data/ATG_predict.pkl --outputdir results/ATG --kgfile ProteinDisease_GRAPH.pkl --static_data "gtex" --static_dir data
+GenTrainingAndTestFeatures.py --disease MP_0000180 --outputdir results/MP_0000180 --kgfile ProteinDisease_GRAPH.pkl --static_data "gtex,lincs,ccle,hpa" --static_dir data
+GenTrainingAndTestFeatures.py --trainingfile data/PS118220.pkl --predictfile data/PS118220_predict.pkl --outputdir results/PS118220 --kgfile ProteinDisease_GRAPH.pkl --static_data "gtex,lincs,ccle,hpa" --static_dir data
 ```
 
 ### <a name="HowtoTrainML"/>Train ML Model
@@ -146,19 +152,24 @@ Command line parameters:
 
 * `PROCEDURE` (positional parameter):
    * `XGBGridSearch` :  Grid search for optimal XGBoost parameters.
-   * `XGBCrossValPred` :  5-fold cross-validation, one iteration.
-   * `XGBKfoldsRunPred` : 5-fold cross-validation, multiple iterations.
-* `--crossval_folds` : number of cross-validation folds
-* `--xgboost_param_file` : XGBoost configuration parameter file (e.g. XGBparams.txt)
-* `--trainingfile` : Training set file, produced by `PrepTrainingAndTestSets.py`.
+   * `XGBCrossValPred` :  5-fold cross-validation, one iteration. 
+   * `XGBKfoldsRunPred` : 5-fold cross-validation, multiple iterations. In each iteration, data is randomly divided into
+   train and test set (80:20). Model trained on train set is tested on test set. The average, min and max AUC are computed
+   using the classification results of test data. 
+* `--trainingfile` : Training set file, produced by `GenTrainingAndTestFeatures.py`.
 * `--resultdir` : directory for output results
-* `--kgfile` : KG file, as produced by `BuildKG_OlegDb.py` (default: ProteinDisease_GRAPH.pkl).
+* `--nrounds_for_avg` : number of iterations to compute average AUC, accuracy, and MCC. This is used for procedure `XGBKfoldsRunPred`.  
+* `--rseed` : random seed that XGBoost should use for procedure `XGBGridSearch` (default:1234)
+* `--nthreds` : number of CPU threads for procedure `XGBGridSearch` (default:1).
+* `--xgboost_param_file` : XGBoost configuration parameter file (e.g. XGBparams.txt). This is used for `XGBCrossValPred` and `XGBKfoldsRunPred`. XGBparams.txt created by GridSearch can be used for this parameter. Modify XGBparams.txt if any parameter needs to be changed.
 
 Example commands:
 
 ```
 TrainModelML.py -h
-TrainModelML.py XGBCrossValPred --trainingfile results/144700.pkl --resultdir results/144700
+TrainModelML.py XGBGridSearch --trainingfile results/ATG/ATG_TrainingData.pkl --rseed 1234 --nthreads 32 --resultdir results/ATG
+TrainModelML.py XGBCrossValPred --trainingfile results/ATG/ATG_TrainingData.pkl --resultdir results/ATG --xgboost_param_file XGBparams.txt
+TrainModelML.py XGBKfoldsRunPred --trainingfile results/ATG/ATG_TrainingData.pkl --resultdir results/ATG --xgboost_param_file XGBparams.txt --nrounds_for_avg 5
 ```
 
 Results will be saved in the specified --resultsdir. See logs for specific
