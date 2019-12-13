@@ -200,7 +200,7 @@ Example commands:
 
 ```
 PredictML.py -h
-PredictML.py XGBPredict --predictfile autophagy_test20191003_predict.pkl --model results/autophagy_test20191003/XGBCrossVal.model --resultdir results/autophagy
+PredictML.py XGBPredict --predictfile results/ATG/ATG_predict_PredictData.pkl --model results/ATG/XGBCrossValPred.model --resultdir results/ATG
 ```
 
 Results will be saved in the specified --resultsdir. See logs for specific
