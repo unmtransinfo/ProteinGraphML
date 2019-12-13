@@ -16,7 +16,9 @@ from ProteinGraphML.Analysis import Visualize
 
 t0 = time.time()
 
-NUM_OF_FOLDS = 10
+NUM_OF_ROUNDS = 10
+RSEED = 1234
+NTHREADS = 1
 PROCEDURES = ["XGBCrossValPred", "XGBKfoldsRunPred", "XGBGridSearch"]
 XGB_PARAMETERS_FILE = 'XGBparams.txt'
 
@@ -24,7 +26,9 @@ parser = argparse.ArgumentParser(description='Run ML Procedure', epilog='--disea
 parser.add_argument('procedure', choices=PROCEDURES, help='ML procedure to run')
 parser.add_argument('--trainingfile', help='input file, pickled training data, e.g. "diabetesTrainData.pkl"')
 parser.add_argument('--resultdir', help='folder where results will be saved, e.g. "diabetes_no_lincs"')
-parser.add_argument('--crossval_folds', type=int, default=NUM_OF_FOLDS, help='number of folds for average CV (default: "{0}")'.format(NUM_OF_FOLDS))
+parser.add_argument('--rseed', type=int, default=RSEED, help='random seed for XGboost')
+parser.add_argument('--nthreads', type=int, default=NTHREADS, help='Number of CPU threads for GridSearch')
+parser.add_argument('--nrounds_for_avg', type=int, default=NUM_OF_ROUNDS, help='number of iterations for average AUC,ACC,MCC (default: "{0}")'.format(NUM_OF_ROUNDS))
 parser.add_argument('--xgboost_param_file', default=XGB_PARAMETERS_FILE, help='text file containing parameters for XGBoost classifier (e.g. XGBparams.txt)')
 parser.add_argument("-v", "--verbose", action="count", default=0, help="verbosity")
 
@@ -56,7 +60,7 @@ if (args.resultdir is not None):
 else:
 	logging.error('Result directory is needed')
 	exit()
-#nfolds = args.crossval_folds # applicable for average CV
+#nfolds = args.nrounds_for_avg # applicable for average CV
 
 #fetch the parameters for XGboost from the text file
 paramVals = ""
@@ -75,11 +79,11 @@ idNameSymbol = dbAdapter.fetchSymbolForProteinId() #fetch name and symbol for pr
 d = BinaryLabel()
 d.loadData(trainData)
 if (Procedure == "XGBKfoldsRunPred"):
-	locals()[Procedure](d, idDescription, idNameSymbol, resultDir, nfolds=args.crossval_folds, params=xgbParams)
+	locals()[Procedure](d, idDescription, idNameSymbol, resultDir, args.nrounds_for_avg, params=xgbParams)
 elif (Procedure == "XGBCrossValPred"):
 	locals()[Procedure](d, idDescription, idNameSymbol, resultDir, params=xgbParams)
 elif (Procedure == "XGBGridSearch"):
-	locals()[Procedure](d, idDescription, idNameSymbol, resultDir)
+	locals()[Procedure](d, idDescription, idNameSymbol, resultDir, args.rseed, args.nthreads)
 else:
 	logging.error('Wrong procedure entered !!!')
 logging.info('{0}: elapsed time: {1}'.format(os.path.basename(sys.argv[0]), time.strftime('%Hh:%Mm:%Ss', time.gmtime(time.time()-t0))))

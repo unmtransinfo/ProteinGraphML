@@ -7,7 +7,7 @@
 	'subsample': 0.8,
 	'colsample_bytree': 0.8,
 	'silent': 1,
-	'n_jobs': 84,
+	'n_jobs': 32,
 	'random_state':1234
 }
  

@@ -497,26 +497,25 @@ class XGBoostModel(BaseModel):
 	# This function divides the data into train and test sets 'n' (number of folds) times. 
 	# Model trained on the train data is tested on the test data. Average MCC, Accuracy and ROC
 	# is reported.
-	def average_cross_val(self,allData,idDescription,idNameSymbol,outputTypes,folds=5,testSize=0.2,params={}):
+	def average_cross_val(self,allData,idDescription,idNameSymbol,outputTypes,iterations,testSize=0.2,params={}):
 
 		collection = []
 		importance = None
 		metrics = {"average-roc":0., "average-mcc":0., "average-acc":0.} #add mcc and accuracy too
-		logging.info("=== RUNNING {0} FOLDS".format(folds))
-		
+		logging.info("=== RUNNING {0} FOLDS".format(iterations))
+				
 		#Initialize variable to store predicted probs of test data
 		predictedProb_ROC = []
 		predictedProbs = {} # will be used for o/p file
-		for r in range(folds):
+		for r in range(iterations):
 			predictedProb_ROC.append([])
 		#print (predictedProb)
 		
-		for k in range(0,folds):
+		for k in range(0,iterations):
 			logging.info("DOING {0} FOLD".format(k+1))
 			clf = xgb.XGBClassifier(**params)
 			self.m = clf
-			#randomState = 2000 + random.randint(1,1000)
-			randomState = 2000 + k
+			randomState = 1000 + k
 			trainData, testData = allData.splitSet(testSize,randomState)
 			
 			#Train the model
@@ -549,16 +548,16 @@ class XGBoostModel(BaseModel):
 		
 		# compute average values
 		for key in importance:
-			importance[key] = importance[key]/folds
+			importance[key] = importance[key]/iterations
 
 		for key in metrics:
-			metrics[key] = metrics[key]/folds			
+			metrics[key] = metrics[key]/iterations			
 		
 		avgPredictedProbs = {}
 		for k,v in predictedProbs.items():
 			avgPredictedProbs[k] = np.mean(v)
 				
-		logging.info("METRICS: {0}".format(str(metrics))) # write this metric to a file...
+		logging.info("METRICS: {0}".format(str(metrics))) # write this metrics to a file...
 		
 		self.saveImportantFeatures(importance, idDescription) #save important features
 		self.saveImportantFeaturesAsPickle(importance)
@@ -567,11 +566,11 @@ class XGBoostModel(BaseModel):
 		#plot ROC curves
 		rc = RocCurve("rocCurve",None, None)
 		aucFileName = self.MODEL_DIR + '/auc_' + self.MODEL_PROCEDURE
-		rc.fileOutputForAverage(predictedProb_ROC,fileString=aucFileName,folds=folds)
+		rc.fileOutputForAverage(predictedProb_ROC,fileString=aucFileName,folds=iterations)
 
 
 	# FEATURE SEARCH, will create the dataset with different sets of features, and search over them to get resutls
-	def gridSearch(self, allData, idDescription, idNameSymbol, outputTypes, paramGrid):
+	def gridSearch(self, allData, idDescription, idNameSymbol, outputTypes, paramGrid, rseed, nthreads):
 
 		#param_comb = 200
 		#clf = xgb.XGBClassifier(learning_rate=0.02, n_estimators=600, objective='binary:logistic',
@@ -592,14 +591,13 @@ class XGBoostModel(BaseModel):
 
 		#split test and train data
 		testSize = 0.20
-		randomState = 2000 + random.randint(1,1000)
-		trainData, testData = allData.splitSet(testSize,randomState)
+		trainData, testData = allData.splitSet(testSize,rseed)
 		#print (trainData.features.shape)
 		#print (testData.features.shape)
 		#print (trainData.labels)
 		#print (testData.labels)
 				
-		clf = xgb.XGBClassifier(scale_pos_weight=testData.posWeight)
+		clf = xgb.XGBClassifier(n_jobs=nthreads, scale_pos_weight=testData.posWeight)
 		random_search = GridSearchCV(clf, 
 			param_grid=paramGrid, 
 			scoring='roc_auc', cv=5, 
@@ -641,7 +639,7 @@ class XGBoostModel(BaseModel):
 		
 		#return roc,acc,mcc, CM,report,importance
 		#logging.info("METRICS: {0}".format(str(metrics)))
-		
+
 	
 	#save the xgboost parameters selected using GirdSearchCV
 	def saveBestEstimator(self, estimator):

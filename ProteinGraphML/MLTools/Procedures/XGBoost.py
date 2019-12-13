@@ -36,14 +36,14 @@ def XGBCrossValPred(dataObject, idDescription, idNameSymbol, resultDir, params=N
 	#roc.printOutput() #plot roc
 
 #def XGBCrossVal(dataObject, idDescription, idNameSymbol, resultDir, nfolds=1, params=None):
-def XGBKfoldsRunPred(dataObject, idDescription, idNameSymbol, resultDir, nfolds=1, params=None):
+def XGBKfoldsRunPred(dataObject, idDescription, idNameSymbol, resultDir, nrounds, params=None):
 	
 	newModel = XGBoostModel("XGBKfoldsRunPred", resultDir)
 	params['scale_pos_weight'] = dataObject.posWeight
 	logging.info('Parameters for XGBoost are: {0}'.format(params))
 	
 	#newModel.average_cross_val(dataObject, idDescription, idNameSymbol, ["roc","rocCurve","acc","mcc"], folds=nfolds, params=params,cv=CROSSVAL)
-	newModel.average_cross_val(dataObject, idDescription, idNameSymbol, ["roc","acc","mcc"], folds=nfolds, params=params)
+	newModel.average_cross_val(dataObject, idDescription, idNameSymbol, ["roc","acc","mcc"], nrounds, params=params)
 
 	#print (importance)
 	##"seed"	"max_depth"	"eta"	"gamma"	"min_child_weight"	"subsample"	"colsample_bytree"	"nrounds"	"auc"
@@ -68,7 +68,7 @@ def XGBPredict(dataObject, idDescription, idNameSymbol, modelName, resultDir):
 	newModel = XGBoostModel("XGBPredict", resultDir)
 	newModel.predict_using_saved_model(dataObject, idDescription, idNameSymbol, modelName)
 
-def XGBGridSearch(dataObject, idDescription, idNameSymbol, resultDir):
+def XGBGridSearch(dataObject, idDescription, idNameSymbol, resultDir, rseed, nthreads):
 	
 	newModel = XGBoostModel("XGBGridSearch", resultDir)
 	'''
@@ -90,4 +90,4 @@ def XGBGridSearch(dataObject, idDescription, idNameSymbol, resultDir):
 				 'colsample_bytree': [0.5]
 				 }
 	
-	newModel.gridSearch(dataObject, idDescription, idNameSymbol, ["roc","acc","mcc"], paramGrid)
+	newModel.gridSearch(dataObject, idDescription, idNameSymbol, ["roc","acc","mcc"], paramGrid, rseed, nthreads)
