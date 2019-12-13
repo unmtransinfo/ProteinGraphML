@@ -430,8 +430,8 @@ class TCRD(Adapter):
 				logging.error('Please add valid DB credentials to DBcreds.yaml: {0}'.format(str(exc)))
 
 		self.db = Database()
-		self.db.bind(provider='mysql', user=credentials['user'], password=credentials['password'], host=credentials['host'], database=credentials['database'])
-		logging.info("(TCRD.load) Connected to db (%s): %s:%s:%s"%(self.db.provider_name, credentials['host'], credentials['database'], credentials['user']))
+		self.db.bind(provider='mysql', user=credentials['tcrd_user'], password=credentials['tcrd_password'], host=credentials['tcrd_host'], database=credentials['tcrd_database'])
+		logging.info("(TCRD.load) Connected to db (%s): %s:%s:%s"%(self.db.provider_name, credentials['tcrd_host'], credentials['tcrd_database'], credentials['tcrd_user']))
 		self.db.generate_mapping(create_tables=False)
 
 		# hack ... saving the (DB) like this 
