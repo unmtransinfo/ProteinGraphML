@@ -1,13 +1,16 @@
+--
+-- TSV: psql -qAF $'\t' 
+--
 SELECT DISTINCT
         clinvar.protein_id,
         protein.accession,
         protein.symbol,
-        protein.name,
-        clinvar.clinical_significance,
-        clinvar_disease.cv_dis_id,
-        clinvar_disease.phenotype,
-        clinvar_disease_xref.source,
-        clinvar_disease_xref.source_id
+        protein.name
+--        clinvar.clinical_significance,
+--        clinvar_disease.cv_dis_id,
+--        clinvar_disease.phenotype,
+--        clinvar_disease_xref.source,
+--        clinvar_disease_xref.source_id
 FROM
         clinvar_disease,
         clinvar_disease_xref,
