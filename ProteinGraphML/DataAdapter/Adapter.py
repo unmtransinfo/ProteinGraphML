@@ -436,12 +436,12 @@ class TCRD(Adapter):
 
 		# hack ... saving the (DB) like this 
 		db = self.db
-		# select everything from the DB
-		TableColumns=["hid", "homologene_group_id", "tax_id", "protein_id"]
 
-		humanProteinList = selectAsDF("SELECT protein_id, taxid FROM homologene WHERE taxid = 9606", TableColumns, db)
+		#
+		TableColumns=["hid", "homologene_group_id", "tax_id", "protein_id"]
+		humanProteinList = selectAsDF("SELECT id AS hid, groupid AS homologene_group_id, taxid AS tax_id, protein_id  FROM homologene WHERE taxid = 9606", TableColumns, db)
 		logging.info("(TCRD.load) humanProteinList: %d"%(humanProteinList.shape[0]))
-		mouseProteinList = selectAsDF("SELECT protein_id, taxid FROM homologene WHERE taxid = 10090", TableColumns, db)
+		mouseProteinList = selectAsDF("SELECT id AS hid, groupid AS homologene_group_id, taxid AS tax_id, protein_id FROM homologene WHERE taxid = 10090", TableColumns, db)
 		logging.info("(TCRD.load) mouseProteinList: %d"%(mouseProteinList.shape[0]))
 		mousePhenotype = selectAsDF("SELECT protein_id, term_id AS mp_term_id, p_value, effect_size, procedure_name, parameter_name, gp_assoc AS association FROM phenotype WHERE ptype = 'IMPC'", ["protein_id", "mp_term_id", "p_value", "effect_size", "procedure_name", "parameter_name", "association"], db)
 		logging.info("(TCRD.load) mousePhenotype: %d"%(mousePhenotype.shape[0]))
