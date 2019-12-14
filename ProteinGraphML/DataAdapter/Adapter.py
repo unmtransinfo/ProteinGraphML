@@ -451,7 +451,10 @@ class TCRD(Adapter):
 		self.saveNameMap("MP_ontology", "mp_term_id", "name", mpOnto) # save to the graph for later
 
 		mouseToHumanMap = self.buildHomologyMap(humanProteinList, mouseProteinList)
+		#BUG somewhere here, MemoryError at 300GB+.
+		logging.debug("(TCRD.load) attachColumn()...")
 		combinedSet = attachColumn(mouseToHumanMap, mousePhenotype, "protein_id") # just bind the protein ID from our last table 
+		logging.debug("(TCRD.load) done with attachColumn()...")
 		mouseToHumanAssociation = combinedSet[["protein_id_h", "mp_term_id", "association"]].drop_duplicates()
 		logging.info("(TCRD.load) mouseToHumanAssociation: %d"%(mouseToHumanAssociation.shape[0]))
 
