@@ -20,7 +20,7 @@ from .biodata_helper import selectAsDF,attachColumn,generateDepthMap
 class GraphEdge:
 	#nodeLeft =nodeRight,association = None
 	directed = False
-	def __init__(self,nodeLeft,nodeRight,edge=None,data=None):
+	def __init__(self, nodeLeft, nodeRight, edge=None, data=None):
 		self.nodeLeft = nodeLeft
 		self.nodeRight = nodeRight
 		
@@ -199,9 +199,9 @@ class OlegDB(Adapter):
 		# hack ... saving the (DB) like this 
 		db = self.db
 		# select everything from the DB
-		TableColumns=["hid","homologene_group_id","tax_id","protein_id"]
+		TableColumns=["hid", "homologene_group_id", "tax_id", "protein_id"]
 
-		humanProteinList = selectAsDF("select * from homology WHERE tax_id = 9606",TableColumns,db)
+		humanProteinList = selectAsDF("SELECT * FROM homology WHERE tax_id = 9606",TableColumns,db)
 		logging.info("(OlegDB.load) humanProteinList: %d"%(humanProteinList.shape[0]))
 		mouseProteinList = selectAsDF("select * from homology WHERE tax_id = 10090",TableColumns,db)
 		logging.info("(OlegDB.load) mouseProteinList: %d"%(mouseProteinList.shape[0]))
@@ -214,16 +214,16 @@ class OlegDB(Adapter):
 		
 		self.saveNameMap("MP_ontology","mp_term_id","name",mpOnto) # we will save this data to the graph, so we can get it later
 
-		mouseToHumanMap = self.buildHomologyMap(humanProteinList,mouseProteinList)
-		combinedSet = attachColumn(mouseToHumanMap,mousePhenotype,"protein_id") # just bind the protein ID from our last table 
-		mouseToHumanAssociation = combinedSet[["protein_id_h","mp_term_id","association"]].drop_duplicates()
+		mouseToHumanMap = self.buildHomologyMap(humanProteinList, mouseProteinList)
+		combinedSet = attachColumn(mouseToHumanMap, mousePhenotype, "protein_id") # just bind the protein ID from our last table 
+		mouseToHumanAssociation = combinedSet[["protein_id_h", "mp_term_id", "association"]].drop_duplicates()
 		logging.info("(OlegDB.load) mouseToHumanAssociation: %d"%(mouseToHumanAssociation.shape[0]))
 
 		def getVal(row):
 			return depthMap[row["mp_term_id"]]
 		
 		depthMap = generateDepthMap(mpOnto)
-		mpOnto["level"] = mpOnto.apply(getVal,axis=1)
+		mpOnto["level"] = mpOnto.apply(getVal, axis=1)
 		mpOnto = mpOnto[mpOnto["level"] > 1] # remove the single level stuff
 		geneToDisease = attachColumn(mouseToHumanAssociation,mpOnto,"mp_term_id")
 		
@@ -354,7 +354,7 @@ class TCRD(Adapter):
 		self.load()
 
 	def loadTotalProteinList(self):
-		protein = selectAsDF("SELECT DISTINCT protein_id FROM protein", ['protein_id'], self.db)
+		protein = selectAsDF("SELECT DISTINCT id AS protein_id FROM protein", ['protein_id'], self.db)
 		logging.info("(TCRD.loadTotalProteinList) Human protein IDs returned: {0}".format(protein.shape[0]))
 		return protein
 
@@ -370,7 +370,7 @@ class TCRD(Adapter):
 		if proteinFilter is not None:
 			stringDB = stringDB[stringDB['protein_id1'].isin(proteinFilter)]
 			stringDB = stringDB[stringDB['protein_id2'].isin(proteinFilter)]
-		logging.info("(OlegDB.loadPPI) STRING rows returned: {0}".format(stringDB.shape[0]))
+		logging.info("(TCRD.loadPPI) STRING rows returned: {0}".format(stringDB.shape[0]))
 		return GraphEdge("protein_id1", "protein_id2", "score", stringDB)
 
 	def loadKegg(self, proteinFilter=None):
@@ -382,12 +382,11 @@ class TCRD(Adapter):
 
 	def loadInterpro(self, proteinFilter=None):
 		### IN TCRD?
-		#interpro = selectAsDF("select distinct protein_id, entry_ac from interproa", ["protein_id", "entry_ac"], self.db)
-		#if proteinFilter is not None:
-		#	interpro = interpro[interpro['protein_id'].isin(proteinFilter)]
-		#logging.info("(TCRD.loadInterpro) Interpro rows returned: {0}".format(interpro.shape[0]))
-		#return GraphEdge("protein_id", "entry_ac", data=interpro)
-		return None
+		interpro = selectAsDF("SELECT DISTINCT protein_id, entry_ac FROM interproa", ["protein_id", "entry_ac"], self.db)
+		if proteinFilter is not None:
+			interpro = interpro[interpro['protein_id'].isin(proteinFilter)]
+		logging.info("(TCRD.loadInterpro) Interpro rows returned: {0}".format(interpro.shape[0]))
+		return GraphEdge("protein_id", "entry_ac", data=interpro)
 
 	def loadGo(self, proteinFilter=None):
 		goa = selectAsDF("SELECT protein_id, go_id FROM goa", ["protein_id", "go_id"], self.db)
@@ -405,10 +404,9 @@ class TCRD(Adapter):
 
 	def loadCCLE(self):
 		### IN TCRD?
-		#ccle = selectAsDF("SELECT protein_id, cell_id, tissue, expression FROM ccle", ["protein_id", "cell_id", "tissue", "expression"], self.db)
-		#logging.info("(TCRD.loadCCLE) CCLE rows returned: {0}".format(ccle.shape[0]))
-		#return ccle
-		return None
+		ccle = selectAsDF("SELECT protein_id, cell_id, tissue, expression FROM ccle", ["protein_id", "cell_id", "tissue", "expression"], self.db)
+		logging.info("(TCRD.loadCCLE) CCLE rows returned: {0}".format(ccle.shape[0]))
+		return ccle
 
 	def loadLINCS(self):
 		lincs = selectAsDF("SELECT protein_id, pert_dcid||':'||cellid AS col_id, zscore FROM lincs", ["protein_id", "col_id", "zscore"], self.db)
@@ -441,20 +439,31 @@ class TCRD(Adapter):
 		TableColumns=["hid", "homologene_group_id", "tax_id", "protein_id"]
 		humanProteinList = selectAsDF("SELECT id AS hid, groupid AS homologene_group_id, taxid AS tax_id, protein_id  FROM homologene WHERE taxid = 9606", TableColumns, db)
 		logging.info("(TCRD.load) humanProteinList: %d"%(humanProteinList.shape[0]))
-		mouseProteinList = selectAsDF("SELECT id AS hid, groupid AS homologene_group_id, taxid AS tax_id, protein_id FROM homologene WHERE taxid = 10090", TableColumns, db)
+		logging.debug("(TCRD.load) humanProteinList.protein_id.nunique(): %d"%(humanProteinList.protein_id.nunique()))
+		logging.debug("(TCRD.load) humanProteinList.homologene_group_id.nunique(): %d"%(humanProteinList.homologene_group_id.nunique()))
+
+		mouseProteinList = selectAsDF("SELECT id AS hid, groupid AS homologene_group_id, taxid AS tax_id, nhprotein_id AS protein_id FROM homologene WHERE taxid = 10090", TableColumns, db)
 		logging.info("(TCRD.load) mouseProteinList: %d"%(mouseProteinList.shape[0]))
-		mousePhenotype = selectAsDF("SELECT protein_id, term_id AS mp_term_id, p_value, effect_size, procedure_name, parameter_name, gp_assoc AS association FROM phenotype WHERE ptype = 'IMPC'", ["protein_id", "mp_term_id", "p_value", "effect_size", "procedure_name", "parameter_name", "association"], db)
+		logging.debug("(TCRD.load) mouseProteinList.protein_id.nunique(): %d"%(mouseProteinList.protein_id.nunique()))
+		logging.debug("(TCRD.load) mouseProteinList.homologene_group_id.nunique(): %d"%(mouseProteinList.homologene_group_id.nunique()))
+
+		mousePhenotype = selectAsDF("SELECT DISTINCT nhprotein_id AS protein_id, term_id AS mp_term_id, p_value, effect_size, procedure_name, parameter_name, gp_assoc AS association FROM phenotype WHERE ptype = 'IMPC'", ["protein_id", "mp_term_id", "p_value", "effect_size", "procedure_name", "parameter_name", "association"], db)
 		logging.info("(TCRD.load) mousePhenotype: %d"%(mousePhenotype.shape[0]))
+		logging.debug("(TCRD.load) mousePhenotype.protein_id.nunique(): %d"%(mousePhenotype.protein_id.nunique()))
+
 		mpOnto = selectAsDF("SELECT mpid AS mp_term_id, parent_id, name FROM mpo", ["mp_term_id", "parent_id", "name"], db)
 		logging.info("(TCRD.load) mpOnto: %d"%(mpOnto.shape[0]))
 
-		self.saveNameMap("MP_ontology", "mp_term_id", "name", mpOnto) # save to the graph for later
+		self.saveNameMap("MP_ontology", "mp_term_id", "name", mpOnto)
 
-		mouseToHumanMap = self.buildHomologyMap(humanProteinList, mouseProteinList)
-		#BUG somewhere here, MemoryError at 300GB+.
-		logging.debug("(TCRD.load) attachColumn()...")
-		combinedSet = attachColumn(mouseToHumanMap, mousePhenotype, "protein_id") # just bind the protein ID from our last table 
-		logging.debug("(TCRD.load) done with attachColumn()...")
+		mouseToHumanMap = pd.merge(humanProteinList, mouseProteinList, on='homologene_group_id', suffixes=('_h', '_m'))
+		mouseToHumanMap = mouseToHumanMap.rename(columns = {'protein_id_m':'protein_id'})
+
+
+		#logging.debug("(TCRD.load) mousePhenotype.info():"); mousePhenotype.info()
+		#logging.debug("(TCRD.load) mouseToHumanMap.info():"); mouseToHumanMap.info()
+		combinedSet = pd.merge(mouseToHumanMap, mousePhenotype, on="protein_id", copy=False)
+
 		mouseToHumanAssociation = combinedSet[["protein_id_h", "mp_term_id", "association"]].drop_duplicates()
 		logging.info("(TCRD.load) mouseToHumanAssociation: %d"%(mouseToHumanAssociation.shape[0]))
 
@@ -464,7 +473,10 @@ class TCRD(Adapter):
 		depthMap = generateDepthMap(mpOnto)
 		mpOnto["level"] = mpOnto.apply(getVal, axis=1)
 		mpOnto = mpOnto[mpOnto["level"] > 1] # remove the single level stuff
-		geneToDisease = attachColumn(mouseToHumanAssociation, mpOnto, "mp_term_id")
+		geneToDisease = pd.merge(mouseToHumanAssociation, mpOnto, on="mp_term_id", copy=False)
+		logging.info("(TCRD.load) geneToDisease: %d"%(geneToDisease.shape[0]))
+		logging.debug("(TCRD.load) geneToDisease.info():"); geneToDisease.info()
+		logging.debug("(TCRD.load) geneToDisease.protein_id_h.nunique(): %d"%(geneToDisease.protein_id_h.nunique()))
 		
 		# we could extract this piece layer
 		self.geneToDisease = GraphEdge("mp_term_id", "protein_id_h", edge="association", data=mouseToHumanAssociation)
@@ -482,7 +494,7 @@ class TCRD(Adapter):
 		        childParentDict[fval].add(val)
 		self.childParentDict = childParentDict
 
-	def buildHomologyMap(self,humanProteinList,mouseProteinList):
+	def buildHomologyMap(self, humanProteinList, mouseProteinList):
 		
 		# builds a map, between human/mouse data
 		mapProteinSet = pd.merge(humanProteinList, mouseProteinList, on='homologene_group_id', suffixes=('_h', '_m'))
@@ -513,7 +525,7 @@ class TCRD(Adapter):
 		goaDict = goa.set_index('go_id').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(goaDict)
 
-		ppi = selectAsDF("SELECT DISTINCT protein_id, description AS name FROM protein", ["protein_id", "name"], self.db)
+		ppi = selectAsDF("SELECT DISTINCT id AS protein_id, description AS name FROM protein", ["protein_id", "name"], self.db)
 		logging.info("(TCRD.fetchPathwayIdDescription) Protein IDs: {0}".format(ppi.shape[0]))
 		ppiDict = ppi.set_index('protein_id').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(ppiDict)
@@ -525,7 +537,7 @@ class TCRD(Adapter):
 		return idNameDict
 
 	def fetchProteinIdForSymbol(self, symbolList):
-		sql = "SELECT DISTINCT sym AS symbol, protein_id FROM protein WHERE symbol in ("
+		sql = "SELECT DISTINCT sym AS symbol, id AS protein_id FROM protein WHERE symbol in ("
 		for symbol in symbolList[:-1]:
 			sql = sql + "'" + symbol + "'"+ ','
 		sql = sql + "'" + symbolList[-1] + "')"
@@ -535,12 +547,12 @@ class TCRD(Adapter):
 		return symbolProteinIdDict
 
 	def fetchAllProteinIds(self):
-		allProteinIds = selectAsDF("SELECT DISTINCT protein_id FROM protein", ['protein_id'], self.db)
+		allProteinIds = selectAsDF("SELECT DISTINCT id AS protein_id FROM protein", ['protein_id'], self.db)
 		logging.info("(TCRD.fetchAllProteinIds) All Protein Ids: {0}".format(allProteinIds.shape[0]))
 		return allProteinIds
 
 	def fetchSymbolForProteinId(self):
-		proteinIdSymbol = selectAsDF("SELECT DISTINCT protein_id, sym AS symbol FROM protein", ['protein_id', 'symbol'], self.db)
+		proteinIdSymbol = selectAsDF("SELECT DISTINCT id AS protein_id, sym AS symbol FROM protein", ['protein_id', 'symbol'], self.db)
 		logging.info("(TCRD.fetchProteinIdForSymbol) Protein Name for Id: {0}".format(proteinIdSymbol.shape[0]))
 		proteinIdSymbolDict = proteinIdSymbol.set_index('protein_id').T.to_dict('records')[0] #DataFrame to dictionary
 		return proteinIdSymbolDict
@@ -556,7 +568,7 @@ FROM
 	clinvar_disease,
 	clinvar_disease_xref
 JOIN
-	protein ON protein.protein_id = clinvar.protein_id
+	protein ON protein.id = clinvar.protein_id
 WHERE
 	clinvar_disease.cv_dis_id = clinvar_disease_xref.cv_dis_id
 	AND clinvar_disease_xref.source = 'OMIM'

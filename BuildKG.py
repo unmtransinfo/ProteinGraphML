@@ -40,19 +40,22 @@ if __name__ == "__main__":
 
   ## Filter by proteins of interest; this list comes from a DB adapter, but any set will do.
   proteins = dbAdapter.loadTotalProteinList().protein_id
-  filterByProteins = set(proteins)
-  logging.info('Protein list: %d'%(len(filterByProteins)))
+  proteinSet = set(proteins)
+  logging.info('Protein set: %d'%(len(proteinSet)))
 
   # Using attach() add edges from DB.
   # With this method create graph, which can be saved, avoiding
   # need for rebuilding for different diseases, models and analyses.
   # Also filter by proteins of interest, in this case it is our original list.
 
-  pdg.attach(dbAdapter.loadPPI(filterByProteins))
-  pdg.attach(dbAdapter.loadKegg(filterByProteins)) 
-  pdg.attach(dbAdapter.loadReactome(filterByProteins)) 
-  pdg.attach(dbAdapter.loadInterpro(filterByProteins))
-  pdg.attach(dbAdapter.loadGo(filterByProteins))
+  pdg.attach(dbAdapter.loadPPI(proteinSet))
+  pdg.attach(dbAdapter.loadKegg(proteinSet)) 
+  pdg.attach(dbAdapter.loadReactome(proteinSet)) 
+  try:
+    pdg.attach(dbAdapter.loadInterpro(proteinSet))
+  except Exception as e:
+    logging.error("InterPro failed to load: {0}".format(e))
+  pdg.attach(dbAdapter.loadGo(proteinSet))
 
   # Count node types based on IDs using NetworkX API.
   keggNodes = [n for n in list(pdg.graph.nodes)
