@@ -65,7 +65,7 @@ BuildKG_OlegDb.py build --ofile ProteinDisease_GRAPH.pkl --logfile ProteinDiseas
 
 ### <a name="HowtoStaticFeatures"/>Static Features
 
-`GenStaticFeatures.py` generates 4 files for static features: lincs.tsv, hpa.tsv, gtex.tsv, and ccle.tsv for use by `TrainModelML.py`. Static features are _not_ dependent on training set labels, only the database, 
+`GenStaticFeatures.py` generates 4 files for static features: lincs.tsv, hpa.tsv, gtex.tsv, and ccle.tsv for use by `GenTrainingAndTestFeatures.py`. Static features are _not_ dependent on training set labels, only the database, 
 so the same TSV files can be reused for all models, and only needs to be re-run if
 the database changes.  ___Note: Requires large memory server, approximately 100GB+,
 80GB for this process.___
