@@ -5,13 +5,16 @@ import sys,os,argparse,re,time
 import logging
 import pandas as pd
 
-from ProteinGraphML.DataAdapter import OlegDB
+from ProteinGraphML.DataAdapter import OlegDB, TCRD
 from ProteinGraphML.MLTools.StaticFeatures import staticData
 
 ###
 if __name__ == '__main__':
+  DBS=['olegdb', 'tcrd']
   SOURCES = ["gtex", "lincs", "ccle", "hpa"]
   parser = argparse.ArgumentParser(description='Generate static features for all proteins.')
+  parser.add_argument('--db', choices=DBS, default="olegdb", help='{0}'.format(str(DBS)))
+
   parser.add_argument('--outputdir', default='.')
   parser.add_argument('--sources', type=str, help="comma-separated list: %s"%(','.join(SOURCES)), default=(','.join(SOURCES)))
   parser.add_argument('--decimals', type=int, default=3) 
@@ -28,7 +31,8 @@ if __name__ == '__main__':
     parser.error("Invalid sources: %s"%(','.join(list(set(sources) - set(SOURCES)))))
 
   t0 = time.time()
-  dbad = OlegDB()
+
+  dbad = TCRD() if args.db == "tcrd" else OlegDB()
 
   if "gtex" in sources:
     ofile_gtex = args.outputdir+"/gtex.tsv"
@@ -54,11 +58,14 @@ if __name__ == '__main__':
     lincs.round(args.decimals).to_csv(ofile_lincs, "\t", index=True)
 
   if "ccle" in sources:
-    ofile_ccle = args.outputdir+"/ccle.tsv"
-    logging.info("CCLE: writing {0}".format(ofile_ccle))
-    ccle = staticData.ccle(dbad)
-    logging.info("CCLE: rows: {0}; cols: {1}".format(ccle.shape[0], ccle.shape[1]))
-    ccle.round(args.decimals).to_csv(ofile_ccle, "\t", index=True)
+    try:
+      ofile_ccle = args.outputdir+"/ccle.tsv"
+      logging.info("CCLE: writing {0}".format(ofile_ccle))
+      ccle = staticData.ccle(dbad)
+      logging.info("CCLE: rows: {0}; cols: {1}".format(ccle.shape[0], ccle.shape[1]))
+      ccle.round(args.decimals).to_csv(ofile_ccle, "\t", index=True)
+    except Exception as e:
+      logging.error("Failed to generate static features for CCLE: {0}".format(e))
     logging.info('{0}: elapsed time: {1}'.format(os.path.basename(sys.argv[0]), time.strftime('%Hh:%Mm:%Ss', time.gmtime(time.time()-t0))))
 
   logging.info('{0}: elapsed time: {1}'.format(os.path.basename(sys.argv[0]), time.strftime('%Hh:%Mm:%Ss', time.gmtime(time.time()-t0))))

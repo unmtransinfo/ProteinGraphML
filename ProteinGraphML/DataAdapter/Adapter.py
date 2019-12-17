@@ -97,7 +97,7 @@ class OlegDB(Adapter):
 	def loadTotalProteinList(self):
 	
 		protein = selectAsDF("select protein_id from protein where tax_id = 9606",['protein_id'],self.db)
-		logging.info("(OlegDB.loadTotalProteinList) Human protein IDs returned: {0}".format(protein.shape[0]))
+		logging.debug("(OlegDB.loadTotalProteinList) Human protein IDs returned: {0}".format(protein.shape[0]))
 	
 		return protein
 
@@ -108,7 +108,7 @@ class OlegDB(Adapter):
 		if proteinFilter is not None:
 			reactome = reactome[reactome['protein_id'].isin(proteinFilter)]
 
-		logging.info("(OlegDB.loadReactome) Reactome rows returned: {0}".format(reactome.shape[0]))
+		logging.debug("(OlegDB.loadReactome) Reactome rows returned: {0}".format(reactome.shape[0]))
 		return GraphEdge("protein_id","reactome_id",data=reactome)
 
 
@@ -120,7 +120,7 @@ class OlegDB(Adapter):
 			stringDB = stringDB[stringDB['protein_id1'].isin(proteinFilter)]
 			stringDB = stringDB[stringDB['protein_id2'].isin(proteinFilter)]
 
-		logging.info("(OlegDB.loadPPI) STRING rows returned: {0}".format(stringDB.shape[0]))
+		logging.debug("(OlegDB.loadPPI) STRING rows returned: {0}".format(stringDB.shape[0]))
 		return GraphEdge("protein_id1","protein_id2","combined_score",stringDB)
 
 	def loadKegg(self,proteinFilter=None):
@@ -130,7 +130,7 @@ class OlegDB(Adapter):
 		if proteinFilter is not None:
 			kegg = kegg[kegg['protein_id'].isin(proteinFilter)]
 
-		logging.info("(OlegDB.loadKegg) KEGG rows returned: {0}".format(kegg.shape[0]))
+		logging.debug("(OlegDB.loadKegg) KEGG rows returned: {0}".format(kegg.shape[0]))
 		return GraphEdge("protein_id","kegg_pathway_id",data=kegg)
 
 
@@ -141,7 +141,7 @@ class OlegDB(Adapter):
 		if proteinFilter is not None:
 			interpro = interpro[interpro['protein_id'].isin(proteinFilter)]
 
-		logging.info("(OlegDB.loadInterpro) Interpro rows returned: {0}".format(interpro.shape[0]))
+		logging.debug("(OlegDB.loadInterpro) Interpro rows returned: {0}".format(interpro.shape[0]))
 		return GraphEdge("protein_id","entry_ac",data=interpro)
 
 	def loadGo(self,proteinFilter=None):
@@ -151,29 +151,29 @@ class OlegDB(Adapter):
 		if proteinFilter is not None:
 			goa = goa[goa['protein_id'].isin(proteinFilter)]
 
-		logging.info("(OlegDB.loadGo) GO rows returned: {0}".format(goa.shape[0]))
+		logging.debug("(OlegDB.loadGo) GO rows returned: {0}".format(goa.shape[0]))
 		return GraphEdge("protein_id","go_id",data=goa)
 
 
 	# static features
 	def loadGTEX(self):
 		gtex = selectAsDF("SELECT protein_id, median_tpm, tissue_type_detail FROM gtex", ["protein_id", "median_tpm", "tissue_type_detail"], self.db)
-		logging.info("(OlegDB.loadGTEX) GTEx rows returned: {0}".format(gtex.shape[0]))
+		logging.debug("(OlegDB.loadGTEX) GTEx rows returned: {0}".format(gtex.shape[0]))
 		return gtex
 
 	def loadCCLE(self):
 		ccle = selectAsDF("SELECT protein_id, cell_id, tissue, expression FROM ccle", ["protein_id", "cell_id", "tissue", "expression"], self.db)
-		logging.info("(OlegDB.loadCCLE) CCLE rows returned: {0}".format(ccle.shape[0]))
+		logging.debug("(OlegDB.loadCCLE) CCLE rows returned: {0}".format(ccle.shape[0]))
 		return ccle
 
 	def loadLINCS(self):
 		lincs = selectAsDF("SELECT protein_id, pert_id||':'||cell_id AS col_id, zscore FROM lincs", ["protein_id", "col_id", "zscore"], self.db)
-		logging.info("(OlegDB.loadLINCS) LINCS rows returned: {0}".format(lincs.shape[0]))
+		logging.debug("(OlegDB.loadLINCS) LINCS rows returned: {0}".format(lincs.shape[0]))
 		return lincs
 
 	def loadHPA(self):
 		hpa = selectAsDF("SELECT protein_id, tissue||'.'||cell_type AS col_id, level FROM hpa_norm_tissue WHERE reliability IN ('supported','approved')", ["protein_id", "col_id", "level"], self.db)
-		logging.info("(OlegDB.loadHPA) HPA rows returned: {0}".format(hpa.shape[0]))
+		logging.debug("(OlegDB.loadHPA) HPA rows returned: {0}".format(hpa.shape[0]))
 		return hpa
 	#
 	def load(self):
@@ -192,7 +192,7 @@ class OlegDB(Adapter):
 
 		self.db = Database()
 		self.db.bind(provider='postgres',user=user,password=password,host=host,database=database)
-		logging.info("(OlegDB.load) Connected to db (%s): %s:%s:%s"%(self.db.provider_name, host, database, user))
+		logging.debug("(OlegDB.load) Connected to db (%s): %s:%s:%s"%(self.db.provider_name, host, database, user))
 
 		self.db.generate_mapping(create_tables=False)
 
@@ -202,13 +202,13 @@ class OlegDB(Adapter):
 		TableColumns=["hid", "homologene_group_id", "tax_id", "protein_id"]
 
 		humanProteinList = selectAsDF("SELECT * FROM homology WHERE tax_id = 9606",TableColumns,db)
-		logging.info("(OlegDB.load) humanProteinList: %d"%(humanProteinList.shape[0]))
+		logging.debug("(OlegDB.load) humanProteinList: %d"%(humanProteinList.shape[0]))
 		mouseProteinList = selectAsDF("select * from homology WHERE tax_id = 10090",TableColumns,db)
-		logging.info("(OlegDB.load) mouseProteinList: %d"%(mouseProteinList.shape[0]))
+		logging.debug("(OlegDB.load) mouseProteinList: %d"%(mouseProteinList.shape[0]))
 		mousePhenotype = selectAsDF("select * from mousephenotype",["protein_id","mp_term_id","p_value","effect_size","procedure_name","parameter_name","association"],db)
-		logging.info("(OlegDB.load) mousePhenotype: %d"%(mousePhenotype.shape[0]))
+		logging.debug("(OlegDB.load) mousePhenotype: %d"%(mousePhenotype.shape[0]))
 		mpOnto = selectAsDF("select * from mp_onto",["mp_term_id","parent_id","name"],db)
-		logging.info("(OlegDB.load) mpOnto: %d"%(mpOnto.shape[0]))
+		logging.debug("(OlegDB.load) mpOnto: %d"%(mpOnto.shape[0]))
 
 		#self.names.append(NodeName("MP","mp_term_id",mpOnto.drop(['parent_id'],axis=1).drop_duplicates()))  #keyValue,name,dataframe
 		
@@ -217,7 +217,7 @@ class OlegDB(Adapter):
 		mouseToHumanMap = self.buildHomologyMap(humanProteinList, mouseProteinList)
 		combinedSet = attachColumn(mouseToHumanMap, mousePhenotype, "protein_id") # just bind the protein ID from our last table 
 		mouseToHumanAssociation = combinedSet[["protein_id_h", "mp_term_id", "association"]].drop_duplicates()
-		logging.info("(OlegDB.load) mouseToHumanAssociation: %d"%(mouseToHumanAssociation.shape[0]))
+		logging.debug("(OlegDB.load) mouseToHumanAssociation: %d"%(mouseToHumanAssociation.shape[0]))
 
 		def getVal(row):
 			return depthMap[row["mp_term_id"]]
@@ -253,32 +253,32 @@ class OlegDB(Adapter):
 	def fetchPathwayIdDescription(self):
 		idNameDict = {}
 		reactome = selectAsDF("select distinct reactome_id, name from reactome",["reactome_id","name"],self.db)
-		logging.info("(OlegDB.fetchPathwayIdDescription) Reactome IDs: {0}".format(reactome.shape[0]))
+		logging.debug("(OlegDB.fetchPathwayIdDescription) Reactome IDs: {0}".format(reactome.shape[0]))
 		reactomeDict = reactome.set_index('reactome_id').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(reactomeDict)
 		
 		kegg = selectAsDF("select distinct kegg_pathway_id, kegg_pathway_name from kegg_pathway",["kegg_pathway_id", "kegg_pathway_name"],self.db)
-		logging.info("(OlegDB.fetchPathwayIdDescription) KEGG pathway IDs: {0}".format(kegg.shape[0]))
+		logging.debug("(OlegDB.fetchPathwayIdDescription) KEGG pathway IDs: {0}".format(kegg.shape[0]))
 		keggDict = kegg.set_index('kegg_pathway_id').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(keggDict)
 		
 		interpro = selectAsDF("select distinct entry_ac,entry_name from interpro",["entry_ac", "entry_name"],self.db)
-		logging.info("(OlegDB.fetchPathwayIdDescription) Interpro IDs: {0}".format(interpro.shape[0]))
+		logging.debug("(OlegDB.fetchPathwayIdDescription) Interpro IDs: {0}".format(interpro.shape[0]))
 		interproDict = interpro.set_index('entry_ac').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(interproDict)
 
 		goa = selectAsDF("select distinct go_id, name from go",["go_id", "name"],self.db)
-		logging.info("(OlegDB.fetchPathwayIdDescription) GO IDs: {0}".format(goa.shape[0]))
+		logging.debug("(OlegDB.fetchPathwayIdDescription) GO IDs: {0}".format(goa.shape[0]))
 		goaDict = goa.set_index('go_id').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(goaDict)
 
 		ppi = selectAsDF("select distinct protein_id, name from protein",["protein_id", "name"],self.db)
-		logging.info("(OlegDB.fetchPathwayIdDescription) Protein IDs: {0}".format(ppi.shape[0]))
+		logging.debug("(OlegDB.fetchPathwayIdDescription) Protein IDs: {0}".format(ppi.shape[0]))
 		ppiDict = ppi.set_index('protein_id').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(ppiDict)
 		
 		mp = selectAsDF("select distinct mp_term_id, name from mp_onto",["mp_term_id", "name"],self.db)
-		logging.info("(OlegDB.fetchPathwayIdDescription) MP IDs: {0}".format(mp.shape[0]))
+		logging.debug("(OlegDB.fetchPathwayIdDescription) MP IDs: {0}".format(mp.shape[0]))
 		mpDict = mp.set_index('mp_term_id').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(mpDict)
 		return idNameDict
@@ -291,21 +291,21 @@ class OlegDB(Adapter):
 		sql = sql + "'" + symbolList[-1] + "')"
 		#print (sql) 
 		symbolProtein = selectAsDF(sql,['symbol','protein_id'],self.db)
-		logging.info("(OlegDB.fetchProteinIdForSymbol) Protein ID for Symbol: {0}".format(symbolProtein.shape[0]))
+		logging.debug("(OlegDB.fetchProteinIdForSymbol) Protein ID for Symbol: {0}".format(symbolProtein.shape[0]))
 		symbolProteinIdDict = symbolProtein.set_index('symbol').T.to_dict('records')[0] #DataFrame to dictionary
 		return symbolProteinIdDict
 
 	# the following function will fetch protein_ids for tax_id 9606.
 	def fetchAllProteinIds(self):
 		allProteinIds = selectAsDF("select distinct protein_id from protein where tax_id=9606",['protein_id'],self.db)
-		logging.info("(OlegDB.fetchAllProteinIds) All Protein Ids: {0}".format(allProteinIds.shape[0]))
+		logging.debug("(OlegDB.fetchAllProteinIds) All Protein Ids: {0}".format(allProteinIds.shape[0]))
 		return allProteinIds
 
 
 	# the following function will be used to fetch symbol, name, and species for given protein_id 
 	def fetchSymbolForProteinId(self):
 		proteinIdSymbol = selectAsDF("select distinct protein_id, symbol from protein",['protein_id','symbol'],self.db)
-		logging.info("(OlegDB.fetchProteinIdForSymbol) Protein Name for Id: {0}".format(proteinIdSymbol.shape[0]))
+		logging.debug("(OlegDB.fetchProteinIdForSymbol) Protein Name for Id: {0}".format(proteinIdSymbol.shape[0]))
 		proteinIdSymbolDict = proteinIdSymbol.set_index('protein_id').T.to_dict('records')[0] #DataFrame to dictionary
 		return proteinIdSymbolDict
 
@@ -336,7 +336,7 @@ WHERE
 'Benign, association, protective', 'Conflicting interpretations of pathogenicity, Affects', 'Benign/Likely benign, protective', 'protective')
 """
 		negProteinIds = selectAsDF(sql,['protein_id'],self.db)
-		logging.info("(OlegDB.fetchNegativeClassProteinIds) Negative class Protein Ids: {0}".format(negProteinIds.shape[0]))
+		logging.debug("(OlegDB.fetchNegativeClassProteinIds) Negative class Protein Ids: {0}".format(negProteinIds.shape[0]))
 		return negProteinIds
 
 
@@ -355,14 +355,14 @@ class TCRD(Adapter):
 
 	def loadTotalProteinList(self):
 		protein = selectAsDF("SELECT DISTINCT id AS protein_id FROM protein", ['protein_id'], self.db)
-		logging.info("(TCRD.loadTotalProteinList) Human protein IDs returned: {0}".format(protein.shape[0]))
+		logging.debug("(TCRD.loadTotalProteinList) Human protein IDs returned: {0}".format(protein.shape[0]))
 		return protein
 
 	def loadReactome(self, proteinFilter=None):
 		reactome = selectAsDF("SELECT protein_id, id_in_source AS reactome_id, name AS \"evidence\" FROM pathway WHERE pwtype = 'Reactome'", ["protein_id", "reactome_id", "evidence"], self.db)
 		if proteinFilter is not None:
 			reactome = reactome[reactome['protein_id'].isin(proteinFilter)]
-		logging.info("(TCRD.loadReactome) Reactome rows returned: {0}".format(reactome.shape[0]))
+		logging.debug("(TCRD.loadReactome) Reactome rows returned: {0}".format(reactome.shape[0]))
 		return GraphEdge("protein_id", "reactome_id", data=reactome)
 
 	def loadPPI(self, proteinFilter=None):
@@ -370,14 +370,14 @@ class TCRD(Adapter):
 		if proteinFilter is not None:
 			stringDB = stringDB[stringDB['protein_id1'].isin(proteinFilter)]
 			stringDB = stringDB[stringDB['protein_id2'].isin(proteinFilter)]
-		logging.info("(TCRD.loadPPI) STRING rows returned: {0}".format(stringDB.shape[0]))
+		logging.debug("(TCRD.loadPPI) STRING rows returned: {0}".format(stringDB.shape[0]))
 		return GraphEdge("protein_id1", "protein_id2", "score", stringDB)
 
 	def loadKegg(self, proteinFilter=None):
 		kegg = selectAsDF("SELECT protein_id, id_in_source AS kegg_pathway_id FROM pathway WHERE pwtype = 'KEGG'", ["protein_id", "kegg_pathway_id"], self.db)
 		if proteinFilter is not None:
 			kegg = kegg[kegg['protein_id'].isin(proteinFilter)]
-		logging.info("(TCRD.loadKegg) KEGG rows returned: {0}".format(kegg.shape[0]))
+		logging.debug("(TCRD.loadKegg) KEGG rows returned: {0}".format(kegg.shape[0]))
 		return GraphEdge("protein_id", "kegg_pathway_id", data=kegg)
 
 	def loadInterpro(self, proteinFilter=None):
@@ -385,38 +385,44 @@ class TCRD(Adapter):
 		interpro = selectAsDF("SELECT DISTINCT protein_id, entry_ac FROM interproa", ["protein_id", "entry_ac"], self.db)
 		if proteinFilter is not None:
 			interpro = interpro[interpro['protein_id'].isin(proteinFilter)]
-		logging.info("(TCRD.loadInterpro) Interpro rows returned: {0}".format(interpro.shape[0]))
+		logging.debug("(TCRD.loadInterpro) Interpro rows returned: {0}".format(interpro.shape[0]))
 		return GraphEdge("protein_id", "entry_ac", data=interpro)
 
 	def loadGo(self, proteinFilter=None):
 		goa = selectAsDF("SELECT protein_id, go_id FROM goa", ["protein_id", "go_id"], self.db)
 		if proteinFilter is not None:
 			goa = goa[goa['protein_id'].isin(proteinFilter)]
-		logging.info("(TCRD.loadGo) GO rows returned: {0}".format(goa.shape[0]))
+		logging.debug("(TCRD.loadGo) GO rows returned: {0}".format(goa.shape[0]))
 		return GraphEdge("protein_id", "go_id", data=goa)
 
 	# static features
 	def loadGTEX(self):
-		#Average = (F+M)/2.
-		gtex = selectAsDF("SELECT protein_id, mean(tpm) AS tpm, tissue FROM gtex GROUP BY protein_id, tissue", ["protein_id", "median_tpm", "tissue"], self.db)
-		logging.info("(TCRD.loadGTEX) GTEx rows returned: {0}".format(gtex.shape[0]))
+		#Average = (F+M)/2, where F and M are medians.
+		gtex = selectAsDF("SELECT protein_id, CAST(AVG(tpm) AS DECIMAL(5,3)) AS median_tpm, tissue AS tissue_type_detail FROM gtex GROUP BY protein_id, tissue", ["protein_id", "median_tpm", "tissue_type_detail"], self.db)
+		logging.debug("({0}.loadGTEX) gtex rows: {1}".format(type(self).__name__, gtex.shape[0]))
+		gtex.median_tpm = gtex.median_tpm.astype(float) #Why necessary?
+		gtex.info()
 		return gtex
 
 	def loadCCLE(self):
 		### IN TCRD?
 		ccle = selectAsDF("SELECT protein_id, cell_id, tissue, expression FROM ccle", ["protein_id", "cell_id", "tissue", "expression"], self.db)
-		logging.info("(TCRD.loadCCLE) CCLE rows returned: {0}".format(ccle.shape[0]))
+		logging.debug("({0}.loadCCLE) ccle rows: {1}".format(type(self).__name__, gtex.shape[0]))
 		return ccle
 
 	def loadLINCS(self):
-		lincs = selectAsDF("SELECT protein_id, pert_dcid||':'||cellid AS col_id, zscore FROM lincs", ["protein_id", "col_id", "zscore"], self.db)
-		logging.info("(TCRD.loadLINCS) LINCS rows returned: {0}".format(lincs.shape[0]))
+		lincs = selectAsDF("SELECT protein_id, CONCAT(pert_dcid, ':', cellid) AS col_id, zscore FROM lincs", ["protein_id", "col_id", "zscore"], self.db)
+		logging.debug("({0}.loadLINCS) lincs rows: {1}".format(type(self).__name__, lincs.shape[0]))
+		lincs.zscore = lincs.zscore.astype(float) #Why necessary?
+		lincs.info()
 		return lincs
 
 	def loadHPA(self):
-		### IN TCRD, cell_id seems all NULL, but uberon_id is tissue.
-		hpa = selectAsDF("SELECT protein_id, tissue||'.'||cell_id AS col_id, qual_value FROM expression WHERE etype = 'HPA' AND evidence IN ('Approved', 'Supported')", ["protein_id", "col_id", "level"], self.db)
-		logging.info("(TCRD.loadHPA) HPA rows returned: {0}".format(hpa.shape[0]))
+		### IN TCRD, cell_id all NULL?
+		#hpa = selectAsDF("SELECT protein_id, CONCAT(tissue, '.', cell_id) AS col_id, qual_value FROM expression WHERE etype = 'HPA' AND evidence IN ('Approved', 'Supported')", ["protein_id", "col_id", "level"], self.db)
+		hpa = selectAsDF("SELECT DISTINCT protein_id, tissue AS col_id, qual_value AS level FROM expression WHERE etype = 'HPA' AND evidence IN ('Approved', 'Supported')", ["protein_id", "col_id", "level"], self.db)
+		logging.debug("({0}.loadHPA) hpa rows: {0}".format(type(self).__name__, hpa.shape[0]))
+		hpa.info()
 		return hpa
 	#
 	def load(self):
@@ -429,43 +435,42 @@ class TCRD(Adapter):
 
 		self.db = Database()
 		self.db.bind(provider='mysql', user=credentials['tcrd_user'], password=credentials['tcrd_password'], host=credentials['tcrd_host'], database=credentials['tcrd_database'])
-		logging.info("(TCRD.load) Connected to db (%s): %s:%s:%s"%(self.db.provider_name, credentials['tcrd_host'], credentials['tcrd_database'], credentials['tcrd_user']))
+		logging.debug("(TCRD.load) Connected to db (%s): %s:%s:%s"%(self.db.provider_name, credentials['tcrd_host'], credentials['tcrd_database'], credentials['tcrd_user']))
 		self.db.generate_mapping(create_tables=False)
 
 		# hack ... saving the (DB) like this 
 		db = self.db
-
 		#
-		TableColumns=["hid", "homologene_group_id", "tax_id", "protein_id"]
-		humanProteinList = selectAsDF("SELECT id AS hid, groupid AS homologene_group_id, taxid AS tax_id, protein_id  FROM homologene WHERE taxid = 9606", TableColumns, db)
-		logging.info("(TCRD.load) humanProteinList: %d"%(humanProteinList.shape[0]))
+		humanProteinList = selectAsDF("SELECT id AS hid, groupid AS homologene_group_id, taxid AS tax_id, protein_id  FROM homologene WHERE taxid = 9606",
+			["hid", "homologene_group_id", "tax_id", "protein_id"], db)
+		logging.debug("(TCRD.load) humanProteinList rows: %d"%(humanProteinList.shape[0]))
 		logging.debug("(TCRD.load) humanProteinList.protein_id.nunique(): %d"%(humanProteinList.protein_id.nunique()))
 		logging.debug("(TCRD.load) humanProteinList.homologene_group_id.nunique(): %d"%(humanProteinList.homologene_group_id.nunique()))
 
-		mouseProteinList = selectAsDF("SELECT id AS hid, groupid AS homologene_group_id, taxid AS tax_id, nhprotein_id AS protein_id FROM homologene WHERE taxid = 10090", TableColumns, db)
-		logging.info("(TCRD.load) mouseProteinList: %d"%(mouseProteinList.shape[0]))
-		logging.debug("(TCRD.load) mouseProteinList.protein_id.nunique(): %d"%(mouseProteinList.protein_id.nunique()))
+		mouseProteinList = selectAsDF("SELECT id AS hid, groupid AS homologene_group_id, taxid AS tax_id, nhprotein_id AS protein_id_m FROM homologene WHERE taxid = 10090",
+			["hid", "homologene_group_id", "tax_id", "protein_id_m"], db)
+		logging.debug("(TCRD.load) mouseProteinList rows: %d"%(mouseProteinList.shape[0]))
+		logging.debug("(TCRD.load) mouseProteinList.protein_id_m.nunique(): %d"%(mouseProteinList.protein_id_m.nunique()))
 		logging.debug("(TCRD.load) mouseProteinList.homologene_group_id.nunique(): %d"%(mouseProteinList.homologene_group_id.nunique()))
 
-		mousePhenotype = selectAsDF("SELECT DISTINCT nhprotein_id AS protein_id, term_id AS mp_term_id, p_value, effect_size, procedure_name, parameter_name, gp_assoc AS association FROM phenotype WHERE ptype = 'IMPC'", ["protein_id", "mp_term_id", "p_value", "effect_size", "procedure_name", "parameter_name", "association"], db)
-		logging.info("(TCRD.load) mousePhenotype: %d"%(mousePhenotype.shape[0]))
-		logging.debug("(TCRD.load) mousePhenotype.protein_id.nunique(): %d"%(mousePhenotype.protein_id.nunique()))
+		mousePhenotype = selectAsDF("SELECT DISTINCT nhprotein_id AS protein_id_m, term_id AS mp_term_id, p_value, effect_size, procedure_name, parameter_name, gp_assoc AS association FROM phenotype WHERE ptype = 'IMPC'",
+			["protein_id_m", "mp_term_id", "p_value", "effect_size", "procedure_name", "parameter_name", "association"], db)
+		logging.debug("(TCRD.load) mousePhenotype rows: %d"%(mousePhenotype.shape[0]))
+		logging.debug("(TCRD.load) mousePhenotype.protein_id_m.nunique(): %d"%(mousePhenotype.protein_id_m.nunique()))
 
 		mpOnto = selectAsDF("SELECT mpid AS mp_term_id, parent_id, name FROM mpo", ["mp_term_id", "parent_id", "name"], db)
-		logging.info("(TCRD.load) mpOnto: %d"%(mpOnto.shape[0]))
-
+		logging.debug("(TCRD.load) mpOnto rows: %d"%(mpOnto.shape[0]))
 		self.saveNameMap("MP_ontology", "mp_term_id", "name", mpOnto)
 
 		mouseToHumanMap = pd.merge(humanProteinList, mouseProteinList, on='homologene_group_id', suffixes=('_h', '_m'))
-		mouseToHumanMap = mouseToHumanMap.rename(columns = {'protein_id_m':'protein_id'})
-
+		mouseToHumanMap.info() #DEBUG
 
 		#logging.debug("(TCRD.load) mousePhenotype.info():"); mousePhenotype.info()
 		#logging.debug("(TCRD.load) mouseToHumanMap.info():"); mouseToHumanMap.info()
-		combinedSet = pd.merge(mouseToHumanMap, mousePhenotype, on="protein_id", copy=False)
+		combinedSet = pd.merge(mouseToHumanMap, mousePhenotype, on="protein_id_m", copy=False)
 
-		mouseToHumanAssociation = combinedSet[["protein_id_h", "mp_term_id", "association"]].drop_duplicates()
-		logging.info("(TCRD.load) mouseToHumanAssociation: %d"%(mouseToHumanAssociation.shape[0]))
+		mouseToHumanAssociation = combinedSet[["protein_id", "mp_term_id", "association"]].drop_duplicates()
+		logging.debug("(TCRD.load) mouseToHumanAssociation rows: %d"%(mouseToHumanAssociation.shape[0]))
 
 		def getVal(row):
 			return depthMap[row["mp_term_id"]]
@@ -474,12 +479,12 @@ class TCRD(Adapter):
 		mpOnto["level"] = mpOnto.apply(getVal, axis=1)
 		mpOnto = mpOnto[mpOnto["level"] > 1] # remove the single level stuff
 		geneToDisease = pd.merge(mouseToHumanAssociation, mpOnto, on="mp_term_id", copy=False)
-		logging.info("(TCRD.load) geneToDisease: %d"%(geneToDisease.shape[0]))
-		logging.debug("(TCRD.load) geneToDisease.info():"); geneToDisease.info()
-		logging.debug("(TCRD.load) geneToDisease.protein_id_h.nunique(): %d"%(geneToDisease.protein_id_h.nunique()))
+		logging.debug("(TCRD.load) geneToDisease rows: %d"%(geneToDisease.shape[0]))
+		#logging.debug("(TCRD.load) geneToDisease.info():"); geneToDisease.info()
+		logging.debug("(TCRD.load) geneToDisease.protein_id.nunique(): %d"%(geneToDisease.protein_id.nunique()))
 		
 		# we could extract this piece layer
-		self.geneToDisease = GraphEdge("mp_term_id", "protein_id_h", edge="association", data=mouseToHumanAssociation)
+		self.geneToDisease = GraphEdge("mp_term_id", "protein_id", edge="association", data=mouseToHumanAssociation)
 
 		parentHierarchy = GraphEdge("mp_term_id", "parent_id", edge=None, data=geneToDisease[["mp_term_id", "parent_id"]])
 		parentHierarchy.setDirected()
@@ -505,33 +510,33 @@ class TCRD(Adapter):
 	def fetchPathwayIdDescription(self):
 		idNameDict = {}
 		reactome = selectAsDF("SELECT DISTINCT id_in_source AS reactome_id, name FROM pathway WHERE pwtype = 'Reactome'", ["reactome_id", "name"], self.db)
-		logging.info("(TCRD.fetchPathwayIdDescription) Reactome IDs: {0}".format(reactome.shape[0]))
+		logging.debug("(TCRD.fetchPathwayIdDescription) reactome rows: {0}".format(reactome.shape[0]))
 		reactomeDict = reactome.set_index('reactome_id').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(reactomeDict)
 		
 		kegg = selectAsDF("SELECT DISTINCT id_in_source AS kegg_pathway_id, name AS kegg_pathway_name FROM pathway WHERE pwtype = 'KEGG'", ["kegg_pathway_id", "kegg_pathway_name"],self.db)
-		logging.info("(TCRD.fetchPathwayIdDescription) KEGG pathway IDs: {0}".format(kegg.shape[0]))
+		logging.debug("(TCRD.fetchPathwayIdDescription) kegg rows: {0}".format(kegg.shape[0]))
 		keggDict = kegg.set_index('kegg_pathway_id').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(keggDict)
 		
 		### IN TCRD?
 		#interpro = selectAsDF("select distinct entry_ac, entry_name from interpro", ["entry_ac", "entry_name"], self.db)
-		#logging.info("(TCRD.fetchPathwayIdDescription) Interpro IDs: {0}".format(interpro.shape[0]))
+		#logging.debug("(TCRD.fetchPathwayIdDescription) interpro rows: {0}".format(interpro.shape[0]))
 		#interproDict = interpro.set_index('entry_ac').T.to_dict('records')[0] #DataFrame to dictionary
 		#idNameDict.update(interproDict)
 
 		goa = selectAsDF("SELECT DISTINCT go_id, go_term AS name FROM goa", ["go_id", "name"], self.db)
-		logging.info("(TCRD.fetchPathwayIdDescription) GO IDs: {0}".format(goa.shape[0]))
+		logging.debug("(TCRD.fetchPathwayIdDescription) goa rows: {0}".format(goa.shape[0]))
 		goaDict = goa.set_index('go_id').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(goaDict)
 
 		ppi = selectAsDF("SELECT DISTINCT id AS protein_id, description AS name FROM protein", ["protein_id", "name"], self.db)
-		logging.info("(TCRD.fetchPathwayIdDescription) Protein IDs: {0}".format(ppi.shape[0]))
+		logging.debug("(TCRD.fetchPathwayIdDescription) ppi rows: {0}".format(ppi.shape[0]))
 		ppiDict = ppi.set_index('protein_id').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(ppiDict)
 
 		mp = selectAsDF("SELECT DISTINCT mpid AS mp_term_id, name FROM mpo", ["mp_term_id", "name"], self.db)
-		logging.info("(TCRD.fetchPathwayIdDescription) MP IDs: {0}".format(mp.shape[0]))
+		logging.debug("(TCRD.fetchPathwayIdDescription) mp rows: {0}".format(mp.shape[0]))
 		mpDict = mp.set_index('mp_term_id').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(mpDict)
 		return idNameDict
@@ -542,18 +547,18 @@ class TCRD(Adapter):
 			sql = sql + "'" + symbol + "'"+ ','
 		sql = sql + "'" + symbolList[-1] + "')"
 		symbolProtein = selectAsDF(sql, ['symbol', 'protein_id'], self.db)
-		logging.info("(TCRD.fetchProteinIdForSymbol) Protein ID for Symbol: {0}".format(symbolProtein.shape[0]))
+		logging.debug("(TCRD.fetchProteinIdForSymbol) symbolProtein rows: {0}".format(symbolProtein.shape[0]))
 		symbolProteinIdDict = symbolProtein.set_index('symbol').T.to_dict('records')[0] #DataFrame to dictionary
 		return symbolProteinIdDict
 
 	def fetchAllProteinIds(self):
 		allProteinIds = selectAsDF("SELECT DISTINCT id AS protein_id FROM protein", ['protein_id'], self.db)
-		logging.info("(TCRD.fetchAllProteinIds) All Protein Ids: {0}".format(allProteinIds.shape[0]))
+		logging.debug("(TCRD.fetchAllProteinIds) allProteinIds rows: {0}".format(allProteinIds.shape[0]))
 		return allProteinIds
 
 	def fetchSymbolForProteinId(self):
 		proteinIdSymbol = selectAsDF("SELECT DISTINCT id AS protein_id, sym AS symbol FROM protein", ['protein_id', 'symbol'], self.db)
-		logging.info("(TCRD.fetchProteinIdForSymbol) Protein Name for Id: {0}".format(proteinIdSymbol.shape[0]))
+		logging.debug("(TCRD.fetchProteinIdForSymbol) proteinIdSymbol rows: {0}".format(proteinIdSymbol.shape[0]))
 		proteinIdSymbolDict = proteinIdSymbol.set_index('protein_id').T.to_dict('records')[0] #DataFrame to dictionary
 		return proteinIdSymbolDict
 
@@ -585,5 +590,5 @@ WHERE
 'Benign, association, protective', 'Conflicting interpretations of pathogenicity, Affects', 'Benign/Likely benign, protective', 'protective')
 """
 		negProteinIds = selectAsDF(sql, ['protein_id'], self.db)
-		logging.info("(TCRD.fetchNegativeClassProteinIds) Negative class Protein Ids: {0}".format(negProteinIds.shape[0]))
+		logging.debug("(TCRD.fetchNegativeClassProteinIds) Negative class Protein Ids: {0}".format(negProteinIds.shape[0]))
 		return negProteinIds
