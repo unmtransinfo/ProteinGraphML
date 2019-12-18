@@ -9,26 +9,26 @@ from ProteinGraphML.DataAdapter import OlegDB, TCRD
 from ProteinGraphML.MLTools.StaticFeatures import staticData
 
 ###
-if __name__ == '__main__':
-  DBS=['olegdb', 'tcrd']
+if __name__ == "__main__":
+  DBS=["olegdb", "tcrd"]
   SOURCES = ["gtex", "lincs", "ccle", "hpa"]
-  parser = argparse.ArgumentParser(description='Generate static features for all proteins.')
-  parser.add_argument('--db', choices=DBS, default="olegdb", help='{0}'.format(str(DBS)))
+  parser = argparse.ArgumentParser(description="Generate static features for all proteins.")
+  parser.add_argument("--db", required=True, choices=DBS, help="({0})".format("|".join(DBS)))
 
-  parser.add_argument('--outputdir', default='.')
-  parser.add_argument('--sources', type=str, help="comma-separated list: %s"%(','.join(SOURCES)), default=(','.join(SOURCES)))
-  parser.add_argument('--decimals', type=int, default=3) 
+  parser.add_argument("--outputdir", default=".")
+  parser.add_argument("--sources", help="comma-separated list: {0}".format(",".join(SOURCES)), default=(",".join(SOURCES)))
+  parser.add_argument("--decimals", type=int, default=3) 
   parser.add_argument("-v", "--verbose", action="count", default=0)
   args = parser.parse_args()
 
-  logging.basicConfig(format='%(levelname)s:%(message)s', level=(logging.DEBUG if args.verbose>1 else logging.INFO))
+  logging.basicConfig(format="%(levelname)s:%(message)s", level=(logging.DEBUG if args.verbose>1 else logging.INFO))
 
   if not args.sources:
     parser.error("--sources required.")
 
-  sources = re.split("[, ]", args.sources.strip())
+  sources = re.split("[, ]+", args.sources.strip())
   if len(set(sources) - set(SOURCES))>0:
-    parser.error("Invalid sources: %s"%(','.join(list(set(sources) - set(SOURCES)))))
+    parser.error("Invalid sources: {0}".format(','.join(list(set(sources) - set(SOURCES)))))
 
   t0 = time.time()
 
@@ -56,6 +56,7 @@ if __name__ == '__main__':
     lincs = staticData.lincs(dbad)
     logging.info("LINCS: rows: {0}; cols: {1}".format(lincs.shape[0], lincs.shape[1]))
     lincs.round(args.decimals).to_csv(ofile_lincs, "\t", index=True)
+    logging.info('{0}: elapsed time: {1}'.format(os.path.basename(sys.argv[0]), time.strftime('%Hh:%Mm:%Ss', time.gmtime(time.time()-t0))))
 
   if "ccle" in sources:
     try:

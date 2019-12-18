@@ -26,8 +26,8 @@ def lincs(dbad):
 def ccle(dbad):
   df = dbad.loadCCLE()
   logging.info("staticData: DBAdapter:{0}; CCLE: rows: {1}; cols: {2}".format(type(dbad).__name__, df.shape[0], df.shape[1]))
-  df["col_id"] = df.cell_id
-  df.loc[df.tissue.notna(), "col_id"] = (df.cell_id+"_"+df.tissue)
+  df["col_id"] = (df.cell_id+"_"+df.tissue)
+  df.col_id = df.col_id.str.replace("[ /,]", "_")
   df = df[["protein_id", "col_id", "expression"]].drop_duplicates()
   df = basicPivot(df, "protein_id", "col_id", "expression")
   df.reset_index(drop=False, inplace=True)
@@ -39,8 +39,7 @@ def hpa(dbad):
   df = dbad.loadHPA()
   logging.debug("staticData ({0}): HPA: rows: {1}; cols: {2}".format(type(dbad).__name__, df.shape[0], df.shape[1]))
   df = df.drop_duplicates()
-  df.col_id = df.col_id.str.replace(",", "", regex=False)
-  df.col_id = df.col_id.str.replace("[ /-]", "_")
+  df.col_id = df.col_id.str.replace("[ /,]", "_")
   df = df.rename(columns={'level':'level_str'})
   for key,val in df["level_str"].value_counts().iteritems():
     logging.debug('\t%s: %6d: %s'%("level_str", val, key))

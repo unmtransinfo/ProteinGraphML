@@ -51,11 +51,21 @@ if __name__ == "__main__":
   pdg.attach(dbad.loadPPI(proteinSet))
   pdg.attach(dbad.loadKegg(proteinSet)) 
   pdg.attach(dbad.loadReactome(proteinSet)) 
+  pdg.attach(dbad.loadGo(proteinSet))
   try:
     pdg.attach(dbad.loadInterpro(proteinSet))
   except Exception as e:
     logging.error("InterPro failed to load: {0}".format(e))
-  pdg.attach(dbad.loadGo(proteinSet))
+
+  #TCRD only: (Would these add value?)
+  #try:
+  #  pdg.attach(dbad.loadPfam(proteinSet))
+  #except Exception as e:
+  #  logging.error("Pfam failed to load: {0}".format(e))
+  #try:
+  #  pdg.attach(dbad.loadProsite(proteinSet))
+  #except Exception as e:
+  #  logging.error("Prosite failed to load: {0}".format(e))
 
   # Count node types based on IDs using NetworkX API.
   keggNodes = [n for n in list(pdg.graph.nodes) if isinstance(n, str) and n[0:3]=="hsa"]

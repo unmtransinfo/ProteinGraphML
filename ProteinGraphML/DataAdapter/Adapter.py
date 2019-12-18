@@ -374,15 +374,14 @@ class TCRD(Adapter):
 		return GraphEdge("protein_id1", "protein_id2", "score", stringDB)
 
 	def loadKegg(self, proteinFilter=None):
-		kegg = selectAsDF("SELECT protein_id, id_in_source AS kegg_pathway_id FROM pathway WHERE pwtype = 'KEGG'", ["protein_id", "kegg_pathway_id"], self.db)
+		kegg = selectAsDF("SELECT protein_id, SUBSTR(id_in_source, 6) AS kegg_pathway_id FROM pathway WHERE pwtype = 'KEGG'", ["protein_id", "kegg_pathway_id"], self.db)
 		if proteinFilter is not None:
 			kegg = kegg[kegg['protein_id'].isin(proteinFilter)]
 		logging.debug("(TCRD.loadKegg) KEGG rows returned: {0}".format(kegg.shape[0]))
 		return GraphEdge("protein_id", "kegg_pathway_id", data=kegg)
 
 	def loadInterpro(self, proteinFilter=None):
-		### IN TCRD?
-		interpro = selectAsDF("SELECT DISTINCT protein_id, entry_ac FROM interproa", ["protein_id", "entry_ac"], self.db)
+		interpro = selectAsDF("SELECT DISTINCT protein_id, value AS entry_ac FROM xref WHERE xtype = 'InterPro'", ["protein_id", "entry_ac"], self.db)
 		if proteinFilter is not None:
 			interpro = interpro[interpro['protein_id'].isin(proteinFilter)]
 		logging.debug("(TCRD.loadInterpro) Interpro rows returned: {0}".format(interpro.shape[0]))
@@ -405,10 +404,22 @@ class TCRD(Adapter):
 		return gtex
 
 	def loadCCLE(self):
-		### IN TCRD?
-		ccle = selectAsDF("SELECT protein_id, cell_id, tissue, expression FROM ccle", ["protein_id", "cell_id", "tissue", "expression"], self.db)
-		logging.debug("({0}.loadCCLE) ccle rows: {1}".format(type(self).__name__, gtex.shape[0]))
+		ccle = selectAsDF("SELECT protein_id, cell_id, tissue, number_value AS expression FROM expression WHERE etype = 'ccle'", ["protein_id", "cell_id", "tissue", "expression"], self.db)
+		logging.debug("({0}.loadCCLE) ccle rows: {1}".format(type(self).__name__, ccle.shape[0]))
+		ccle.expression = ccle.expression.astype(float) #Why necessary?
 		return ccle
+
+	def loadPFAM(self):
+		pfam = selectAsDF("SELECT protein_id, cell_id, tissue, number_value AS expression FROM expression WHERE etype = 'Pfam'", ["protein_id", "cell_id", "tissue", "expression"], self.db)
+		logging.debug("({0}.loadPFAM) pfam rows: {1}".format(type(self).__name__, pfam.shape[0]))
+		pfam.expression = pfam.expression.astype(float) #Why necessary?
+		return pfam
+
+	def loadPROSITE(self):
+		prosite = selectAsDF("SELECT protein_id, cell_id, tissue, number_value AS expression FROM expression WHERE etype = 'PROSITE'", ["protein_id", "cell_id", "tissue", "expression"], self.db)
+		logging.debug("({0}.loadPROSITE) prosite rows: {1}".format(type(self).__name__, prosite.shape[0]))
+		prosite.expression = prosite.expression.astype(float) #Why necessary?
+		return prosite
 
 	def loadLINCS(self):
 		lincs = selectAsDF("SELECT protein_id, CONCAT(pert_dcid, ':', cellid) AS col_id, zscore FROM lincs", ["protein_id", "col_id", "zscore"], self.db)
@@ -455,6 +466,7 @@ class TCRD(Adapter):
 
 		mousePhenotype = selectAsDF("SELECT DISTINCT nhprotein_id AS protein_id_m, term_id AS mp_term_id, p_value, effect_size, procedure_name, parameter_name, gp_assoc AS association FROM phenotype WHERE ptype = 'IMPC'",
 			["protein_id_m", "mp_term_id", "p_value", "effect_size", "procedure_name", "parameter_name", "association"], db)
+		#mousePhenotype.info() #DEBUG
 		logging.debug("(TCRD.load) mousePhenotype rows: %d"%(mousePhenotype.shape[0]))
 		logging.debug("(TCRD.load) mousePhenotype.protein_id_m.nunique(): %d"%(mousePhenotype.protein_id_m.nunique()))
 
@@ -463,10 +475,8 @@ class TCRD(Adapter):
 		self.saveNameMap("MP_ontology", "mp_term_id", "name", mpOnto)
 
 		mouseToHumanMap = pd.merge(humanProteinList, mouseProteinList, on='homologene_group_id', suffixes=('_h', '_m'))
-		mouseToHumanMap.info() #DEBUG
+		#mouseToHumanMap.info() #DEBUG
 
-		#logging.debug("(TCRD.load) mousePhenotype.info():"); mousePhenotype.info()
-		#logging.debug("(TCRD.load) mouseToHumanMap.info():"); mouseToHumanMap.info()
 		combinedSet = pd.merge(mouseToHumanMap, mousePhenotype, on="protein_id_m", copy=False)
 
 		mouseToHumanAssociation = combinedSet[["protein_id", "mp_term_id", "association"]].drop_duplicates()
@@ -519,11 +529,10 @@ class TCRD(Adapter):
 		keggDict = kegg.set_index('kegg_pathway_id').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(keggDict)
 		
-		### IN TCRD?
-		#interpro = selectAsDF("select distinct entry_ac, entry_name from interpro", ["entry_ac", "entry_name"], self.db)
-		#logging.debug("(TCRD.fetchPathwayIdDescription) interpro rows: {0}".format(interpro.shape[0]))
-		#interproDict = interpro.set_index('entry_ac').T.to_dict('records')[0] #DataFrame to dictionary
-		#idNameDict.update(interproDict)
+		interpro = selectAsDF("SELECT DISTINCT value AS entry_ac, xtra AS entry_name FROM xref WHERE xtype = 'InterPro'", ["entry_ac", "entry_name"], self.db)
+		logging.debug("(TCRD.fetchPathwayIdDescription) interpro rows: {0}".format(interpro.shape[0]))
+		interproDict = interpro.set_index('entry_ac').T.to_dict('records')[0] #DataFrame to dictionary
+		idNameDict.update(interproDict)
 
 		goa = selectAsDF("SELECT DISTINCT go_id, go_term AS name FROM goa", ["go_id", "name"], self.db)
 		logging.debug("(TCRD.fetchPathwayIdDescription) goa rows: {0}".format(goa.shape[0]))
