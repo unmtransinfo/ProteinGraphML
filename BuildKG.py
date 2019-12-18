@@ -76,6 +76,10 @@ if __name__ == "__main__":
   logging.info("GO nodes: %d"%(len(goNodes)))
   interNodes = [n for n in list(pdg.graph.nodes) if isinstance(n, str) and n[0:3]=="IPR"]
   logging.info("INTERPRO nodes: %d"%(len(interNodes)))
+  #pfamNodes = [n for n in list(pdg.graph.nodes) if isinstance(n, str) and n[0:2]=="PF"]
+  #logging.info("Pfam nodes: %d"%(len(pfamNodes)))
+  #prositeNodes = [n for n in list(pdg.graph.nodes) if isinstance(n, str) and n[0:2]=="PS"]
+  #logging.info("PROSITE nodes: %d"%(len(prositeNodes)))
 
   # Save graph in pickle format.
   if args.operation == 'build':

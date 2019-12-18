@@ -387,6 +387,20 @@ class TCRD(Adapter):
 		logging.debug("(TCRD.loadInterpro) Interpro rows returned: {0}".format(interpro.shape[0]))
 		return GraphEdge("protein_id", "entry_ac", data=interpro)
 
+	def loadPFAM(self, proteinFilter=None):
+		pfam = selectAsDF("SELECT DISTINCT protein_id, value AS entry_ac FROM xref WHERE xtype = 'Pfam'", ["protein_id", "entry_ac"], self.db)
+		if proteinFilter is not None:
+			pfam = pfam[pfam['protein_id'].isin(proteinFilter)]
+		logging.debug("(TCRD.loadPFAM) Pfam rows returned: {0}".format(pfam.shape[0]))
+		return GraphEdge("protein_id", "entry_ac", data=pfam)
+
+	def loadPROSITE(self, proteinFilter=None):
+		prosite = selectAsDF("SELECT DISTINCT protein_id, value AS entry_ac FROM xref WHERE xtype = 'PROSITE'", ["protein_id", "entry_ac"], self.db)
+		if proteinFilter is not None:
+			prosite = prosite[prosite['protein_id'].isin(proteinFilter)]
+		logging.debug("(TCRD.loadPROSITE) Prosite rows returned: {0}".format(prosite.shape[0]))
+		return GraphEdge("protein_id", "entry_ac", data=prosite)
+
 	def loadGo(self, proteinFilter=None):
 		goa = selectAsDF("SELECT protein_id, go_id FROM goa", ["protein_id", "go_id"], self.db)
 		if proteinFilter is not None:
@@ -408,18 +422,6 @@ class TCRD(Adapter):
 		logging.debug("({0}.loadCCLE) ccle rows: {1}".format(type(self).__name__, ccle.shape[0]))
 		ccle.expression = ccle.expression.astype(float) #Why necessary?
 		return ccle
-
-	def loadPFAM(self):
-		pfam = selectAsDF("SELECT protein_id, cell_id, tissue, number_value AS expression FROM expression WHERE etype = 'Pfam'", ["protein_id", "cell_id", "tissue", "expression"], self.db)
-		logging.debug("({0}.loadPFAM) pfam rows: {1}".format(type(self).__name__, pfam.shape[0]))
-		pfam.expression = pfam.expression.astype(float) #Why necessary?
-		return pfam
-
-	def loadPROSITE(self):
-		prosite = selectAsDF("SELECT protein_id, cell_id, tissue, number_value AS expression FROM expression WHERE etype = 'PROSITE'", ["protein_id", "cell_id", "tissue", "expression"], self.db)
-		logging.debug("({0}.loadPROSITE) prosite rows: {1}".format(type(self).__name__, prosite.shape[0]))
-		prosite.expression = prosite.expression.astype(float) #Why necessary?
-		return prosite
 
 	def loadLINCS(self):
 		lincs = selectAsDF("SELECT protein_id, CONCAT(pert_dcid, ':', cellid) AS col_id, zscore FROM lincs", ["protein_id", "col_id", "zscore"], self.db)
