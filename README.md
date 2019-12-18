@@ -40,7 +40,7 @@ multiple ML models. Re-run only required if database updated.
 
 ### <a name="HowtoBuildKG"/>Build KG
 
-`BuildKG_OlegDb.py`, from the relational db, generates a knowledge graph,
+`BuildKG.py`, from the relational db, generates a knowledge graph,
 a `ProteinDiseaseAssociationGraph`, saved as a pickled `networkX` graph. 
 Via the adaptor and [`pony`](https://docs.ponyorm.org)
 object-relational model (ORM), nodes and edges are queried from the db to comprise the
@@ -51,32 +51,36 @@ Command line parameters:
 * `OPERATION` (positional parameter):
    * `build` :  build KG and write to output file.
    * `test` : build KG, write log, but not output file.
-* `--ofile` : Pickled KG file (default: ProteinDisease_GRAPH.pkl).
+* `--o` : Pickled KG file (default: ProteinDisease_GRAPH.pkl).
 * `--logfile` : KG log file (default: ProteinDisease_GRAPH.log).
+* `--db` : database (olegdb or tcrd) to use to build KG (default: olegdb)
 
 Example commands:
 
 ```
-BuildKG_OlegDb.py -h
-BuildKG_OlegDb.py test
-BuildKG_OlegDb.py build
-BuildKG_OlegDb.py build --ofile ProteinDisease_GRAPH.pkl --logfile ProteinDisease_GRAPH.log
+BuildKG.py -h
+BuildKG.py test
+BuildKG.py build
+BuildKG.py build --db olegdb --o ProteinDisease_GRAPH.pkl --logfile ProteinDisease_GRAPH.log
 ```
 
 ### <a name="HowtoStaticFeatures"/>Static Features
 
-`GenStaticFeatures.py` generates 4 files for static features: lincs.tsv, hpa.tsv, gtex.tsv, and ccle.tsv for use by `GenTrainingAndTestFeatures.py`. Static features are _not_ dependent on training set labels, only the database, 
+`GenStaticFeatures.py` generates files for static features: lincs, hpa, gtex, and ccle for use by `GenTrainingAndTestFeatures.py`. Static features are _not_ dependent on training set labels, only the database, 
 so the same TSV files can be reused for all models, and only needs to be re-run if
 the database changes.  ___Note: Requires large memory server, approximately 100GB+,
 80GB for this process.___
 
 Command line parameters:
 
+* `--db` : database (olegdb or tcrd) to use to generate static features (default: olegdb)
 * `--outputdir` : output folder to save TSV files.
 * `--sources` : static features (default: ["gtex", "lincs", "ccle", "hpa"]).
 * `--decimals` : decimal place for the values (default:3)
 ```
-GenStaticFeatures.py --outputdir data
+GenStaticFeatures.py --db olegdb --source "gtex,hpa" --outputdir data  (only 
+gtex and hpa)
+GenStaticFeatures.py --db olegdb --outputdir data  (for all 4 static features)
 ```
 
 ### <a name="HowtoPrep"/>Prepare Training and Test Sets
@@ -109,7 +113,7 @@ Example commands:
 ```
 PrepTrainingAndTestSets.py -h
 PrepTrainingAndTestSets.py --i data/diabetes_pid.txt --symbol_or_pid 'pid'
-PrepTrainingAndTestSets.py --i data/autophagy_test20191003.xlsx
+PrepTrainingAndTestSets.py --i data/autophagy.xlsx
 PrepTrainingAndTestSets.py --i data/diabetes.xlsx --use_default_negatives
 PrepTrainingAndTestSets.py --i data/Asthma.rds
 ```
@@ -149,7 +153,7 @@ GenTrainingAndTestFeatures.py --trainingfile data/PS118220.pkl --predictfile dat
 `TrainModelML.py`, from the training set feature vectors, or a training set
 implicated by specified disease (Mammalian Phenotype ID), 
 executes the specified ML procedure, training a predictive model, then saved to a
-reusable file (.model).  The procedure `XGBCrossVal` uses
+reusable file (.model).  The procedure `XGBGridSearch` uses
 XGBoost, trains a model with cross-validation and grid-search parameter optimization,
 generates a list of important features used by the classification model.
 
