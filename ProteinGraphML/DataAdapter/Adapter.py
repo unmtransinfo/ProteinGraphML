@@ -366,12 +366,12 @@ class TCRD(Adapter):
 		return GraphEdge("protein_id", "reactome_id", data=reactome)
 
 	def loadPPI(self, proteinFilter=None):
-		stringDB = selectAsDF("SELECT protein1_id, protein2_id, score FROM ppi WHERE ppitype = 'STRINGDB'", ["protein_id1", "protein_id2", "score"], self.db)
+		stringDB = selectAsDF("SELECT protein1_id, protein2_id, score FROM ppi WHERE ppitype = 'STRINGDB'", ["protein_id1", "protein_id2", "combined_score"], self.db)
 		if proteinFilter is not None:
 			stringDB = stringDB[stringDB['protein_id1'].isin(proteinFilter)]
 			stringDB = stringDB[stringDB['protein_id2'].isin(proteinFilter)]
 		logging.debug("(TCRD.loadPPI) STRING rows returned: {0}".format(stringDB.shape[0]))
-		return GraphEdge("protein_id1", "protein_id2", "score", stringDB)
+		return GraphEdge("protein_id1", "protein_id2", "combined_score", stringDB)
 
 	def loadKegg(self, proteinFilter=None):
 		kegg = selectAsDF("SELECT protein_id, SUBSTR(id_in_source, 6) AS kegg_pathway_id FROM pathway WHERE pwtype = 'KEGG'", ["protein_id", "kegg_pathway_id"], self.db)
