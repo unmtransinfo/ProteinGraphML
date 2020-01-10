@@ -3,9 +3,22 @@ import networkx as nx
 
 
 from ProteinGraphML.Analysis.featureLabel import convertLabels
-from ProteinGraphML.DataAdapter import OlegDB,selectAsDF
+from ProteinGraphML.DataAdapter import OlegDB,selectAsDF,TCRD
 from ProteinGraphML.MLTools.MetapathFeatures import ProteinInteractionNode	
 
+def FindCutoff(graph, disease, middleNode):
+	'''
+	Find the value for cutoff
+	'''
+	FOUND = 0
+	cutoff = 1
+	while(FOUND == 0):
+		cutoff+=1
+		print('Testing cutoff...', cutoff)
+		if len(list(nx.all_simple_paths(graph, source=disease, target=middleNode, cutoff=cutoff))) > 0:
+			FOUND = 1
+		#raise Exception('WARNING- {0} cannot be visualized to {1}, no paths'.format(middleNode,disease))
+	return cutoff
 
 def Visualize(importance,graph,disease,resultDir, dbAdapter=None):
 	#print(resultDir)
@@ -22,7 +35,7 @@ def Visualize(importance,graph,disease,resultDir, dbAdapter=None):
 	
 	nodesInGraph = set()
 
-	cutoff = 3
+	#cutoff = 3
 
 	#print(firstFeature)
 
@@ -30,24 +43,25 @@ def Visualize(importance,graph,disease,resultDir, dbAdapter=None):
 	if ProteinInteractionNode.isThisNode(firstFeature[0]):
 		#print("THIS IS INT",firstFeature[0])
 		middleNode = int(middleNode)
-		cutoff = 2
-
-
+		#cutoff = 2
+	
+	cutoff = FindCutoff(graph, disease, middleNode)
+	
 
 	print("here is the cuttoffe",cutoff)
 	for path in nx.all_simple_paths(graph, source=disease, target=middleNode, cutoff=cutoff):
-		print(path)
+		#print(path)
 		nodesInGraph |= set(path)
 
 	#print('hehe',list(nx.all_simple_paths(graph, source=disease, target=firstFeature[0], cutoff=4)))
 
+	
+	#if len(list(nx.all_simple_paths(graph, source=disease, target=middleNode, cutoff=cutoff))) == 0:
+	#	raise Exception('WARNING- {0} cannot be visualized to {1}, no paths'.format(middleNode,disease))
 
-	if len(list(nx.all_simple_paths(graph, source=disease, target=middleNode, cutoff=cutoff))) == 0:
-		raise Exception('WARNING- {0} cannot be visualized to {1}, no paths'.format(middleNode,disease))
 
 
-
-	print("ALL",nodesInGraph)
+	#print("ALL",nodesInGraph)
 
 	if dbAdapter is None:
 		dbAdapter = OlegDB()
