@@ -524,12 +524,12 @@ class TCRD(Adapter):
 		logging.debug("(TCRD.fetchPathwayIdDescription) reactome rows: {0}".format(reactome.shape[0]))
 		reactomeDict = reactome.set_index('reactome_id').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(reactomeDict)
-		
-		kegg = selectAsDF("SELECT DISTINCT id_in_source AS kegg_pathway_id, name AS kegg_pathway_name FROM pathway WHERE pwtype = 'KEGG'", ["kegg_pathway_id", "kegg_pathway_name"],self.db)
+
+		kegg = selectAsDF("SELECT DISTINCT SUBSTR(id_in_source, 6) AS kegg_pathway_id, name AS kegg_pathway_name FROM pathway WHERE pwtype = 'KEGG'", ["kegg_pathway_id", "kegg_pathway_name"],self.db)
 		logging.debug("(TCRD.fetchPathwayIdDescription) kegg rows: {0}".format(kegg.shape[0]))
 		keggDict = kegg.set_index('kegg_pathway_id').T.to_dict('records')[0] #DataFrame to dictionary
 		idNameDict.update(keggDict)
-		
+
 		interpro = selectAsDF("SELECT DISTINCT value AS entry_ac, xtra AS entry_name FROM xref WHERE xtype = 'InterPro'", ["entry_ac", "entry_name"], self.db)
 		logging.debug("(TCRD.fetchPathwayIdDescription) interpro rows: {0}".format(interpro.shape[0]))
 		interproDict = interpro.set_index('entry_ac').T.to_dict('records')[0] #DataFrame to dictionary
