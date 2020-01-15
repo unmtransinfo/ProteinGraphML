@@ -91,32 +91,40 @@ if __name__ == "__main__":
 
     # Fetch node/edge information from db.
     idDescription = dbad.fetchPathwayIdDescription()
+    idSymbol = dbad.fetchSymbolForProteinId()
+    idUniprot = dbad.fetchUniprotForProteinId()
 
     # Log node and edge info. Could be formatted for downstream use (e.g. Neo4j).
     gdata = {"Nodes": [], "Edges": []}
-    edgeCount = 0;
-    nodeCount = 0;
+    edgeCount = 0
+    nodeCount = 0
     with open(args.logfile, 'w') as flog:
         allNodes = set(pdg.graph.nodes)
         for node in allNodes:
             nodeCount += 1
             try:
                 flog.write('NODE ' + '{id:"' + str(node) + '", desc:"' + idDescription[node] + '"}' + '\n')
-                gdata["Nodes"].append({"id": str(node), "description": idDescription[node]})
+                gdata["Nodes"].append({"id": str(node), "UniprotId": idUniprot[node],
+                                       "Symbol": idSymbol[node], "description": idDescription[node]})
             except:
                 logging.error('Node not found: {0}'.format(node))
 
         allEdges = set(pdg.graph.edges)
         for edge in allEdges:
             edgeCount += 1
-            flog.write('EDGE ' + '{idSource:"' + str(edge[0]) + '", idTarget:"' + str(edge[1]) + '"}' + '\n')
-            gdata["Edges"].append({"source": str(edge[0]), "sourceDescription": idDescription[edge[0]],
-                                   "target": str(edge[1]), "targetDescription": idDescription[edge[1]]})
+            try:
+                flog.write('EDGE ' + '{idSource:"' + str(edge[0]) + '", idTarget:"' + str(edge[1]) + '"}' + '\n')
+                gdata["Edges"].append({"source": str(edge[0]), "SourceUniprot": idUniprot[edge[0]],
+                                   "SourceSymbol": idSymbol[edge[0]], "sourceDescription": idDescription[edge[0]],
+                                   "target": str(edge[1]), "TargetUniprot": idUniprot[edge[1]],
+                                   "TargetSymbol": idSymbol[edge[1]], "TargetDescription": idDescription[edge[1]]})
+            except:
+                logging.error('Edge node not found: {0}'.format(node))
 
     if args.jsonfile is not None:
-      logging.info("Saving graph to a JSON file: {0}".format(args.jsonfile))
-      with open(args.jsonfile, 'w') as js:
-        json.dump(gdata, js)
+        logging.info("Saving graph to a JSON file: {0}".format(args.jsonfile))
+        with open(args.jsonfile, 'w') as js:
+            json.dump(gdata, js)
 
     logging.info('{0} nodes, {1} edges written to {2}'.format(nodeCount, edgeCount, args.logfile))
 

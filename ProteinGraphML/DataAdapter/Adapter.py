@@ -572,6 +572,12 @@ class TCRD(Adapter):
 		proteinIdSymbolDict = proteinIdSymbol.set_index('protein_id').T.to_dict('records')[0] #DataFrame to dictionary
 		return proteinIdSymbolDict
 
+	def fetchUniprotForProteinId(self):
+		proteinIdUniprot = selectAsDF("SELECT DISTINCT id AS protein_id, uniprot AS uniprot_id FROM protein", ['protein_id', 'uniprot_id'], self.db)
+		logging.debug("(TCRD.fetchUniprotForProteinId) proteinIdUniprot rows: {0}".format(proteinIdUniprot.shape[0]))
+		proteinIdUniprotDict = proteinIdUniprot.set_index('protein_id').T.to_dict('records')[0] #DataFrame to dictionary
+		return proteinIdUniprotDict
+
 	# the following function with fetch all protein ids with negative class
 	### IN TCRD? HOW?
 	def fetchNegativeClassProteinIds(self):
