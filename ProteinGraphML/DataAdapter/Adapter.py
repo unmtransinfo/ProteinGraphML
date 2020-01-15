@@ -1,4 +1,4 @@
-
+import os
 from pony.orm import *
 import pandas as pd
 import yaml
@@ -82,6 +82,7 @@ class Adapter:
 
 class OlegDB(Adapter):
 
+	config_file = os.environ["HOME"]+"/.ProteinGraphML.yaml"
 	GTD = None
 	mouseToHumanAssociation = None
 	geneToDisease = None 
@@ -177,13 +178,11 @@ class OlegDB(Adapter):
 		return hpa
 	#
 	def load(self):
-		# MOVE THE DB INFO TO A CONST FILE 
-
-		with open("DBcreds.yaml", 'r') as stream:
+		with open(self.config_file, 'r') as stream:
 			try:
 				credentials = yaml.safe_load(stream)
 			except yaml.YAMLError as exc:
-				logging.error('Please add valid DB credentials to DBcreds.yaml: {0}'.format(str(exc)))
+				logging.error('DB credentials not found in {0}: {1}'.format(self.config_file, str(exc)))
 
 		user = credentials['user']
 		password = credentials['password']
@@ -343,6 +342,7 @@ WHERE
 # Should have same methods as OlegDB.
 class TCRD(Adapter):
 
+	config_file = os.environ["HOME"]+"/.ProteinGraphML.yaml"
 	GTD = None
 	mouseToHumanAssociation = None
 	geneToDisease = None 
@@ -439,12 +439,11 @@ class TCRD(Adapter):
 		return hpa
 	#
 	def load(self):
-		# MOVE THE DB INFO TO A CONST FILE 
-		with open("DBcreds.yaml", 'r') as stream:
+		with open(self.config_file, 'r') as stream:
 			try:
 				credentials = yaml.safe_load(stream)
 			except yaml.YAMLError as exc:
-				logging.error('Please add valid DB credentials to DBcreds.yaml: {0}'.format(str(exc)))
+				logging.error('DB credentials not found in {0}: {1}'.format(self.config_file, str(exc)))
 
 		self.db = Database()
 		self.db.bind(provider='mysql', user=credentials['tcrd_user'], password=credentials['tcrd_password'], host=credentials['tcrd_host'], database=credentials['tcrd_database'])
