@@ -579,31 +579,17 @@ class TCRD(Adapter):
 		return proteinIdUniprotDict
 
 	# the following function with fetch all protein ids with negative class
-	### IN TCRD? HOW?
 	def fetchNegativeClassProteinIds(self):
 		sql = """\
-SELECT DISTINCT
-	clinvar.protein_id
+SELECT DISTINCT clinvar.protein_id
 FROM
-	clinvar,
-	clinvar_disease,
-	clinvar_disease_xref
-JOIN
-	protein ON protein.id = clinvar.protein_id
+	clinvar, clinvar_disease, clinvar_disease_xref, protein
 WHERE
-	clinvar_disease.cv_dis_id = clinvar_disease_xref.cv_dis_id
-	AND clinvar_disease_xref.source = 'OMIM'
-	AND clinvar.cv_dis_id = clinvar_disease.cv_dis_id
-	AND clinvar.clinical_significance IN (
-'Pathogenic, Affects', 'Benign, protective, risk factor', 'Pathogenic/Likely pathogenic', 'Pathogenic/Likely pathogenic, other', 'Pathogenic, other',
-'Affects', 'Pathogenic, other, protective', 'Conflicting interpretations of pathogenicity, Affects, association, other', 'Pathogenic/Likely pathogenic, drug response',
-'Pathogenic, risk factor', 'risk factor', 'Pathogenic, association', 'Conflicting interpretations of pathogenicity, Affects, association, risk factor',
-'Pathogenic/Likely pathogenic, risk factor', 'Affects, risk factor', 'Conflicting interpretations of pathogenicity, association, other, risk factor',
-'Likely pathogenic, association', 'association, protective', 'Likely pathogenic, Affects', 'Pathogenic', 'Conflicting interpretations of pathogenicity, association',
-'Pathogenic/Likely pathogenic, Affects, risk factor', 'Conflicting interpretations of pathogenicity, other, risk factor', 'association, risk factor',
-'Benign, protective', 'Conflicting interpretations of pathogenicity, risk factor', 'Uncertain significance, protective', 'association', 'Uncertain significance, Affects',
-'protective, risk factor', 'Pathogenic, association, protective', 'Pathogenic, protective', 'Likely pathogenic, other', 'Pathogenic, protective, risk factor',
-'Benign, association, protective', 'Conflicting interpretations of pathogenicity, Affects', 'Benign/Likely benign, protective', 'protective')
+	protein.id = clinvar.protein_id
+	AND clinvar_phenotype_xref.source = 'OMIM'
+	AND clinvar.clinvar_phenotype_id = clinvar_phenotype.clinvar_phenotype_id
+	AND clinvar_phenotype.clinvar_phenotype_id = clinvar_phenotype_xref.clinvar_phenotype_id
+	AND clinvar.clinical_significance != 'Uncertain significance'
 """
 		negProteinIds = selectAsDF(sql, ['protein_id'], self.db)
 		logging.debug("(TCRD.fetchNegativeClassProteinIds) Negative class Protein Ids: {0}".format(negProteinIds.shape[0]))
