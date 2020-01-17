@@ -5,6 +5,8 @@
 import sys, os, argparse, time
 import logging
 import json
+from networkx.readwrite.json_graph import cytoscape_data
+
 
 from ProteinGraphML.DataAdapter import OlegDB, TCRD
 from ProteinGraphML.GraphTools import ProteinDiseaseAssociationGraph
@@ -84,18 +86,41 @@ if __name__ == "__main__":
     # prositeNodes = [n for n in list(pdg.graph.nodes) if isinstance(n, str) and n[0:2]=="PS"]
     # logging.info("PROSITE nodes: %d"%(len(prositeNodes)))
 
-    # Save graph in pickle format.
-    if args.operation == 'build':
-        logging.info("Saving pickled graph to: {0}".format(args.ofile))
-        pdg.save(args.ofile)
-
     # Fetch node/edge information from db.
     idDescription = dbad.fetchPathwayIdDescription()
     idSymbol = dbad.fetchSymbolForProteinId()
     idUniprot = dbad.fetchUniprotForProteinId()
 
+    # add name, symbol and uniprot id to graph nodes
+    for n in pdg.graph.nodes:
+        if n in idUniprot:
+            pdg.graph.node[n]['UniprotId'] = idUniprot[n]
+        else:
+            pdg.graph.node[n]['UniprotId'] = ''
+        if n in idSymbol:
+            pdg.graph.node[n]['Symbol'] = idSymbol[n]
+        else:
+            pdg.graph.node[n]['Symbol'] = ''
+        if n in idDescription:
+            pdg.graph.node[n]['Description'] = idDescription[n]
+        else:
+            pdg.graph.node[n]['Description'] = ''
+
+    #print(pdg.graph.nodes.data())
+
+    # Save graph in pickle format.
+    if args.operation == 'build':
+        logging.info("Saving pickled graph to: {0}".format(args.ofile))
+        pdg.save(args.ofile)
+
+    # Save graph in JSON format
+    if args.jsonfile is not None:
+        logging.info("Saving graph to a JSON file: {0}".format(args.jsonfile))
+        gdata = cytoscape_data(pdg.graph)
+        with open(args.jsonfile, 'w') as js:
+            json.dump(gdata, js, indent=2)
+
     # Log node and edge info. Could be formatted for downstream use (e.g. Neo4j).
-    gdata = {"Nodes": [], "Edges": []}
     edgeCount = 0
     nodeCount = 0
     with open(args.logfile, 'w') as flog:
@@ -104,8 +129,6 @@ if __name__ == "__main__":
             nodeCount += 1
             try:
                 flog.write('NODE ' + '{id:"' + str(node) + '", desc:"' + idDescription[node] + '"}' + '\n')
-                gdata["Nodes"].append({"id": str(node), "UniprotId": idUniprot[node],
-                                       "Symbol": idSymbol[node], "description": idDescription[node]})
             except:
                 logging.error('Node not found: {0}'.format(node))
 
@@ -114,17 +137,8 @@ if __name__ == "__main__":
             edgeCount += 1
             try:
                 flog.write('EDGE ' + '{idSource:"' + str(edge[0]) + '", idTarget:"' + str(edge[1]) + '"}' + '\n')
-                gdata["Edges"].append({"source": str(edge[0]), "SourceUniprot": idUniprot[edge[0]],
-                                   "SourceSymbol": idSymbol[edge[0]], "sourceDescription": idDescription[edge[0]],
-                                   "target": str(edge[1]), "TargetUniprot": idUniprot[edge[1]],
-                                   "TargetSymbol": idSymbol[edge[1]], "TargetDescription": idDescription[edge[1]]})
             except:
                 logging.error('Edge node not found: {0}'.format(node))
-
-    if args.jsonfile is not None:
-        logging.info("Saving graph to a JSON file: {0}".format(args.jsonfile))
-        with open(args.jsonfile, 'w') as js:
-            json.dump(gdata, js)
 
     logging.info('{0} nodes, {1} edges written to {2}'.format(nodeCount, edgeCount, args.logfile))
 
