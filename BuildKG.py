@@ -63,6 +63,10 @@ if __name__ == "__main__":
         logging.error("InterPro failed to load: {0}".format(e))
 
     # TCRD only: (Would these add value?)
+    try:
+        pdg.attach(dbad.loadOMIM(proteinSet))
+    except Exception as e:
+        logging.error("OMIM failed to load: {0}".format(e))
     # try:
     #  pdg.attach(dbad.loadPfam(proteinSet))
     # except Exception as e:
