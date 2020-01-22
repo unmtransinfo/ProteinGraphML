@@ -98,17 +98,17 @@ if __name__ == "__main__":
     # add name, symbol and uniprot id to graph nodes
     for n in pdg.graph.nodes:
         if n in idUniprot:
-            pdg.graph.node[n]['UniprotId'] = idUniprot[n]
+            pdg.graph.nodes[n]['UniprotId'] = idUniprot[n]
         else:
-            pdg.graph.node[n]['UniprotId'] = ''
+            pdg.graph.nodes[n]['UniprotId'] = ''
         if n in idSymbol:
-            pdg.graph.node[n]['Symbol'] = idSymbol[n]
+            pdg.graph.nodes[n]['Symbol'] = idSymbol[n]
         else:
-            pdg.graph.node[n]['Symbol'] = ''
+            pdg.graph.nodes[n]['Symbol'] = ''
         if n in idDescription:
-            pdg.graph.node[n]['Description'] = idDescription[n]
+            pdg.graph.nodes[n]['Description'] = idDescription[n]
         else:
-            pdg.graph.node[n]['Description'] = ''
+            pdg.graph.nodes[n]['Description'] = ''
 
     #print(pdg.graph.nodes.data())
 
