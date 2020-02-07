@@ -1,6 +1,8 @@
 ---
 title: "R Notebook"
 output: html_notebook
+editor_options: 
+  chunk_output_type: console
 ---
 
 This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook.
@@ -36,25 +38,24 @@ mpml[, mpml_rank := .I]
 
 ```{r}
 mpml <- merge(mpml, geneshot[, .(tcrdProteinId, geneshot_rank, geneshot_score)], by="tcrdProteinId", all.x=T, all.y=T)
-mpml[, in_gs100 := ifelse(is.na(geneshot_rank), F, (geneshot_rank <= 100))]
-
 ```
-
 
 
 ```{r}
-roc_100 <- roc(mpml$in_gs100, mpml$mpml_score,
-            smoothed = TRUE,
-            plot=TRUE, auc.polygon=TRUE, max.auc.polygon=TRUE, grid=TRUE,
-            print.auc=TRUE, show.thres=TRUE)
-plot(roc_100)
+mpml[, in_gs100 := ifelse(is.na(geneshot_rank), F, (geneshot_rank <= 100))]
+plot.roc(mpml$in_gs100, mpml$mpml_score,
+            smooth=F,
+            auc.polygon=F, max.auc.polygon=T, grid=F,
+            print.auc=T, show.thres=F,
+         main="ROC: MPML vs. GS100")
 ```
+
 ```{r}
 mpml[, in_gs1000 := ifelse(is.na(geneshot_rank), F, (geneshot_rank <= 1000))]
-roc_1000 <- roc(mpml$in_gs1000, mpml$mpml_score,
-            smoothed = TRUE,
-            plot=TRUE, auc.polygon=TRUE, max.auc.polygon=TRUE, grid=TRUE,
-            print.auc=TRUE, show.thres=TRUE)
-plot(roc_1000)
+plot.roc(mpml$in_gs1000, mpml$mpml_score,
+            smooth=F,
+            auc.polygon=F, max.auc.polygon=T, grid=F,
+            print.auc=T, show.thres=F,
+         main="ROC: MPML vs. GS1000")
 ```
 
