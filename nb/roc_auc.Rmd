@@ -10,8 +10,8 @@ This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook.
 ```{r}
 library(readr)
 library(data.table)
+library(DT)
 library(pROC, quietly=T)
-library(plotly, quietly=T)
 ```
 
 # Read files.
@@ -21,41 +21,43 @@ library(plotly, quietly=T)
 * TCRD gene/protein ID mappings
 
 ```{r}
-geneshot <- read_delim("../results/autophagy/autophagy_geneshot_genes_literature.tsv", delim="\t")
+geneshot <- read_delim("/home/jjyang/Downloads/MPML/Autophagy/autophagy_geneshot_genes_generif_literature.tsv", delim="\t")
 setDT(geneshot)
 setnames(geneshot, c("geneshot_rank", "symbol", "geneshot_pubcount", "geneshot_score"))
 tcrd_tgts <- read_delim("/home/data/IDG/idg-tools/data/tcrd_targets.tsv", "\t")
 setDT(tcrd_tgts)
-geneshot <- merge(geneshot, tcrd_tgts[, .(tcrdGeneSymbol, tcrdProteinId, tcrdTargetName, TDL, uniprotId)], by.x="symbol", by.y="tcrdGeneSymbol", all.x=T, all.y=F)
-setorder(geneshot, geneshot_rank)
-mpml <- read_delim("../results/autophagy/classificationResults_XGBPredict.tsv", "\t")
-setDT(mpml)
-setnames(mpml, c("tcrdProteinId", "symbol", "name", "label", "mpml_score"))
-mpml[, `:=`(name=NULL, label=NULL)]
-setorder(mpml, -mpml_score)
-mpml[, mpml_rank := .I]
+DT::datatable(tcrd_tgts[1:10])
 ```
 
 ```{r}
+geneshot <- merge(geneshot, tcrd_tgts[, .(tcrdGeneSymbol, tcrdProteinId, tcrdTargetName, TDL, uniprotId)], by.x="symbol", by.y="tcrdGeneSymbol", all.x=T, all.y=F)
+setorder(geneshot, geneshot_rank)
+DT::datatable(geneshot[1:10])
+```
+
+```{r}
+mpml <- read_delim("/home/jjyang/Downloads/MPML/Autophagy/autophagy_predict_data.tsv", "\t")
+setDT(mpml)
+mpml <- mpml[, .(`Protein Id`, `Predicted Probability`)]
+setnames(mpml, c("tcrdProteinId", "MPML_score"))
 mpml <- merge(mpml, geneshot[, .(tcrdProteinId, geneshot_rank, geneshot_score)], by="tcrdProteinId", all.x=T, all.y=T)
+setorder(mpml, -MPML_score, na.last=T)
+mpml <- mpml[, MPML_rank := .I]
+DT::datatable(mpml[1:10])
 ```
 
 
 ```{r}
 mpml[, in_gs100 := ifelse(is.na(geneshot_rank), F, (geneshot_rank <= 100))]
-plot.roc(mpml$in_gs100, mpml$mpml_score,
-            smooth=F,
-            auc.polygon=F, max.auc.polygon=T, grid=F,
-            print.auc=T, show.thres=F,
-         main="ROC: MPML vs. GS100")
+plot.roc(mpml$in_gs100, mpml$MPML_score,
+            smooth=F, auc.polygon=F, max.auc.polygon=T, grid=F, print.auc=T, show.thres=F,
+         main="ROC: MPML vs. GeneShot100")
 ```
 
 ```{r}
 mpml[, in_gs1000 := ifelse(is.na(geneshot_rank), F, (geneshot_rank <= 1000))]
-plot.roc(mpml$in_gs1000, mpml$mpml_score,
-            smooth=F,
-            auc.polygon=F, max.auc.polygon=T, grid=F,
-            print.auc=T, show.thres=F,
-         main="ROC: MPML vs. GS1000")
+plot.roc(mpml$in_gs1000, mpml$MPML_score,
+            smooth=F, auc.polygon=F, max.auc.polygon=T, grid=F, print.auc=T, show.thres=F,
+         main="ROC: MPML vs. GeneShot1000")
 ```
 
