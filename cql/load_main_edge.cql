@@ -15,6 +15,7 @@
 ////
 // ISSUE: Why are there protein-protein edges?? Bug?
 ////
+// NOTE: LOAD CSV vals read as strings.
 // NOTE: Cypher regex matches ENTIRE string.
 ////
 //Debugging:
@@ -24,6 +25,7 @@
 //WHERE row.node_or_edge = 'edge'
 //RETURN row.sourceId, row.targetId, s.ID, t.ID ;
 ////
+//Protein-Protein (bug?)
 //USING PERIODIC COMMIT 100
 //LOAD CSV WITH HEADERS FROM "file:///ProteinGraphML/kg.tsv"
 //AS row FIELDTERMINATOR '\t' WITH row
@@ -37,16 +39,22 @@ LOAD CSV WITH HEADERS FROM "file:///ProteinGraphML/kg.tsv"
 AS row FIELDTERMINATOR '\t' WITH row
 MATCH (s {ID:row.sourceId}), (t {ID:row.targetId})
 WHERE row.node_or_edge = 'edge'
-AND toString(row.sourceId) =~ '[0-9]+'
+AND row.sourceId =~ '[0-9]+'
 AND SUBSTRING(row.targetId, 0, 3) = 'GO:'
 CREATE (s)-[:GO]->(t) ;
+
+//Error:
+// LockClient[52635] can't wait on resource RWLock[NODE(11856), hash=313466545]
+// since => LockClient[52635] <-[:HELD_BY]- RWLock[NODE(5000), hash=934842911]
+// <-[:WAITING_FOR]- LockClient[52638] <-[:HELD_BY]- RWLock[NODE(11856), hash=313466545]
+
 
 USING PERIODIC COMMIT 100
 LOAD CSV WITH HEADERS FROM "file:///ProteinGraphML/kg.tsv"
 AS row FIELDTERMINATOR '\t' WITH row
 MATCH (s {ID:row.sourceId}), (t {ID:row.targetId})
 WHERE row.node_or_edge = 'edge'
-AND toString(row.sourceId) =~ '[0-9]+'
+AND row.sourceId =~ '[0-9]+'
 AND SUBSTRING(row.targetId, 0, 5) = 'R-HSA'
 CREATE (s)-[:REACTOME]->(t) ;
 
@@ -55,7 +63,7 @@ LOAD CSV WITH HEADERS FROM "file:///ProteinGraphML/kg.tsv"
 AS row FIELDTERMINATOR '\t' WITH row
 MATCH (s {ID:row.sourceId}), (t {ID:row.targetId})
 WHERE row.node_or_edge = 'edge'
-AND toString(row.sourceId) =~ '[0-9]+'
+AND row.sourceId =~ '[0-9]+'
 AND SUBSTRING(row.targetId, 0, 3) = 'hsa'
 CREATE (s)-[:KEGG]->(t) ;
 
@@ -64,27 +72,31 @@ LOAD CSV WITH HEADERS FROM "file:///ProteinGraphML/kg.tsv"
 AS row FIELDTERMINATOR '\t' WITH row
 MATCH (s {ID:row.sourceId}), (t {ID:row.targetId})
 WHERE row.node_or_edge = 'edge'
-AND toString(row.sourceId) =~ '[0-9]+'
+AND row.sourceId =~ '[0-9]+'
 AND SUBSTRING(row.targetId, 0, 3) = 'IPR'
 CREATE (s)-[:INTERPRO]->(t) ;
 
-//USING PERIODIC COMMIT 100
-//LOAD CSV WITH HEADERS FROM "file:///ProteinGraphML/kg.tsv"
-//AS row FIELDTERMINATOR '\t' WITH row
-//MATCH (s {ID:row.sourceId}), (t {ID:row.targetId})
-//WHERE row.node_or_edge = 'edge'
-//AND SUBSTRING(row.sourceId, 0, 3) = 'MP:'
-//AND SUBSTRING(row.targetId, 0, 3) = 'MP:'
-//CREATE (s)-[:MP_Ontology]->(t) ;
+USING PERIODIC COMMIT 100
+LOAD CSV WITH HEADERS FROM "file:///ProteinGraphML/kg.tsv"
+AS row FIELDTERMINATOR '\t' WITH row
+MATCH (s {ID:row.sourceId}), (t {ID:row.targetId})
+WHERE row.node_or_edge = 'edge'
+AND SUBSTRING(row.sourceId, 0, 3) = 'MP:'
+AND SUBSTRING(row.targetId, 0, 3) = 'MP:'
+CREATE (s)-[:MP_Ontology]->(t) ;
 //
-//USING PERIODIC COMMIT 100
-//LOAD CSV WITH HEADERS FROM "file:///ProteinGraphML/kg.tsv"
-//AS row FIELDTERMINATOR '\t' WITH row
-//MATCH (s {ID:row.sourceId}), (t {ID:row.targetId})
-//WHERE row.node_or_edge = 'edge'
-//AND SUBSTRING(row.sourceId, 0, 3) = 'MP:'
-//AND toString(row.targetId) =~ '[0-9]+'
-//CREATE (s)-[:MP_Annotation]->(t) ;
+USING PERIODIC COMMIT 100
+LOAD CSV WITH HEADERS FROM "file:///ProteinGraphML/kg.tsv"
+AS row FIELDTERMINATOR '\t' WITH row
+MATCH (s {ID:row.sourceId}), (t {ID:row.targetId})
+WHERE row.node_or_edge = 'edge'
+AND SUBSTRING(row.sourceId, 0, 3) = 'MP:'
+AND row.targetId =~ '[0-9]+'
+CREATE (s)-[:MP_Annotation]->(t) ;
 
 // Report relationship count:
-MATCH ()-[r]-() RETURN COUNT(r) AS RELATIONSHIPS ;
+MATCH ()-[r]-() RETURN COUNT(r) AS RELATIONSHIPS_All ;
+MATCH ()-[r:GO]-() RETURN COUNT(r) AS RELATIONSHIPS_GO ;
+MATCH ()-[r:KEGG]-() RETURN COUNT(r) AS RELATIONSHIPS_KEGG ;
+MATCH ()-[r:REACTOME]-() RETURN COUNT(r) AS RELATIONSHIPS_REACTOME ;
+MATCH ()-[r:INTERPRO]-() RETURN COUNT(r) AS RELATIONSHIPS_INTERPRO ;

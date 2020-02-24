@@ -26,7 +26,7 @@ CALL db.constraints ;
 // Protein:
 LOAD CSV WITH HEADERS FROM "file:///ProteinGraphML/kg.tsv"
 AS row FIELDTERMINATOR '\t' WITH row
-WHERE row.node_or_edge = 'node' AND row.class = 'PROTEIN'
+WHERE row.node_or_edge = 'node' AND row.class = 'PROTEIN' AND row.id IS NOT NULL
 CREATE (g:Protein { ID:row.id, Name:trim(row.name)}) ;
 
 // KEGG:
@@ -52,6 +52,12 @@ LOAD CSV WITH HEADERS FROM "file:///ProteinGraphML/kg.tsv"
 AS row FIELDTERMINATOR '\t' WITH row
 WHERE row.node_or_edge = 'node' AND row.class = 'INTERPRO'
 CREATE (g:INTERPRO { ID:row.id, Name:trim(row.name)}) ;
+
+// MP:
+LOAD CSV WITH HEADERS FROM "file:///ProteinGraphML/kg.tsv"
+AS row FIELDTERMINATOR '\t' WITH row
+WHERE row.node_or_edge = 'node' AND row.class = 'MP'
+CREATE (g:MP { ID:row.id, Name:trim(row.name)}) ;
 
 // Report node counts:
 MATCH (n) RETURN COUNT(n) AS N_NODES_ALL ;
