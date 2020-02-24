@@ -2,11 +2,10 @@
 """
 	Create Protein Disease knowledge graph from DB adapter 'OlegDB' or 'TCRD'.
 """
-import sys, os, argparse, time
+import sys,os,re,argparse,time,json
 import logging
-import json
 from networkx.readwrite.json_graph import cytoscape_data
-
+from networkx.readwrite.graphml import generate_graphml
 
 from ProteinGraphML.DataAdapter import OlegDB, TCRD
 from ProteinGraphML.GraphTools import ProteinDiseaseAssociationGraph
@@ -14,19 +13,19 @@ from ProteinGraphML.GraphTools import ProteinDiseaseAssociationGraph
 if __name__ == "__main__":
 
     DBS = ['olegdb', 'tcrd']
-    OPS = ['build', 'test']
     parser = argparse.ArgumentParser(description='Create Protein-Disease knowledge graph (KG) from source RDB')
-    parser.add_argument('operation', choices=OPS, help='{0}'.format(str(OPS)))
     parser.add_argument('--db', choices=DBS, default="olegdb", help='{0}'.format(str(DBS)))
-    parser.add_argument('--o', dest="ofile", default="ProteinDisease_GRAPH.pkl", help='output pickled KG')
-    parser.add_argument('--logfile', default="ProteinDisease_GRAPH.log", help='KG construction log')
-    parser.add_argument('--jsonfile', help='Save graph as json')
+    parser.add_argument('--o', dest="ofile", help='output pickled KG')
+    parser.add_argument('--logfile', help='KG construction log.')
+    parser.add_argument('--cyjsfile', help='Save KG as CYJS.')
+    parser.add_argument('--graphmlfile', help='Save KG as GraphML.')
+    parser.add_argument('--tsvfile', help='Save KG as TSV.')
+    parser.add_argument('--test', help='Build KG but do not save.')
     parser.add_argument("-v", "--verbose", action="count", default=0, help="verbosity")
 
     args = parser.parse_args()
 
-    logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s',
-                        level=(logging.DEBUG if args.verbose > 1 else logging.INFO))
+    logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s', level=(logging.DEBUG if args.verbose > 1 else logging.INFO))
 
     t0 = time.time()
 
@@ -113,38 +112,80 @@ if __name__ == "__main__":
     #print(pdg.graph.nodes.data())
 
     # Save graph in pickle format.
-    if args.operation == 'build':
+    if args.ofile is not None:
         logging.info("Saving pickled graph to: {0}".format(args.ofile))
         pdg.save(args.ofile)
 
-    # Save graph in JSON format
-    if args.jsonfile is not None:
-        logging.info("Saving graph to a JSON file: {0}".format(args.jsonfile))
+    # Save graph in CYJS format.
+    if args.cyjsfile is not None:
+        logging.info("Saving KG to CYJS file: {0}".format(args.cyjsfile))
         gdata = cytoscape_data(pdg.graph)
-        with open(args.jsonfile, 'w') as js:
-            json.dump(gdata, js, indent=2)
+        with open(args.cyjsfile, 'w') as fcyjs:
+            json.dump(gdata, fcyjs, indent=2)
 
-    # Log node and edge info. Could be formatted for downstream use (e.g. Neo4j).
-    edgeCount = 0
-    nodeCount = 0
-    with open(args.logfile, 'w') as flog:
-        allNodes = set(pdg.graph.nodes)
-        for node in allNodes:
-            nodeCount += 1
-            try:
-                flog.write('NODE ' + '{id:"' + str(node) + '", desc:"' + idDescription[node] + '"}' + '\n')
-            except:
-                logging.error('Node not found: {0}'.format(node))
+    # Save graph in GraphML format.
+    if args.graphmlfile is not None:
+        logging.info("Saving KG to GraphML file: {0}".format(args.graphmlfile))
+        with open(args.graphmlfile, 'w') as fgraphml:
+            for line in generate_graphml(pdg.graph, encoding="utf-8", prettyprint=True):
+                fgraphml.write(line+"\n")
 
-        allEdges = set(pdg.graph.edges)
-        for edge in allEdges:
-            edgeCount += 1
-            try:
-                flog.write('EDGE ' + '{idSource:"' + str(edge[0]) + '", idTarget:"' + str(edge[1]) + '"}' + '\n')
-            except:
-                logging.error('Edge node not found: {0}'.format(node))
+    # Log node and edge info.
+    if args.logfile is not None:
+        edgeCount = 0
+        nodeCount = 0
+        with open(args.logfile, 'w') as flog:
+            allNodes = set(pdg.graph.nodes)
+            for node in allNodes:
+                nodeCount += 1
+                try:
+                    flog.write('NODE ' + '{id:"' + str(node) + '", desc:"' + idDescription[node] + '"}' + '\n')
+                except:
+                    logging.error('Node not found: {0}'.format(node))
+            allEdges = set(pdg.graph.edges)
+            for edge in allEdges:
+                edgeCount += 1
+                try:
+                    flog.write('EDGE ' + '{idSource:"' + str(edge[0]) + '", idTarget:"' + str(edge[1]) + '"}' + '\n')
+                except:
+                    logging.error('Edge node not found: {0}'.format(node))
+        logging.info('{0} nodes, {1} edges written to {2}'.format(nodeCount, edgeCount, args.logfile))
 
-    logging.info('{0} nodes, {1} edges written to {2}'.format(nodeCount, edgeCount, args.logfile))
+    # TSV node and edge info, importable by Neo4j.
+    if args.tsvfile is not None:
+        edgeCount = 0; nodeCount = 0;
+        with open(args.tsvfile, 'w') as fout:
+            fout.write('node_or_edge\tclass\tid\tname\tsourceId\ttargetId\n')
+            allNodes = set(pdg.graph.nodes)
+            for node in allNodes:
+                nodeCount += 1
+                try:
+                    name = idDescription[node]
+                except:
+                    logging.error('idDescription[node] not found: {0}'.format(node))
+                    continue
 
-    logging.info('{0}: elapsed time: {1}'.format(os.path.basename(sys.argv[0]),
-                                                 time.strftime('%Hh:%Mm:%Ss', time.gmtime(time.time() - t0))))
+                if re.match(r'\d+$', str(node)):
+                    node_class = "PROTEIN"
+                elif str(node)[0:3]=="hsa":
+                    node_class = "KEGG"
+                elif str(node)[0:2]=="R-":
+                    node_class = "REACTOME"
+                elif str(node)[0:3]=="GO:":
+                    node_class = "GO"
+                elif str(node)[0:3]=="IPR":
+                    node_class = "INTERPRO"
+                elif str(node)[0:2]=="MP":
+                    node_class = "MP"
+                else:
+                    node_class = "Unknown"
+                fout.write('node\t'+node_class+'\t'+str(node)+'\t'+idDescription[node]+'\t\t\n')
+            allEdges = set(pdg.graph.edges)
+            for edge in allEdges:
+                if re.match(r'\d+$', str(edge[0])) and re.match(r'\d+$', str(edge[1])):
+                    continue #protein-protein edges?? Bug?
+                edgeCount += 1
+                fout.write('edge\t\t\t\t'+str(edge[0])+'\t'+str(edge[1])+'\n')
+        logging.info('{0} nodes, {1} edges written to {2}'.format(nodeCount, edgeCount, args.tsvfile))
+
+    logging.info('{0}: elapsed time: {1}'.format(os.path.basename(sys.argv[0]), time.strftime('%Hh:%Mm:%Ss', time.gmtime(time.time() - t0))))
