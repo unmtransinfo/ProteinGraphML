@@ -402,7 +402,8 @@ class XGBoostModel(BaseModel):
         self.saveImportantFeaturesAsPickle(importance)
 
         # save predicted class 1 probabilty in a text file
-        self.savePredictedProbability(testData, predictions, idDescription, idNameSymbol, "TRAIN")
+        # proteinInfo = self.fetchProteinInformation(infoFile)
+        self.savePredictedProbability(testData, predictions, idDescription, idNameSymbol, "", "TRAIN")
 
         # train the model using all train data and save it
         self.train(testData, param=params)
@@ -574,7 +575,7 @@ class XGBoostModel(BaseModel):
         self.saveImportantFeaturesAsPickle(importance)
         self.saveSeedPerformance(seedAUC)
         # print (avgPredictedProb)
-        self.savePredictedProbability(allData, avgPredictedProbs, idDescription, idNameSymbol,
+        self.savePredictedProbability(allData, avgPredictedProbs, idDescription, idNameSymbol, "",
                                       "AVERAGE")  # save predicted probabilities
         # plot ROC curves
         rc = RocCurve("rocCurve", None, None)
@@ -756,6 +757,7 @@ class XGBoostModel(BaseModel):
                     logging.debug('INFO: saveImportantFeatures - Unknown feature = {0}'.format(feature))
 
         df = pd.DataFrame(dataForDataframe)
+        df = df.sort_values(by=['Gain Value'], ascending=False)
         impFileTsv = self.MODEL_DIR + '/featImportance_' + self.MODEL_PROCEDURE + '.tsv'
         fout = open(impFileTsv, "w")
         df.to_csv(fout, '\t', index=False)
@@ -789,10 +791,10 @@ class XGBoostModel(BaseModel):
 		'''
         TrueLabels = []
         proteinIds = list(testData.features.index.values)
-        if (DataType == "TEST"):
+        if DataType == "TEST":
             for p in proteinIds:
                 TrueLabels.append('')
-        elif (DataType == "AVERAGE"):
+        elif DataType == "AVERAGE":
             avgPredictions = []
             trueClass = []
             pids = []
@@ -826,26 +828,24 @@ class XGBoostModel(BaseModel):
             if proteinId in idNameSymbol:
                 dataForDataframe['Name'].append(idDescription[proteinId])
                 dataForDataframe['Symbol'].append(idNameSymbol[proteinId])
-                if idNameSymbol[proteinId] in proteinInfo:
-                    dataForDataframe['Uniprot'].append(proteinInfo[idNameSymbol[proteinId]][0])
-                    dataForDataframe['tdl'].append(proteinInfo[idNameSymbol[proteinId]][1])
-                    dataForDataframe['fam'].append(proteinInfo[idNameSymbol[proteinId]][2])
-                    dataForDataframe['novelty'].append(proteinInfo[idNameSymbol[proteinId]][3])
-                    dataForDataframe['importance'].append(proteinInfo[idNameSymbol[proteinId]][4])
-                else:
-                    dataForDataframe['Uniprot'].append("")
-                    dataForDataframe['tdl'].append("")
-                    dataForDataframe['fam'].append("")
-                    dataForDataframe['novelty'].append("")
-                    dataForDataframe['importance'].append("")
             else:
-                dataForDataframe['Name'].append("")
-                dataForDataframe['Symbol'].append("")
+                dataForDataframe['Name'].append(proteinId)
+                dataForDataframe['Symbol'].append(proteinId)
+
+            if DataType == "TEST" and idNameSymbol[proteinId] in proteinInfo:
+                v = proteinInfo[idNameSymbol[proteinId]]
+                dataForDataframe['Uniprot'].append(v[0])
+                dataForDataframe['tdl'].append(v[1])
+                dataForDataframe['fam'].append(v[2])
+                dataForDataframe['novelty'].append(v[3])
+                dataForDataframe['importance'].append(v[4])
+            else:
                 dataForDataframe['Uniprot'].append("")
                 dataForDataframe['tdl'].append("")
                 dataForDataframe['fam'].append("")
                 dataForDataframe['novelty'].append("")
                 dataForDataframe['importance'].append("")
+
 
         df = pd.DataFrame(dataForDataframe)
         df = df.sort_values(by=['Predicted Probability'], ascending=False)
