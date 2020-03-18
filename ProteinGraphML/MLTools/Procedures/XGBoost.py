@@ -17,7 +17,7 @@ def TEST(dataObject):
     print('tehe')
 
 
-def XGBCrossValPred(dataObject, idDescription, idNameSymbol, resultDir, params=None):
+def XGBCrossValPred(dataObject, idDescription, idNameSymbol, idSource, resultDir, params=None):
     newModel = XGBoostModel("XGBCrossValPred", resultDir)
 
     # params['scale_pos_weight'] = dataObject.posWeight
@@ -25,7 +25,7 @@ def XGBCrossValPred(dataObject, idDescription, idNameSymbol, resultDir, params=N
 
     # roc,acc,CM,report = newModel.cross_val_predict(dataObject,["roc","acc","ConfusionMatrix","report"])
 
-    newModel.cross_val_predict(dataObject, idDescription, idNameSymbol,
+    newModel.cross_val_predict(dataObject, idDescription, idNameSymbol, idSource,
                                ["roc", "rocCurve", "acc", "mcc", "ConfusionMatrix", "report"], params=params,
                                cv=CROSSVAL)  # Pass parameters
 

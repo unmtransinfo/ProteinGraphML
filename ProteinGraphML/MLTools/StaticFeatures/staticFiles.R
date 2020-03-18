@@ -20,7 +20,7 @@ scale.data.table <- function(dt) {
   dt[, (col.names) := lapply(.SD, scale), .SDcols=col.names]
 }
 
-conn <- dbConnect(PostgreSQL(), dbname = "metap",host='seaborgium.health.unm.edu',user='monty',pass='spam')
+conn <- dbConnect(PostgreSQL(), dbname = "metap",host='localhost',user='monty',pass='spam')
 
 
 gtex <- dbGetQuery(conn, "select protein_id,median_tpm,tissue_type_detail from gtex")

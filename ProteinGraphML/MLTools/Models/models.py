@@ -362,7 +362,7 @@ class XGBoostModel(BaseModel):
         self.savePredictedProbability(testData, predictions, idDescription, idNameSymbol, proteinInfo, "TEST")
 
     # def cross_val_predict(self,testData,outputTypes):
-    def cross_val_predict(self, testData, idDescription, idNameSymbol, outputTypes, params={}, cv=1):
+    def cross_val_predict(self, testData, idDescription, idNameSymbol, idSource, outputTypes, params={}, cv=1):
         # print (params,cv)
         # other model options
         # clf = LogisticRegression(random_state=0, solver='lbfgs',multi_class='multinomial')#.fit(X, y)
@@ -398,7 +398,7 @@ class XGBoostModel(BaseModel):
         # find imporant features and save them in a text file
         importance = Counter(
             clf.fit(testData.features, testData.labels).get_booster().get_score(importance_type='gain'))
-        self.saveImportantFeatures(importance, idDescription)
+        self.saveImportantFeatures(importance, idDescription, idNameSymbol, idSource=idSource)
         self.saveImportantFeaturesAsPickle(importance)
 
         # save predicted class 1 probabilty in a text file
@@ -571,7 +571,7 @@ class XGBoostModel(BaseModel):
 
         logging.info("METRICS: {0}".format(str(metrics)))  # write this metrics to a file...
 
-        self.saveImportantFeatures(importance, idDescription)  # save important features
+        self.saveImportantFeatures(importance, idDescription, idNameSymbol)  # save important features
         self.saveImportantFeaturesAsPickle(importance)
         self.saveSeedPerformance(seedAUC)
         # print (avgPredictedProb)
@@ -734,27 +734,83 @@ class XGBoostModel(BaseModel):
                 ff.write(rec)
 
     # Save the important features in a text file.
-    def saveImportantFeatures(self, importance, idDescription):
+    def saveImportantFeatures(self, importance, idDescription, idNameSymbol, idSource=None):
         '''
 		This function saves the important features in a text file.
 		'''
 
-        dataForDataframe = {'Feature': [], 'Name': [], 'Gain Value': []}
+        dataForDataframe = {'Feature': [], 'Symbol': [], 'Cell_id': [], 'Drug_name': [],
+                            'Tissue': [], 'Source': [], 'Name': [], 'Gain Value': []}
         for feature, gain in importance.items():
             dataForDataframe['Feature'].append(feature)
             dataForDataframe['Gain Value'].append(gain)
-            if (feature.lower().islower()):  # alphanumeric feature
-                try:
+
+            if feature.lower().islower():  # alphanumeric feature
+                # source
+                if idSource is not None:
+                    dataForDataframe['Source'].append(idSource[feature])
+                else:
+                    dataForDataframe['Source'].append('')
+
+                # Name
+                if feature in idDescription:
                     dataForDataframe['Name'].append(idDescription[feature])
-                except:
-                    dataForDataframe['Name'].append(feature)
+                else:
+                    dataForDataframe['Name'].append('')
                     logging.debug('INFO: saveImportantFeatures - Unknown feature = {0}'.format(feature))
-            else:
-                try:
+
+                # Symbol
+                if feature in idNameSymbol:
+                    dataForDataframe['Symbol'].append(idNameSymbol[feature])
+                else:
+                    dataForDataframe['Symbol'].append('')
+
+            else:  # numeric feature
+                # Source
+                if idSource is not None:
+                    dataForDataframe['Source'].append(idSource[int(feature)])
+                else:
+                    dataForDataframe['Source'].append('')
+
+                # Name
+                if int(feature) in idDescription:
                     dataForDataframe['Name'].append(idDescription[int(feature)])
-                except:
-                    dataForDataframe['Name'].append(feature)
+                else:
+                    dataForDataframe['Name'].append('')
                     logging.debug('INFO: saveImportantFeatures - Unknown feature = {0}'.format(feature))
+
+                # Symbol
+                if int(feature) in idNameSymbol:
+                    dataForDataframe['Symbol'].append(idNameSymbol[int(feature)])
+                else:
+                    dataForDataframe['Symbol'].append('')
+
+            # for CCLE only
+            if feature in idSource and idSource[feature] == "ccle":
+                cid = feature[:feature.index('_')]
+                tissue = feature[feature.index('_') + 1:]
+                dataForDataframe['Cell_id'].append(cid)
+                dataForDataframe['Tissue'].append(tissue)
+                dataForDataframe['Drug_name'].append('')
+
+            # for LINCS only
+            elif feature in idSource and idSource[feature] == "lincs":
+                drugid = feature[:feature.index(':')]
+                try:
+                    drugname = idSource['drug_'+drugid]
+                except:
+                    drugname = ''
+                cid = feature[feature.index(':') + 1:]
+                dataForDataframe['Cell_id'].append(cid)
+                dataForDataframe['Drug_name'].append(drugname)
+                dataForDataframe['Tissue'].append('')
+            else:
+                dataForDataframe['Cell_id'].append('')
+                dataForDataframe['Drug_name'].append('')
+                dataForDataframe['Tissue'].append('')
+
+        # for k,v in dataForDataframe.items():
+        #    print(k, len(v))
 
         df = pd.DataFrame(dataForDataframe)
         df = df.sort_values(by=['Gain Value'], ascending=False)
@@ -845,7 +901,6 @@ class XGBoostModel(BaseModel):
                 dataForDataframe['fam'].append("")
                 dataForDataframe['novelty'].append("")
                 dataForDataframe['importance'].append("")
-
 
         df = pd.DataFrame(dataForDataframe)
         df = df.sort_values(by=['Predicted Probability'], ascending=False)
