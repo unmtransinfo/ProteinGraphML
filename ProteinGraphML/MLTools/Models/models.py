@@ -735,9 +735,9 @@ class XGBoostModel(BaseModel):
 
     # Save the important features in a text file.
     def saveImportantFeatures(self, importance, idDescription, idNameSymbol, idSource=None):
-        '''
+        """
 		This function saves the important features in a text file.
-		'''
+		"""
 
         dataForDataframe = {'Feature': [], 'Symbol': [], 'Cell_id': [], 'Drug_name': [],
                             'Tissue': [], 'Source': [], 'Name': [], 'Gain Value': []}
@@ -793,11 +793,15 @@ class XGBoostModel(BaseModel):
                 dataForDataframe['Tissue'].append(tissue)
                 dataForDataframe['Drug_name'].append('')
 
-            # for LINCS only
+            # for LINCS only.
+            # LINCS features contain pert_id and cell_id, separated by :. The drug_id in “olegdb” is the DrugCentral
+            # ID, which is DrugCentral chemical structure (active ingredient) ID. The pert_id from LINCS features is
+            # used as drug_id to fetch the drug name from the dictionary.
+
             elif feature in idSource and idSource[feature] == "lincs":
                 drugid = feature[:feature.index(':')]
                 try:
-                    drugname = idSource['drug_'+drugid]
+                    drugname = idSource['drug_' + drugid]
                 except:
                     drugname = ''
                 cid = feature[feature.index(':') + 1:]
