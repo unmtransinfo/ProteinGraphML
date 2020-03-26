@@ -12,8 +12,6 @@ import logging
 from .biodata_helper import selectAsDF,attachColumn,generateDepthMap
 
 
-# this is the OLEG ADAPTER CODE
-
 # our graph takes a list of pandas frames, w/ relationships, and constructs a graph from all of it ... we may wrap that, but the adapter should provide pandas frames
 
 
@@ -43,7 +41,7 @@ class NodeName:
     name = None # so we can call .name("Protein",nodes)
     dataframe = None # a mapping we can use
 
-    def __init__(self,name,keyValue,dataframe):
+    def __init__(self, name, keyValue, dataframe):
         self.keyValue = keyValue
         self.name = name
         self.dataframe = dataframe
