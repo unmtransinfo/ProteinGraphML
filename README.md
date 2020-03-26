@@ -199,6 +199,7 @@ Command line parameters:
 * `--modelfile` : trained model (e.g. results/autophagy_test20191003/XGBCrossVal.model).
 * `--predictfile` : predict data file, produced by `PrepTrainingAndTestSets.py` (e.g.  "diabetesPredictData.pkl")
 * `--resultdir` : directory for output results
+* `--infofile` : protein information file with full path. The file should contain tdl, fam, uniprot data.
 
 Example commands:
 
