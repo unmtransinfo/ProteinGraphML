@@ -2,7 +2,7 @@
 // default import dir /var/lib/neo4j/import/.
 ////
 // See https://neo4j.com/docs/getting-started/current/cypher-intro/load-csv/
-// CALL dbms.security.createUser('jjyang', 'assword')
+// CALL dbms.security.createUser('www', 'foobar')
 // In Community Edition, all users have admin privileges.
 ////
 

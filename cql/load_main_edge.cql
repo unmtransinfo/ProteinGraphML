@@ -2,7 +2,7 @@
 // default import dir /var/lib/neo4j/import/.
 ////
 // See https://neo4j.com/docs/getting-started/current/cypher-intro/load-csv/
-// CALL dbms.security.createUser('jjyang', 'assword')
+// CALL dbms.security.createUser('www', 'foobar')
 // In Community Edition, all users have admin privileges.
 ////
 
@@ -25,15 +25,16 @@
 //WHERE row.node_or_edge = 'edge'
 //RETURN row.sourceId, row.targetId, s.ID, t.ID ;
 ////
-//Protein-Protein (bug?)
-//USING PERIODIC COMMIT 100
-//LOAD CSV WITH HEADERS FROM "file:///ProteinGraphML/kg.tsv"
-//AS row FIELDTERMINATOR '\t' WITH row
-//MATCH (s {ID:row.sourceId}), (t {ID:row.targetId})
-//WHERE row.node_or_edge = 'edge'
-//AND NOT (row.sourceId =~ '[0-9]+' AND row.targetId =~ '[0-9]+')
-//CREATE (s)-[:Unknown]->(t) ;
-//
+//Protein-Protein (STRING)
+USING PERIODIC COMMIT 100
+LOAD CSV WITH HEADERS FROM "file:///ProteinGraphML/kg.tsv"
+AS row FIELDTERMINATOR '\t' WITH row
+MATCH (s {ID:row.sourceId}), (t {ID:row.targetId})
+WHERE row.node_or_edge = 'edge'
+AND row.sourceId =~ '[0-9]+'
+AND row.targetId =~ '[0-9]+'
+CREATE (s)-[:STRING]->(t) ;
+
 USING PERIODIC COMMIT 100
 LOAD CSV WITH HEADERS FROM "file:///ProteinGraphML/kg.tsv"
 AS row FIELDTERMINATOR '\t' WITH row
@@ -43,11 +44,15 @@ AND row.sourceId =~ '[0-9]+'
 AND SUBSTRING(row.targetId, 0, 3) = 'GO:'
 CREATE (s)-[:GO]->(t) ;
 
-//Error:
-// LockClient[52635] can't wait on resource RWLock[NODE(11856), hash=313466545]
-// since => LockClient[52635] <-[:HELD_BY]- RWLock[NODE(5000), hash=934842911]
-// <-[:WAITING_FOR]- LockClient[52638] <-[:HELD_BY]- RWLock[NODE(11856), hash=313466545]
-
+//BUG? Why a few GO->Protein edges, but mostly Protein->GO?
+USING PERIODIC COMMIT 100
+LOAD CSV WITH HEADERS FROM "file:///ProteinGraphML/kg.tsv"
+AS row FIELDTERMINATOR '\t' WITH row
+MATCH (s {ID:row.sourceId}), (t {ID:row.targetId})
+WHERE row.node_or_edge = 'edge'
+AND SUBSTRING(row.sourceId , 0, 3) = 'GO:'
+AND row.targetId =~ '[0-9]+'
+CREATE (s)-[:GO]->(t) ;
 
 USING PERIODIC COMMIT 100
 LOAD CSV WITH HEADERS FROM "file:///ProteinGraphML/kg.tsv"
@@ -100,3 +105,6 @@ MATCH ()-[r:GO]-() RETURN COUNT(r) AS RELATIONSHIPS_GO ;
 MATCH ()-[r:KEGG]-() RETURN COUNT(r) AS RELATIONSHIPS_KEGG ;
 MATCH ()-[r:REACTOME]-() RETURN COUNT(r) AS RELATIONSHIPS_REACTOME ;
 MATCH ()-[r:INTERPRO]-() RETURN COUNT(r) AS RELATIONSHIPS_INTERPRO ;
+////
+//Delete duplicates:
+//MATCH (s)-[r:GO]->(e) WITH s, e, type(r) AS t, tail(collect(r)) AS c foreach(x IN c | DELETE x)

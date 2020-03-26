@@ -182,8 +182,8 @@ if __name__ == "__main__":
                 fout.write('node\t'+node_class+'\t'+str(node)+'\t'+idDescription[node]+'\t\t\n')
             allEdges = set(pdg.graph.edges)
             for edge in allEdges:
-                if re.match(r'\d+$', str(edge[0])) and re.match(r'\d+$', str(edge[1])):
-                    continue #protein-protein edges?? Bug?
+                #if re.match(r'\d+$', str(edge[0])) and re.match(r'\d+$', str(edge[1])):
+                #    continue #protein-protein edges: STRING?
                 edgeCount += 1
                 fout.write('edge\t\t\t\t'+str(edge[0])+'\t'+str(edge[1])+'\n')
         logging.info('{0} nodes, {1} edges written to {2}'.format(nodeCount, edgeCount, args.tsvfile))
