@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import networkx as nx
 
-from ProteinGraphML.DataAdapter import OlegDB, selectAsDF
+from ProteinGraphML.DataAdapter import OlegDB, selectAsDF, TCRD
 from ProteinGraphML.GraphTools import ProteinDiseaseAssociationGraph
 from ProteinGraphML.MLTools.MetapathFeatures import metapathFeatures, ProteinInteractionNode, KeggNode, ReactomeNode, \
     GoNode, InterproNode, getMetapaths
@@ -41,6 +41,7 @@ NTHREADS = 1
 PROCEDURES = ["XGBCrossValPred", "XGBKfoldsRunPred", "XGBGridSearch"]
 XGB_PARAMETERS_FILE = 'XGBparams.txt'
 DEFAULT_STATIC_FEATURES = "gtex,lincs,ccle,hpa"
+DBS = ['olegdb', 'tcrd']
 
 parser = argparse.ArgumentParser(description='Run ML Procedure',
                                  epilog='--disease or --file must be specified; available procedures: {0}'.format(
@@ -55,6 +56,7 @@ parser.add_argument('--nrounds_for_avg', type=int, default=NUM_OF_ROUNDS,
 parser.add_argument('--xgboost_param_file', default=XGB_PARAMETERS_FILE,
                     help='text file containing parameters for XGBoost classifier (e.g. XGBparams.txt)')
 parser.add_argument("-v", "--verbose", action="count", default=0, help="verbosity")
+parser.add_argument('--db', choices=DBS, default="olegdb", help='{0}'.format(str(DBS)))
 parser.add_argument('--static_data', default=DEFAULT_STATIC_FEATURES,
                     help='(default: "{0}")'.format(DEFAULT_STATIC_FEATURES))
 parser.add_argument('--static_dir', default=os.getcwd() + "/static_olegdb/")
@@ -81,7 +83,7 @@ Procedure = args.procedure
 logging.info('Procedure: {0}'.format(Procedure))
 
 # Get reult directory and number of folds
-if (args.resultdir is not None):
+if args.resultdir is not None:
     resultDir = args.resultdir  # folder where all results will be stored
     logging.info('Results will be saved in directory: {0}'.format(resultDir))
 else:
@@ -97,7 +99,8 @@ with open(args.xgboost_param_file, 'r') as fh:
 xgbParams = yaml.full_load(paramVals)
 
 # fetch the description of proteins and pathway_ids
-dbAdapter = OlegDB()
+# dbAdapter = OlegDB()
+dbAdapter = TCRD() if args.db == "tcrd" else OlegDB()
 idDescription = dbAdapter.fetchPathwayIdDescription()  # fetch the description
 idNameSymbol = dbAdapter.fetchSymbolForProteinId()  # fetch name and symbol for protein
 idSource = dbAdapter.addDatabaseSourceToProteinId()  # fetch protein source

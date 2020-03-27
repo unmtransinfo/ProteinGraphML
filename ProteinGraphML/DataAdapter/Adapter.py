@@ -290,43 +290,48 @@ class OlegDB(Adapter):
     # the following function will be used to assign the database source to each protein id
     def addDatabaseSourceToProteinId(self):
         idSourceDict = {}
-        reactome = selectAsDF("select distinct reactome_id, 'Reactome' as source from reactome", ["reactome_id", "source"], self.db)
-        logging.debug("(OlegDB.fetchPathwayIdDescription) Reactome IDs: {0}".format(reactome.shape[0]))
+        reactome = selectAsDF("select distinct reactome_id, 'Reactome' as source from reactome",
+                              ["reactome_id", "source"], self.db)
+        logging.debug("(OlegDB.addDatabaseSourceToProteinId) Reactome IDs: {0}".format(reactome.shape[0]))
         reactomeDict = reactome.set_index('reactome_id').T.to_dict('records')[0]  # DataFrame to dictionary
         idSourceDict.update(reactomeDict)
 
-        kegg = selectAsDF("select distinct kegg_pathway_id, 'Kegg' as source from kegg_pathway", ["kegg_pathway_id", "source"], self.db)
-        logging.debug("(OlegDB.fetchPathwayIdDescription) KEGG pathway IDs: {0}".format(kegg.shape[0]))
+        kegg = selectAsDF("select distinct kegg_pathway_id, 'Kegg' as source from kegg_pathway",
+                          ["kegg_pathway_id", "source"], self.db)
+        logging.debug("(OlegDB.addDatabaseSourceToProteinId) KEGG pathway IDs: {0}".format(kegg.shape[0]))
         keggDict = kegg.set_index('kegg_pathway_id').T.to_dict('records')[0]  # DataFrame to dictionary
         idSourceDict.update(keggDict)
 
-        interpro = selectAsDF("select distinct entry_ac, 'Interpro' as source from interpro", ["entry_ac", "source"], self.db)
-        logging.debug("(OlegDB.fetchPathwayIdDescription) Interpro IDs: {0}".format(interpro.shape[0]))
+        interpro = selectAsDF("select distinct entry_ac, 'Interpro' as source from interpro", ["entry_ac", "source"],
+                              self.db)
+        logging.debug("(OlegDB.addDatabaseSourceToProteinId) Interpro IDs: {0}".format(interpro.shape[0]))
         interproDict = interpro.set_index('entry_ac').T.to_dict('records')[0]  # DataFrame to dictionary
         idSourceDict.update(interproDict)
 
         goa = selectAsDF("select distinct go_id, 'GO' as source from go", ["go_id", "source"], self.db)
-        logging.debug("(OlegDB.fetchPathwayIdDescription) GO IDs: {0}".format(goa.shape[0]))
+        logging.debug("(OlegDB.addDatabaseSourceToProteinId) GO IDs: {0}".format(goa.shape[0]))
         goaDict = goa.set_index('go_id').T.to_dict('records')[0]  # DataFrame to dictionary
         idSourceDict.update(goaDict)
 
-        ppi = selectAsDF("select distinct protein_id, 'PPI string' as source from protein", ["protein_id", "source"], self.db)
-        logging.debug("(OlegDB.fetchPathwayIdDescription) Protein IDs: {0}".format(ppi.shape[0]))
+        ppi = selectAsDF("select distinct protein_id, 'PPI string' as source from protein", ["protein_id", "source"],
+                         self.db)
+        logging.debug("(OlegDB.addDatabaseSourceToProteinId) Protein IDs: {0}".format(ppi.shape[0]))
         ppiDict = ppi.set_index('protein_id').T.to_dict('records')[0]  # DataFrame to dictionary
         idSourceDict.update(ppiDict)
 
-        mp = selectAsDF("select distinct mp_term_id, 'MP term' as source from mp_onto", ["mp_term_id", "source"], self.db)
-        logging.debug("(OlegDB.fetchPathwayIdDescription) MP IDs: {0}".format(mp.shape[0]))
+        mp = selectAsDF("select distinct mp_term_id, 'MP term' as source from mp_onto", ["mp_term_id", "source"],
+                        self.db)
+        logging.debug("(OlegDB.addDatabaseSourceToProteinId) MP IDs: {0}".format(mp.shape[0]))
         mpDict = mp.set_index('mp_term_id').T.to_dict('records')[0]  # DataFrame to dictionary
         idSourceDict.update(mpDict)
 
         # the following function will fetch drug_id and drug_name from drug_name table.
-        allDrugNames = selectAsDF("select 'drug_'||drug_id AS col_id, drug_name from drug_name", ['col_id', 'drug_name'], self.db)
-        logging.debug("(OlegDB.fetchPathwayIdDescription) All Drug Ids: {0}".format(allDrugNames.shape[0]))
+        allDrugNames = selectAsDF("select 'drug_'||drug_id AS col_id, drug_name from drug_name",
+                                  ['col_id', 'drug_name'], self.db)
+        logging.debug("(OlegDB.addDatabaseSourceToProteinId) All Drug Ids: {0}".format(allDrugNames.shape[0]))
         drugIdNameDict = allDrugNames.set_index('col_id').T.to_dict('records')[0]  # DataFrame to dictionary
         idSourceDict.update(drugIdNameDict)
         return idSourceDict
-
 
     # the following function will be used to fetch the protein_id for the given symbols
     def fetchProteinIdForSymbol(self, symbolList):
@@ -353,7 +358,6 @@ class OlegDB(Adapter):
         logging.debug("(OlegDB.fetchProteinIdForSymbol) Protein Name for Id: {0}".format(proteinIdSymbol.shape[0]))
         proteinIdSymbolDict = proteinIdSymbol.set_index('protein_id').T.to_dict('records')[0]  # DataFrame to dictionary
         return proteinIdSymbolDict
-
 
     # the following function with fetch all protein ids with negative class
     def fetchNegativeClassProteinIds(self):
@@ -415,7 +419,7 @@ class TCRD(Adapter):
         return GraphEdge("protein_id", "reactome_id", data=reactome)
 
     def loadPPI(self, proteinFilter=None):
-        stringDB = selectAsDF("SELECT protein1_id, protein2_id, score FROM ppi WHERE ppitype = 'STRINGDB'",
+        stringDB = selectAsDF("SELECT protein1_id, protein2_id, score AS combined_score FROM ppi WHERE ppitype = 'STRINGDB'",
                               ["protein_id1", "protein_id2", "combined_score"], self.db)
         if proteinFilter is not None:
             stringDB = stringDB[stringDB['protein_id1'].isin(proteinFilter)]
@@ -546,7 +550,7 @@ WHERE
         self.db.bind(provider='mysql', user=credentials['tcrd_user'], password=credentials['tcrd_password'],
                      host=credentials['tcrd_host'], database=credentials['tcrd_database'])
         logging.debug("(TCRD.load) Connected to db (%s): %s:%s:%s" % (
-        self.db.provider_name, credentials['tcrd_host'], credentials['tcrd_database'], credentials['tcrd_user']))
+            self.db.provider_name, credentials['tcrd_host'], credentials['tcrd_database'], credentials['tcrd_user']))
         self.db.generate_mapping(create_tables=False)
 
         # hack ... saving the (DB) like this
@@ -666,8 +670,56 @@ WHERE
         idNameDict.update(mpDict)
         return idNameDict
 
+    # the following function will be used to assign the database source to each protein id
+    def addDatabaseSourceToProteinId(self):
+        idSourceDict = {}
+        reactome = selectAsDF(
+            "SELECT DISTINCT id_in_source AS reactome_id, 'Reactome' as source FROM pathway WHERE pwtype = 'Reactome'",
+            ["reactome_id", "source"], self.db)
+        logging.debug("(TCRD.addDatabaseSourceToProteinId) Reactome IDs: {0}".format(reactome.shape[0]))
+        reactomeDict = reactome.set_index('reactome_id').T.to_dict('records')[0]  # DataFrame to dictionary
+        idSourceDict.update(reactomeDict)
+
+        kegg = selectAsDF(
+            "SELECT DISTINCT SUBSTR(id_in_source, 6) AS kegg_pathway_id, 'Kegg' as source FROM pathway WHERE pwtype = 'KEGG'",
+            ["kegg_pathway_id", "source"], self.db)
+        logging.debug("(TCRD.addDatabaseSourceToProteinId) KEGG pathway IDs: {0}".format(kegg.shape[0]))
+        keggDict = kegg.set_index('kegg_pathway_id').T.to_dict('records')[0]  # DataFrame to dictionary
+        idSourceDict.update(keggDict)
+
+        interpro = selectAsDF(
+            "SELECT DISTINCT value AS entry_ac, 'Interpro' as source FROM xref WHERE xtype = 'InterPro'",
+            ["entry_ac", "source"], self.db)
+        logging.debug("(TCRD.addDatabaseSourceToProteinId) Interpro IDs: {0}".format(interpro.shape[0]))
+        interproDict = interpro.set_index('entry_ac').T.to_dict('records')[0]  # DataFrame to dictionary
+        idSourceDict.update(interproDict)
+
+        goa = selectAsDF("SELECT DISTINCT go_id, 'GO' as source FROM goa", ["go_id", "source"], self.db)
+        logging.debug("(TCRD.addDatabaseSourceToProteinId) GO IDs: {0}".format(goa.shape[0]))
+        goaDict = goa.set_index('go_id').T.to_dict('records')[0]  # DataFrame to dictionary
+        idSourceDict.update(goaDict)
+
+        ppi = selectAsDF("SELECT DISTINCT id AS protein_id, 'PPI string' as source FROM protein", ["protein_id", "source"],
+                         self.db)
+        logging.debug("(TCRD.addDatabaseSourceToProteinId) Protein IDs: {0}".format(ppi.shape[0]))
+        ppiDict = ppi.set_index('protein_id').T.to_dict('records')[0]  # DataFrame to dictionary
+        idSourceDict.update(ppiDict)
+
+        mp = selectAsDF("SELECT DISTINCT mpid AS mp_term_id, 'MP term' as source FROM mpo", ["mp_term_id", "source"], self.db)
+        logging.debug("(TCRD.addDatabaseSourceToProteinId) MP IDs: {0}".format(mp.shape[0]))
+        mpDict = mp.set_index('mp_term_id').T.to_dict('records')[0]  # DataFrame to dictionary
+        idSourceDict.update(mpDict)
+
+        # the following function will fetch drug_id and drug_name from drug_name table.
+        allDrugNames = selectAsDF("select 'drug_'||dcid AS col_id, drug from drug_activity",
+                                  ['col_id', 'drug_name'], self.db)
+        logging.debug("(TCRD.addDatabaseSourceToProteinId) All Drug Ids: {0}".format(allDrugNames.shape[0]))
+        drugIdNameDict = allDrugNames.set_index('col_id').T.to_dict('records')[0]  # DataFrame to dictionary
+        idSourceDict.update(drugIdNameDict)
+        return idSourceDict
+
     def fetchProteinIdForSymbol(self, symbolList):
-        sql = "SELECT DISTINCT sym AS symbol, id AS protein_id FROM protein WHERE symbol in ("
+        sql = "SELECT DISTINCT sym AS symbol, id AS protein_id FROM protein WHERE sym in ("
         for symbol in symbolList[:-1]:
             sql = sql + "'" + symbol + "'" + ','
         sql = sql + "'" + symbolList[-1] + "')"

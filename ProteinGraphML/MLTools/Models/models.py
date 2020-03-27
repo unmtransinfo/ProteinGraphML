@@ -747,7 +747,7 @@ class XGBoostModel(BaseModel):
 
             if feature.lower().islower():  # alphanumeric feature
                 # source
-                if idSource is not None:
+                if idSource is not None and feature in idSource:
                     dataForDataframe['Source'].append(idSource[feature])
                 else:
                     dataForDataframe['Source'].append('')
