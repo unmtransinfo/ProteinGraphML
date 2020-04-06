@@ -102,6 +102,7 @@ Command line parameters:
 * `--i` : Input file that contains protein_ids/symbols and labels for a given disease, with extension (csv|txt|xlsx|rds).
 * `--symbol_or_pid` : "symbol" or "pid" (default: symbol).
 * `--use_default_negatives` : Use default negatives, ~3500 genes with known associations but not with query disease. If false, input training set must include negatives.
+* `--db` : database (olegdb or tcrd) to use to build KG (default: olegdb)
 
 If the file is a spreadsheet, the header should have "Protein_id Label" or "Symbol Label".
 If the file is a text file, the Protein_id/symbol and
@@ -112,10 +113,10 @@ Example commands:
 
 ```
 PrepTrainingAndTestSets.py -h
-PrepTrainingAndTestSets.py --i data/diabetes_pid.txt --symbol_or_pid 'pid'
-PrepTrainingAndTestSets.py --i data/autophagy.xlsx
-PrepTrainingAndTestSets.py --i data/diabetes.xlsx --use_default_negatives
-PrepTrainingAndTestSets.py --i data/Asthma.rds
+PrepTrainingAndTestSets.py --i data/diabetes_pid.txt --symbol_or_pid 'pid' --db olegdb
+PrepTrainingAndTestSets.py --i data/autophagy.xlsx --db olegdb
+PrepTrainingAndTestSets.py --i data/diabetes.xlsx --use_default_negatives --db olegdb
+PrepTrainingAndTestSets.py --i data/Asthma.rds --db olegdb
 ```
 
 ### <a name="HowtoMetapathFeatures"/>Metapath Features
@@ -138,14 +139,15 @@ RDS files to create sets of training and predict protein ids using `PrepTraining
 *  `--kgfile` : input pickled KG (default: "ProteinDisease_GRAPH.pkl")
 *  `--static_data` : (default: "gtex,lincs,ccle,hpa")
 *  `--static_dir` : directory of static features files: lincs.tsv, hpa.tsv, gtex.tsv, and ccle.tsv
+*  `--db` : database (olegdb or tcrd) to use to build KG (default: olegdb)
 
 Example commands:
 
 ```
 GenTrainingAndTestFeatures.py -h
-GenTrainingAndTestFeatures.py --trainingfile data/ATG.pkl --predictfile data/ATG_predict.pkl --outputdir results/ATG --kgfile ProteinDisease_GRAPH.pkl --static_data "gtex" --static_dir data
-GenTrainingAndTestFeatures.py --disease MP_0000180 --outputdir results/MP_0000180 --kgfile ProteinDisease_GRAPH.pkl --static_data "gtex,lincs,ccle,hpa" --static_dir data
-GenTrainingAndTestFeatures.py --trainingfile data/PS118220.pkl --predictfile data/PS118220_predict.pkl --outputdir results/PS118220 --kgfile ProteinDisease_GRAPH.pkl --static_data "gtex,lincs,ccle,hpa" --static_dir data
+GenTrainingAndTestFeatures.py --trainingfile data/ATG.pkl --predictfile data/ATG_predict.pkl --outputdir results/ATG --kgfile ProteinDisease_GRAPH.pkl --static_data "gtex" --static_dir data --db olegdb
+GenTrainingAndTestFeatures.py --disease MP_0000180 --outputdir results/MP_0000180 --kgfile ProteinDisease_GRAPH.pkl --static_data "gtex,lincs,ccle,hpa" --static_dir data --db olegdb
+GenTrainingAndTestFeatures.py --trainingfile data/PS118220.pkl --predictfile data/PS118220_predict.pkl --outputdir results/PS118220 --kgfile ProteinDisease_GRAPH.pkl --static_data "gtex,lincs,ccle,hpa" --static_dir data --db olegdb
 ```
 
 ### <a name="HowtoTrainML"/>Train ML Model
@@ -171,14 +173,15 @@ Command line parameters:
 * `--rseed` : random seed that XGBoost should use for procedure `XGBGridSearch` (default:1234)
 * `--nthreds` : number of CPU threads for procedure `XGBGridSearch` (default:1).
 * `--xgboost_param_file` : XGBoost configuration parameter file (e.g. XGBparams.txt). This is used for `XGBCrossValPred` and `XGBKfoldsRunPred`. XGBparams.txt created by GridSearch can be used for this parameter. Modify XGBparams.txt if any parameter needs to be changed.
+*  `--db` : database (olegdb or tcrd) to use to build KG (default: olegdb)
 
 Example commands:
 
 ```
 TrainModelML.py -h
-TrainModelML.py XGBGridSearch --trainingfile results/ATG/ATG_TrainingData.pkl --rseed 1234 --nthreads 32 --resultdir results/ATG
-TrainModelML.py XGBCrossValPred --trainingfile results/ATG/ATG_TrainingData.pkl --resultdir results/ATG --xgboost_param_file XGBparams.txt
-TrainModelML.py XGBKfoldsRunPred --trainingfile results/ATG/ATG_TrainingData.pkl --resultdir results/ATG --xgboost_param_file XGBparams.txt --nrounds_for_avg 5
+TrainModelML.py XGBGridSearch --trainingfile results/ATG/ATG_TrainingData.pkl --rseed 1234 --nthreads 32 --resultdir results/ATG --db olegdb
+TrainModelML.py XGBCrossValPred --trainingfile results/ATG/ATG_TrainingData.pkl --resultdir results/ATG --xgboost_param_file XGBparams.txt --db olegdb
+TrainModelML.py XGBKfoldsRunPred --trainingfile results/ATG/ATG_TrainingData.pkl --resultdir results/ATG --xgboost_param_file XGBparams.txt --nrounds_for_avg 5 --db olegdb
 ```
 
 Results will be saved in the specified --resultsdir. See logs for specific
@@ -200,12 +203,13 @@ Command line parameters:
 * `--predictfile` : predict data file, produced by `PrepTrainingAndTestSets.py` (e.g.  "diabetesPredictData.pkl")
 * `--resultdir` : directory for output results
 * `--infofile` : protein information file with full path. The file should contain tdl, fam, uniprot data.
+*  `--db` : database (olegdb or tcrd) to use to build KG (default: olegdb)
 
 Example commands:
 
 ```
 PredictML.py -h
-PredictML.py XGBPredict --predictfile results/ATG/ATG_predict_PredictData.pkl --model results/ATG/XGBCrossValPred.model --resultdir results/ATG
+PredictML.py XGBPredict --predictfile results/ATG/ATG_predict_PredictData.pkl --model results/ATG/XGBCrossValPred.model --resultdir results/ATG --db olegdb
 ```
 
 Results will be saved in the specified --resultsdir. See logs for specific

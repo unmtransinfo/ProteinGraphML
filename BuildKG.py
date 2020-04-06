@@ -2,7 +2,7 @@
 """
 	Create Protein Disease knowledge graph from DB adapter 'OlegDB' or 'TCRD'.
 """
-import sys,os,re,argparse,time,json
+import sys, os, re, argparse, time, json
 import logging
 from networkx.readwrite.json_graph import cytoscape_data
 from networkx.readwrite.graphml import generate_graphml
@@ -25,7 +25,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s', level=(logging.DEBUG if args.verbose > 1 else logging.INFO))
+    logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s',
+                        level=(logging.DEBUG if args.verbose > 1 else logging.INFO))
 
     t0 = time.time()
 
@@ -109,7 +110,7 @@ if __name__ == "__main__":
         else:
             pdg.graph.nodes[n]['Description'] = ''
 
-    #print(pdg.graph.nodes.data())
+    # print(pdg.graph.nodes.data())
 
     # Save graph in pickle format.
     if args.ofile is not None:
@@ -128,7 +129,7 @@ if __name__ == "__main__":
         logging.info("Saving KG to GraphML file: {0}".format(args.graphmlfile))
         with open(args.graphmlfile, 'w') as fgraphml:
             for line in generate_graphml(pdg.graph, encoding="utf-8", prettyprint=True):
-                fgraphml.write(line+"\n")
+                fgraphml.write(line + "\n")
 
     # Log node and edge info.
     if args.logfile is not None:
@@ -153,7 +154,8 @@ if __name__ == "__main__":
 
     # TSV node and edge info, importable by Neo4j.
     if args.tsvfile is not None:
-        edgeCount = 0; nodeCount = 0;
+        edgeCount = 0;
+        nodeCount = 0;
         with open(args.tsvfile, 'w') as fout:
             fout.write('node_or_edge\tclass\tid\tname\tsourceId\ttargetId\n')
             allNodes = set(pdg.graph.nodes)
@@ -167,25 +169,26 @@ if __name__ == "__main__":
 
                 if re.match(r'\d+$', str(node)):
                     node_class = "PROTEIN"
-                elif str(node)[0:3]=="hsa":
+                elif str(node)[0:3] == "hsa":
                     node_class = "KEGG"
-                elif str(node)[0:2]=="R-":
+                elif str(node)[0:2] == "R-":
                     node_class = "REACTOME"
-                elif str(node)[0:3]=="GO:":
+                elif str(node)[0:3] == "GO:":
                     node_class = "GO"
-                elif str(node)[0:3]=="IPR":
+                elif str(node)[0:3] == "IPR":
                     node_class = "INTERPRO"
-                elif str(node)[0:2]=="MP":
+                elif str(node)[0:2] == "MP":
                     node_class = "MP"
                 else:
                     node_class = "Unknown"
-                fout.write('node\t'+node_class+'\t'+str(node)+'\t'+idDescription[node]+'\t\t\n')
+                fout.write('node\t' + node_class + '\t' + str(node) + '\t' + idDescription[node] + '\t\t\n')
             allEdges = set(pdg.graph.edges)
             for edge in allEdges:
-                #if re.match(r'\d+$', str(edge[0])) and re.match(r'\d+$', str(edge[1])):
+                # if re.match(r'\d+$', str(edge[0])) and re.match(r'\d+$', str(edge[1])):
                 #    continue #protein-protein edges: STRING?
                 edgeCount += 1
-                fout.write('edge\t\t\t\t'+str(edge[0])+'\t'+str(edge[1])+'\n')
+                fout.write('edge\t\t\t\t' + str(edge[0]) + '\t' + str(edge[1]) + '\n')
         logging.info('{0} nodes, {1} edges written to {2}'.format(nodeCount, edgeCount, args.tsvfile))
 
-    logging.info('{0}: elapsed time: {1}'.format(os.path.basename(sys.argv[0]), time.strftime('%Hh:%Mm:%Ss', time.gmtime(time.time() - t0))))
+    logging.info('{0}: elapsed time: {1}'.format(os.path.basename(sys.argv[0]),
+                                                 time.strftime('%Hh:%Mm:%Ss', time.gmtime(time.time() - t0))))

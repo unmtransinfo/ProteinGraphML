@@ -61,7 +61,10 @@ def singleHop(graph,nodes,trueP,falseP, idDescription, fh):
 	for e in finalEdges:
 		middleNodes.append(e[1])
 		edgeNodes.append(e[0])
-		combinedScores.append(graph.get_edge_data(e[0],e[1])['combined_score'])
+		try:
+			combinedScores.append(graph.get_edge_data(e[0],e[1])['combined_score'])
+		except:
+			combinedScores.append(0)
 
 	dataset = pd.DataFrame(data={"protein_id":edgeNodes,"protein_m_id":middleNodes,"scores":combinedScores})
 	#result.to_csv('STUFF')
