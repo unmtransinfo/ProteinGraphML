@@ -56,4 +56,8 @@ CREATE (s)-[:GO]->(t)"
 # Delete all with:
 # cypher-shell 'MATCH (n) DETACH DELETE n'
 ###
-#
+# Dump/load commands:
+# Db must be stopped, commands invoked as neo4j user.
+# neo4j-admin dump --database=neo4j --to=neo4j.dump
+# neo4j-admin load --from=neo4j.dump --database=neo4j [--force]
+###
