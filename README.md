@@ -48,12 +48,12 @@ graph.
 
 Command line parameters:
 
-* `OPERATION` (positional parameter):
-   * `build` :  build KG and write to output file.
-   * `test` : build KG, write log, but not output file.
 * `--o` : Pickled KG file (default: ProteinDisease_GRAPH.pkl).
+* `--db` : database (olegdb or tcrd) to use to build KG (default: olegdb).
 * `--logfile` : KG log file (default: ProteinDisease_GRAPH.log).
-* `--db` : database (olegdb or tcrd) to use to build KG (default: olegdb)
+* `--cyjsfile`: Save KG as CYJS file.
+* `--graphmlfile` : Save KG as graphML.
+* `--tsvfile` : Save KG as TSV file.
 
 Example commands:
 
@@ -61,7 +61,7 @@ Example commands:
 BuildKG.py -h
 BuildKG.py test
 BuildKG.py build
-BuildKG.py build --db olegdb --o ProteinDisease_GRAPH.pkl --logfile ProteinDisease_GRAPH.log
+BuildKG.py build --db olegdb --o ProteinDisease_GRAPH.pkl
 ```
 
 ### <a name="HowtoStaticFeatures"/>Static Features
