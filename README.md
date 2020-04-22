@@ -51,17 +51,15 @@ Command line parameters:
 * `--o` : Pickled KG file (default: ProteinDisease_GRAPH.pkl).
 * `--db` : database (olegdb or tcrd) to use to build KG (default: olegdb).
 * `--logfile` : KG log file (default: ProteinDisease_GRAPH.log).
-* `--cyjsfile`: Save KG as CYJS file.
-* `--graphmlfile` : Save KG as graphML.
-* `--tsvfile` : Save KG as TSV file.
+* `--cyjsfile`: Save KG as CYJS file. (optional)
+* `--graphmlfile` : Save KG as graphML. (optional)
+* `--tsvfile` : Save KG as TSV file. (optional)
 
 Example commands:
 
 ```
 BuildKG.py -h
-BuildKG.py test
-BuildKG.py build
-BuildKG.py build --db olegdb --o ProteinDisease_GRAPH.pkl
+BuildKG.py --db olegdb --o ProteinDisease_GRAPH.pkl --logfile ProteinDisease_GRAPH.log --cyjsfile ProteinDisease_GRAPH.cyjs
 ```
 
 ### <a name="HowtoStaticFeatures"/>Static Features
