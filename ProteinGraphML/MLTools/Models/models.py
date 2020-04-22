@@ -507,7 +507,7 @@ class XGBoostModel(BaseModel):
     # This function divides the data into train and test sets 'n' (number of folds) times.
     # Model trained on the train data is tested on the test data. Average MCC, Accuracy and ROC
     # is reported.
-    def average_cross_val(self, allData, idDescription, idNameSymbol, outputTypes, iterations, testSize=0.2, params={}):
+    def average_cross_val(self, allData, idDescription, idNameSymbol, idSource, outputTypes, iterations, testSize=0.2, params={}):
 
         collection = []
         importance = None
@@ -571,7 +571,7 @@ class XGBoostModel(BaseModel):
 
         logging.info("METRICS: {0}".format(str(metrics)))  # write this metrics to a file...
 
-        self.saveImportantFeatures(importance, idDescription, idNameSymbol)  # save important features
+        self.saveImportantFeatures(importance, idDescription, idNameSymbol, idSource=idSource)  # save important features
         self.saveImportantFeaturesAsPickle(importance)
         self.saveSeedPerformance(seedAUC)
         # print (avgPredictedProb)
