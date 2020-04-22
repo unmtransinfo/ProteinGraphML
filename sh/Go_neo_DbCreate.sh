@@ -58,6 +58,6 @@ CREATE (s)-[:GO]->(t)"
 ###
 # Dump/load commands:
 # Db must be stopped, commands invoked as neo4j user.
-# neo4j-admin dump --database=neo4j --to=neo4j.dump
-# neo4j-admin load --from=neo4j.dump --database=neo4j [--force]
+# sudo -u neo4j neo4j-admin dump --database=neo4j --to=neo4j.dump
+# sudo -u neo4j neo4j-admin load --from=neo4j.dump --database=neo4j [--force]
 ###
