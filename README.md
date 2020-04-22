@@ -101,7 +101,7 @@ Command line parameters:
 * `--i` : Input file that contains protein_ids/symbols and labels for a given disease, with extension (csv|txt|xlsx|rds).
 * `--symbol_or_pid` : "symbol" or "pid" (default: symbol).
 * `--use_default_negatives` : Use default negatives, ~3500 genes with known associations but not with query disease. If false, input training set must include negatives.
-* `--db` : database (olegdb or tcrd) to use to build KG (default: olegdb)
+* `--db` : database (olegdb or tcrd) (default: olegdb)
 
 If the file is a spreadsheet, the header should have "Protein_id Label" or "Symbol Label".
 If the file is a text file, the Protein_id/symbol and
@@ -138,7 +138,7 @@ RDS files to create sets of training and predict protein ids using `PrepTraining
 *  `--kgfile` : input pickled KG (default: "ProteinDisease_GRAPH.pkl")
 *  `--static_data` : (default: "gtex,lincs,ccle,hpa")
 *  `--static_dir` : directory of static features files: lincs.tsv, hpa.tsv, gtex.tsv, and ccle.tsv
-*  `--db` : database (olegdb or tcrd) to use to build KG (default: olegdb)
+*  `--db` : database (olegdb or tcrd) (default: olegdb)
 
 Example commands:
 
@@ -172,7 +172,7 @@ Command line parameters:
 * `--rseed` : random seed that XGBoost should use for procedure `XGBGridSearch` (default:1234)
 * `--nthreds` : number of CPU threads for procedure `XGBGridSearch` (default:1).
 * `--xgboost_param_file` : XGBoost configuration parameter file (e.g. XGBparams.txt). This is used for `XGBCrossValPred` and `XGBKfoldsRunPred`. XGBparams.txt created by GridSearch can be used for this parameter. Modify XGBparams.txt if any parameter needs to be changed.
-*  `--db` : database (olegdb or tcrd) to use to build KG (default: olegdb)
+*  `--db` : database (olegdb or tcrd) (default: olegdb)
 *  `--static_data` : (default: "gtex,lincs,ccle,hpa")
 *  `--static_dir` : directory of static features files: lincs.tsv, hpa.tsv, gtex.tsv, and ccle.tsv
 
@@ -204,7 +204,7 @@ Command line parameters:
 * `--predictfile` : predict data file, produced by `PrepTrainingAndTestSets.py` (e.g.  "diabetesPredictData.pkl")
 * `--resultdir` : directory for output results
 * `--infofile` : protein information file with full path. The file should contain tdl, fam, uniprot data.
-*  `--db` : database (olegdb or tcrd) to use to build KG (default: olegdb)
+*  `--db` : database (olegdb or tcrd) (default: olegdb)
 
 Example commands:
 
