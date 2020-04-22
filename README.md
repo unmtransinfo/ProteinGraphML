@@ -77,9 +77,9 @@ Command line parameters:
 * `--sources` : static features (default: ["gtex", "lincs", "ccle", "hpa"]).
 * `--decimals` : decimal place for the values (default:3)
 ```
-GenStaticFeatures.py --db olegdb --source "gtex,hpa" --outputdir data  (only 
+GenStaticFeatures.py --db olegdb --source "gtex,hpa" --outputdir static_olegdb  (only 
 gtex and hpa)
-GenStaticFeatures.py --db olegdb --outputdir data  (for all 4 static features)
+GenStaticFeatures.py --db olegdb --outputdir static_olegdb  (for all 4 static features)
 ```
 
 ### <a name="HowtoPrep"/>Prepare Training and Test Sets
@@ -144,9 +144,9 @@ Example commands:
 
 ```
 GenTrainingAndTestFeatures.py -h
-GenTrainingAndTestFeatures.py --trainingfile data/ATG.pkl --predictfile data/ATG_predict.pkl --outputdir results/ATG --kgfile ProteinDisease_GRAPH.pkl --static_data "gtex" --static_dir data --db olegdb
-GenTrainingAndTestFeatures.py --disease MP_0000180 --outputdir results/MP_0000180 --kgfile ProteinDisease_GRAPH.pkl --static_data "gtex,lincs,ccle,hpa" --static_dir data --db olegdb
-GenTrainingAndTestFeatures.py --trainingfile data/PS118220.pkl --predictfile data/PS118220_predict.pkl --outputdir results/PS118220 --kgfile ProteinDisease_GRAPH.pkl --static_data "gtex,lincs,ccle,hpa" --static_dir data --db olegdb
+GenTrainingAndTestFeatures.py --trainingfile data/ATG.pkl --predictfile data/ATG_predict.pkl --outputdir results/ATG --kgfile ProteinDisease_GRAPH.pkl --static_data "gtex" --static_dir static_olegdb --db olegdb
+GenTrainingAndTestFeatures.py --disease MP_0000180 --outputdir results/MP_0000180 --kgfile ProteinDisease_GRAPH.pkl --static_data "gtex,lincs,ccle,hpa" --static_dir static_olegdb --db olegdb
+GenTrainingAndTestFeatures.py --trainingfile data/PS118220.pkl --predictfile data/PS118220_predict.pkl --outputdir results/PS118220 --kgfile ProteinDisease_GRAPH.pkl --static_data "gtex,lincs,ccle,hpa" --static_dir static_olegdb --db olegdb
 ```
 
 ### <a name="HowtoTrainML"/>Train ML Model
@@ -173,14 +173,16 @@ Command line parameters:
 * `--nthreds` : number of CPU threads for procedure `XGBGridSearch` (default:1).
 * `--xgboost_param_file` : XGBoost configuration parameter file (e.g. XGBparams.txt). This is used for `XGBCrossValPred` and `XGBKfoldsRunPred`. XGBparams.txt created by GridSearch can be used for this parameter. Modify XGBparams.txt if any parameter needs to be changed.
 *  `--db` : database (olegdb or tcrd) to use to build KG (default: olegdb)
+*  `--static_data` : (default: "gtex,lincs,ccle,hpa")
+*  `--static_dir` : directory of static features files: lincs.tsv, hpa.tsv, gtex.tsv, and ccle.tsv
 
 Example commands:
 
 ```
 TrainModelML.py -h
-TrainModelML.py XGBGridSearch --trainingfile results/ATG/ATG_TrainingData.pkl --rseed 1234 --nthreads 32 --resultdir results/ATG --db olegdb
-TrainModelML.py XGBCrossValPred --trainingfile results/ATG/ATG_TrainingData.pkl --resultdir results/ATG --xgboost_param_file XGBparams.txt --db olegdb
-TrainModelML.py XGBKfoldsRunPred --trainingfile results/ATG/ATG_TrainingData.pkl --resultdir results/ATG --xgboost_param_file XGBparams.txt --nrounds_for_avg 5 --db olegdb
+TrainModelML.py XGBGridSearch --trainingfile results/ATG/ATG_TrainingData.pkl --rseed 1234 --nthreads 32 --resultdir results/ATG --db olegdb --static_data "gtex,lincs,ccle,hpa" --static_dir static_olegdb
+TrainModelML.py XGBCrossValPred --trainingfile results/ATG/ATG_TrainingData.pkl --resultdir results/ATG --xgboost_param_file XGBparams.txt --db olegdb --static_data "gtex,lincs,ccle,hpa" --static_dir static_olegdb
+TrainModelML.py XGBKfoldsRunPred --trainingfile results/ATG/ATG_TrainingData.pkl --resultdir results/ATG --xgboost_param_file XGBparams.txt --nrounds_for_avg 5 --db olegdb --static_data "gtex,lincs,ccle,hpa" --static_dir static_olegdb
 ```
 
 Results will be saved in the specified --resultsdir. See logs for specific
@@ -208,7 +210,7 @@ Example commands:
 
 ```
 PredictML.py -h
-PredictML.py XGBPredict --predictfile results/ATG/ATG_predict_PredictData.pkl --model results/ATG/XGBCrossValPred.model --resultdir results/ATG --db olegdb
+PredictML.py XGBPredict --predictfile results/ATG/ATG_predict_PredictData.pkl --model results/ATG/XGBCrossValPred.model --resultdir results/ATG --db olegdb --infofile data/plotDT.xlsx
 ```
 
 Results will be saved in the specified --resultsdir. See logs for specific
