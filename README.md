@@ -59,6 +59,7 @@ Example commands:
 
 ```
 BuildKG.py -h
+BuildKG.py --db olegdb --o ProteinDisease_GRAPH.pkl
 BuildKG.py --db olegdb --o ProteinDisease_GRAPH.pkl --logfile ProteinDisease_GRAPH.log --cyjsfile ProteinDisease_GRAPH.cyjs --tsvfile ProteinDisease_GRAPH.tsv
 ```
 
