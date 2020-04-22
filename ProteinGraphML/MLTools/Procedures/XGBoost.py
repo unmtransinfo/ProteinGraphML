@@ -41,13 +41,13 @@ def XGBCrossValPred(dataObject, idDescription, idNameSymbol, idSource, resultDir
 # roc.printOutput() #plot roc
 
 # def XGBCrossVal(dataObject, idDescription, idNameSymbol, resultDir, nfolds=1, params=None):
-def XGBKfoldsRunPred(dataObject, idDescription, idNameSymbol, resultDir, nrounds, params=None):
+def XGBKfoldsRunPred(dataObject, idDescription, idNameSymbol, idSource, resultDir, nrounds, params=None):
     newModel = XGBoostModel("XGBKfoldsRunPred", resultDir)
     # params['scale_pos_weight'] = dataObject.posWeight
     logging.info('Parameters for XGBoost are: {0}'.format(params))
 
     # newModel.average_cross_val(dataObject, idDescription, idNameSymbol, ["roc","rocCurve","acc","mcc"], folds=nfolds, params=params,cv=CROSSVAL)
-    newModel.average_cross_val(dataObject, idDescription, idNameSymbol, ["roc", "acc", "mcc"], nrounds, params=params)
+    newModel.average_cross_val(dataObject, idDescription, idNameSymbol, idSource, ["roc", "acc", "mcc"], nrounds, params=params)
 
 
 # print (importance)

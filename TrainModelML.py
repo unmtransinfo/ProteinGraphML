@@ -24,7 +24,7 @@ def getSourceForStaticFeatures(idSource, folder, features):
     """
     static_features = features.split(',')
     for feature in static_features:
-        flname = folder + feature + '.tsv'
+        flname = folder + '/' + feature + '.tsv'
         with open(flname, 'r') as f:
             header = f.readline()
         vals = header.strip().split('\t')[1:]
@@ -110,7 +110,7 @@ idSource = getSourceForStaticFeatures(idSource, args.static_dir, args.static_dat
 d = BinaryLabel()
 d.loadData(trainData)
 if (Procedure == "XGBKfoldsRunPred"):
-    locals()[Procedure](d, idDescription, idNameSymbol, resultDir, args.nrounds_for_avg, params=xgbParams)
+    locals()[Procedure](d, idDescription, idNameSymbol, idSource, resultDir, args.nrounds_for_avg, params=xgbParams)
 elif (Procedure == "XGBCrossValPred"):
     locals()[Procedure](d, idDescription, idNameSymbol, idSource, resultDir, params=xgbParams)
 elif (Procedure == "XGBGridSearch"):

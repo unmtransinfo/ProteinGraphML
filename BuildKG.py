@@ -20,7 +20,7 @@ if __name__ == "__main__":
     parser.add_argument('--cyjsfile', help='Save KG as CYJS.')
     parser.add_argument('--graphmlfile', help='Save KG as GraphML.')
     parser.add_argument('--tsvfile', help='Save KG as TSV.')
-    parser.add_argument('--test', help='Build KG but do not save.')
+    # parser.add_argument('--test', help='Build KG but do not save.')
     parser.add_argument("-v", "--verbose", action="count", default=0, help="verbosity")
 
     args = parser.parse_args()
@@ -93,7 +93,11 @@ if __name__ == "__main__":
     # Fetch node/edge information from db.
     idDescription = dbad.fetchPathwayIdDescription()
     idSymbol = dbad.fetchSymbolForProteinId()
-    idUniprot = dbad.fetchUniprotForProteinId()
+    try:
+        idUniprot = dbad.fetchUniprotForProteinId()
+    except Exception as e:
+        logging.error("No Uniprot in OlegDB: {0}".format(e))
+        idUniprot = {}
 
     # add name, symbol and uniprot id to graph nodes
     for n in pdg.graph.nodes:
