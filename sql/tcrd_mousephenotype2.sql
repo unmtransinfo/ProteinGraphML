@@ -1,15 +1,15 @@
-SELECT
-        ph.nhprotein_id AS protein_id_m,
-        ph.term_id AS mp_term_id,
-        ph.term_name AS mp_term_name,
-        ph.p_value,
-        ph.effect_size,
-        ph.procedure_name,
-        ph.parameter_name,
-        ph.gp_assoc AS association
+SELECT DISTINCT
+        nhprotein_id AS protein_id_m,
+        term_id AS mp_term_id,
+        term_name AS mp_term_name,
+        p_value,
+        effect_size,
+        procedure_name,
+        parameter_name,
+        gp_assoc AS association
 FROM
-        phenotype ph
+        phenotype
 WHERE
-        ph.ptype = 'IMPC'
+        ptype = 'IMPC'
         ;
 
