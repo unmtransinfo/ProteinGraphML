@@ -126,7 +126,7 @@ def generateTrainPredictFromText(inFile, idType, negProtein=None):
 def generateTrainPredictFromRDS(inFile, negProtein=None):
     '''
 	This function reads the rds file and generates training/predict set
-	using the given symbols and labels.
+	using the given symbols and labels. RDS files are generated using R code.
 	'''
     logging.info('Loading data from RDS file to create a dictionary')
     rdsdata = pyreadr.read_r(inFile)
@@ -155,7 +155,7 @@ def generateTrainPredictFromRDS(inFile, negProtein=None):
 
 def saveTrainPredictSet(trainData, predictData, outDir, outBaseName):
     '''
-	This function saves training and predict in pickle format.
+	This function saves training and predict data sets in pickle format.
 	'''
     pklTrainFile = outDir + '/' + outBaseName + '.pkl'
     pklPredictFile = outDir + '/' + outBaseName + '_predict.pkl'
@@ -178,6 +178,13 @@ def saveTrainPredictSet(trainData, predictData, outDir, outBaseName):
 
 ###########START OF MAIN PROGRAM###########################
 if __name__ == '__main__':
+    """
+    This program is used to generate dictionaries for training and predict sets that contain protein_ids for both 
+    class 'True' and 'False'. The dictionaries are saved in pickle format. It accepts input data in xls, text, and RDS 
+    format. If the input file is an xls file, the header should have "Protein_id Label" or "Symbol Label". 
+    If the input file is a text file, the Protein_id/symbol and Label should be comma-separated; it should not have any 
+    header. 
+    """
     # dataDirRDS = '/home/oleg/workspace/metap/data/input/'
     DBS = ['olegdb', 'tcrd']
     parser = argparse.ArgumentParser(description='Generate training and predict set definition files.',

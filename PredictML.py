@@ -15,6 +15,10 @@ from ProteinGraphML.MLTools.Models import XGBoostModel
 from ProteinGraphML.MLTools.Procedures import *
 from ProteinGraphML.Analysis import Visualize
 
+"""
+This program uses the machine learning model trained in program "TrainModelML.py" to predict the labels for the records
+in the prediction data set. The prediction results are saved in a file.
+"""
 t0 = time.time()
 
 PROCEDURES = ["XGBPredict"]

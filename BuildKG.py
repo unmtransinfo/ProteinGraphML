@@ -11,7 +11,10 @@ from ProteinGraphML.DataAdapter import OlegDB, TCRD
 from ProteinGraphML.GraphTools import ProteinDiseaseAssociationGraph
 
 if __name__ == "__main__":
-
+    """
+    Create a Protein-Disease knowledge graph (KG) from database and save it as a pickle file.
+    Also, save KG data in log, cyjs, graphml, and tsv format.
+    """
     DBS = ['olegdb', 'tcrd']
     parser = argparse.ArgumentParser(description='Create Protein-Disease knowledge graph (KG) from source RDB')
     parser.add_argument('--db', choices=DBS, default="olegdb", help='{0}'.format(str(DBS)))

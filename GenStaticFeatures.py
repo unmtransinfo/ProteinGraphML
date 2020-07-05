@@ -10,6 +10,10 @@ from ProteinGraphML.MLTools.StaticFeatures import staticData
 
 ###
 if __name__ == "__main__":
+  """
+  This programs generates files for static features: lincs, hpa, gtex, and ccle. This code does not use training 
+  or test data for the static features.
+  """
   DBS=["olegdb", "tcrd"]
   SOURCES = ["gtex", "lincs", "ccle", "hpa"]
   parser = argparse.ArgumentParser(description="Generate static features for all proteins.")
