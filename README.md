@@ -126,7 +126,8 @@ training set, feature vectors are generated for all training cases and optionall
 predict cases. Normally, any human proteins not in the labeled training set 
 will be in the predict set.  Metapath-based features
 must be generated for each model (unlike static features), since how metapath 
-semantic patterns match the KG depends on the query disease.
+semantic patterns match the KG depends on the query disease. Mammalian Phenotype ID can also be used
+with this program to generate training and predict data sets for ML models.
 
 Command line parameters:
 
