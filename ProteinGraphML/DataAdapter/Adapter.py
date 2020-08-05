@@ -365,15 +365,13 @@ class OlegDB(Adapter):
 SELECT DISTINCT
     clinvar.protein_id
 FROM
-    clinvar,
-    clinvar_disease,
-    clinvar_disease_xref
+    clinvar
 JOIN
-    protein ON protein.protein_id = clinvar.protein_id
-WHERE
-    clinvar_disease.cv_dis_id = clinvar_disease_xref.cv_dis_id
-    AND clinvar_disease_xref.source = 'OMIM'
-    AND clinvar.cv_dis_id = clinvar_disease.cv_dis_id
+    clinvar_phenotype ON clinvar.clinvar_phenotype_id = clinvar_phenotype.id
+JOIN
+    clinvar_phenotype_xref ON clinvar_phenotype.id = clinvar_phenotype_xref.clinvar_phenotype_id
+WHERE 
+    clinvar_phenotype_xref.source = 'OMIM'
     AND clinvar.clinical_significance IN (
 'Pathogenic, Affects', 'Benign, protective, risk factor', 'Pathogenic/Likely pathogenic', 'Pathogenic/Likely pathogenic, other', 'Pathogenic, other',
 'Affects', 'Pathogenic, other, protective', 'Conflicting interpretations of pathogenicity, Affects, association, other', 'Pathogenic/Likely pathogenic, drug response',
@@ -751,14 +749,16 @@ WHERE
     # the following function with fetch all protein ids with negative class
     def fetchNegativeClassProteinIds(self):
         sql = """\
-SELECT DISTINCT clinvar.protein_id
+SELECT DISTINCT
+    clinvar.protein_id
 FROM
-    clinvar, clinvar_disease, clinvar_disease_xref, protein
-WHERE
-    protein.id = clinvar.protein_id
-    AND clinvar_phenotype_xref.source = 'OMIM'
-    AND clinvar.clinvar_phenotype_id = clinvar_phenotype.clinvar_phenotype_id
-    AND clinvar_phenotype.clinvar_phenotype_id = clinvar_phenotype_xref.clinvar_phenotype_id
+    clinvar
+JOIN
+    clinvar_phenotype ON clinvar.clinvar_phenotype_id = clinvar_phenotype.id
+JOIN
+    clinvar_phenotype_xref ON clinvar_phenotype.id = clinvar_phenotype_xref.clinvar_phenotype_id
+WHERE 
+    clinvar_phenotype_xref.source = 'OMIM'
     AND clinvar.clinical_significance != 'Uncertain significance'
 """
         negProteinIds = selectAsDF(sql, ['protein_id'], self.db)
