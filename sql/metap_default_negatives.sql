@@ -21,10 +21,44 @@ WHERE
         clinvar_disease.cv_dis_id=clinvar_disease_xref.cv_dis_id 
         AND clinvar_disease_xref.source = 'OMIM' 
         AND clinvar.cv_dis_id=clinvar_disease.cv_dis_id 
-        AND clinvar.clinical_significance IN ('Pathogenic, Affects','Benign, protective, risk factor','Pathogenic/Likely pathogenic','Pathogenic/Likely pathogenic, other','Pathogenic, other','Affects','Pathogenic, other,
-protective','Conflicting interpretations of pathogenicity, Affects, association, other','Pathogenic/Likely pathogenic, drug response','Pathogenic, risk factor','risk factor','Pathogenic, association','Conflicting interpretations of pathogenicity, Affects,
-association, risk factor','Pathogenic/Likely pathogenic, risk factor','Affects, risk factor','Conflicting interpretations of pathogenicity, association, other, risk factor','Likely pathogenic, association','association, protective','Likely pathogenic,
-Affects','Pathogenic','Conflicting interpretations of pathogenicity, association','Pathogenic/Likely pathogenic, Affects, risk factor','Conflicting interpretations of pathogenicity, other, risk factor','association, risk factor','Benign, protective','Conflicting
-interpretations of pathogenicity, risk factor','Uncertain significance, protective','association','Uncertain significance, Affects','protective,
-risk factor','Pathogenic, association, protective','Pathogenic, protective','Likely pathogenic, other','Pathogenic, protective, risk factor','Benign, association, protective','Conflicting interpretations of pathogenicity, Affects','Benign/Likely benign, protective','protective')
+        AND clinvar.clinical_significance IN (
+	'Affects',
+	'Affects, risk factor',
+	'Benign, association, protective',
+	'Benign, protective',
+	'Benign, protective, risk factor',
+	'Benign/Likely benign, protective',
+	'Conflicting interpretations of pathogenicity, Affects',
+	'Conflicting interpretations of pathogenicity, Affects, association, other',
+	'Conflicting interpretations of pathogenicity, Affects, association, risk factor',
+	'Conflicting interpretations of pathogenicity, association',
+	'Conflicting interpretations of pathogenicity, association, other, risk factor',
+	'Conflicting interpretations of pathogenicity, other, risk factor',
+	'Conflicting interpretations of pathogenicity, risk factor',
+	'Likely pathogenic, Affects',
+	'Likely pathogenic, association',
+	'Likely pathogenic, other',
+	'Pathogenic',
+	'Pathogenic, Affects',
+	'Pathogenic, association',
+	'Pathogenic, association, protective',
+	'Pathogenic, other',
+	'Pathogenic, other, protective',
+	'Pathogenic, protective',
+	'Pathogenic, protective, risk factor',
+	'Pathogenic, risk factor',
+	'Pathogenic/Likely pathogenic',
+	'Pathogenic/Likely pathogenic, Affects, risk factor',
+	'Pathogenic/Likely pathogenic, drug response',
+	'Pathogenic/Likely pathogenic, other',
+	'Pathogenic/Likely pathogenic, risk factor',
+	'Uncertain significance, Affects',
+	'Uncertain significance, protective',
+	'association',
+	'association, protective',
+	'association, risk factor',
+	'protective',
+	'protective, risk factor',
+	'risk factor'
+	)
 ;
