@@ -7,13 +7,12 @@ from ProteinGraphML.DataAdapter import OlegDB, selectAsDF, TCRD
 
 
 def generateTrainPredictFromExcel(inFile, idType, negProtein=None):
-    '''
-	This function reads the XLS file and generates training/predict set
-	using the given symbols and labels.
-	'''
+    """
+    This function reads the XLS file and generates training/predict set using the given symbols and labels.
+    """
+    logging.info('Genrating train and predict set from an excel file')
     df = pd.read_excel(inFile, sheet_name='Sheet1')  # change 'Sheet1' to the name in your spreadsheet
-
-    if (idType == 'symbol'):
+    if idType == 'symbol':
         symbols = df['Symbol'].values.tolist()
         symbolLabel = df.set_index('Symbol').T.to_dict('records')[0]  # DataFrame to dictionary
         # Access the adapter to get protein_id for symbols
@@ -21,20 +20,20 @@ def generateTrainPredictFromExcel(inFile, idType, negProtein=None):
         # Protein_Ids for training set
         for symbol, proteinId in symbolProteinId.items():
             trainProteinSet.add(int(proteinId))
-            if (symbolLabel[symbol] == 1):
+            if symbolLabel[symbol] == 1:
                 posLabelProteinIds.add(int(proteinId))
-            elif (symbolLabel[symbol] == 0):
+            elif symbolLabel[symbol] == 0:
                 negLabelProteinIds.add(int(proteinId))
             else:
                 logging.error('Invalid label')
-    elif (idType == 'pid'):
+    elif idType == 'pid':
         proteinIdLabel = df.set_index('Protein_id').T.to_dict('records')[0]  # DataFrame to dictionary
         # Protein_Ids for training set
         for proteinId, label in proteinIdLabel.items():
             trainProteinSet.add(int(proteinId))
-            if (label == 1):
+            if label == 1:
                 posLabelProteinIds.add(int(proteinId))
-            elif (label == 0):
+            elif label == 0:
                 negLabelProteinIds.add(int(proteinId))
             else:
                 logging.error('Invalid label')
@@ -42,7 +41,7 @@ def generateTrainPredictFromExcel(inFile, idType, negProtein=None):
         logging.error('Invalid idType: {0}'.format(idType))
         exit()
     # if negative label was not provided, use default protein ids
-    if (negProtein is not None):
+    if negProtein is not None:
         negLabelProteinIds.update(negProtein)
         trainProteinSet.update(negProtein)
 
@@ -54,7 +53,7 @@ def generateTrainPredictFromExcel(inFile, idType, negProtein=None):
     logging.info('Count of positive labels: {0}, count of negative labels: {1}'.format(len(trainData[True]),
                                                                                        len(trainData[False])))
     logging.info('Count of predict set (unlabeled): {0}'.format(len(predictData['unknown'])))
-    if (len(trainData[True]) == 0 or len(trainData[False]) == 0):
+    if len(trainData[True]) == 0 or len(trainData[False]) == 0:
         logging.error('ML codes cannot be run with one class')
         exit()
     else:
@@ -62,41 +61,42 @@ def generateTrainPredictFromExcel(inFile, idType, negProtein=None):
 
 
 def generateTrainPredictFromText(inFile, idType, negProtein=None):
-    '''
-	This function reads the text file and generates training/predict set
-	using the given symbols and labels.
-	'''
+    """
+    This function reads the text file and generates training/predict set using the given symbols and labels.
+    """
+    logging.info('Genrating train and predict set from a text file')
     symbolLabel = {}
     symbols = []
     proteinIdLabel = {}
 
-    if (idType == 'symbol'):
+    if idType == 'symbol':
         with open(inFile, 'r') as recs:
             for rec in recs:
                 vals = rec.strip().split(',')
-                symbolLabel[vals[0]] = vals[1]
-                symbols.append(vals[0])
+                symbolLabel[vals[0].strip(' ')] = vals[1]
+                symbols.append(vals[0].strip(' '))
+
         # Access the adapter to get protein_id for symbols
         symbolProteinId = dbAdapter.fetchProteinIdForSymbol(symbols)
         for symbol, proteinId in symbolProteinId.items():
             trainProteinSet.add(int(proteinId))
-            if (symbolLabel[symbol] == '1'):
+            if symbolLabel[symbol] == '1':
                 posLabelProteinIds.add(int(proteinId))
-            elif (symbolLabel[symbol] == '0'):
+            elif symbolLabel[symbol] == '0':
                 negLabelProteinIds.add(int(proteinId))
             else:
                 logging.info('Invalid label')
-    elif (idType == 'pid'):
+    elif idType == 'pid':
         with open(inFile, 'r') as recs:
             for rec in recs:
                 vals = rec.strip().split(',')
-                proteinIdLabel[vals[0]] = vals[1]
+                proteinIdLabel[vals[0].strip(' ')] = vals[1]
 
         for proteinId, label in proteinIdLabel.items():
             trainProteinSet.add(int(proteinId))
-            if (label == '1'):
+            if label == '1':
                 posLabelProteinIds.add(int(proteinId))
-            elif (symbolLabel[symbol] == '0'):
+            elif symbolLabel[symbol] == '0':
                 negLabelProteinIds.add(int(proteinId))
             else:
                 logging.info('Invalid label')
@@ -105,7 +105,7 @@ def generateTrainPredictFromText(inFile, idType, negProtein=None):
         exit()
 
     # if negative label was not provided, use default protein ids
-    if (negProtein is not None):
+    if negProtein is not None:
         negLabelProteinIds.update(negProtein)
         trainProteinSet.update(negProtein)
 
@@ -116,7 +116,7 @@ def generateTrainPredictFromText(inFile, idType, negProtein=None):
     predictData['unknown'] = predictProteinSet
     logging.info('Count of positive labels: {0}, count of negative labels: {1}'.format(len(trainData[True]),
                                                                                        len(trainData[False])))
-    if (len(trainData[True]) == 0 or len(trainData[False]) == 0):
+    if len(trainData[True]) == 0 or len(trainData[False]) == 0:
         logging.error('ML codes cannot be run with one class')
         exit()
     else:
@@ -124,10 +124,10 @@ def generateTrainPredictFromText(inFile, idType, negProtein=None):
 
 
 def generateTrainPredictFromRDS(inFile, negProtein=None):
-    '''
-	This function reads the rds file and generates training/predict set
-	using the given symbols and labels. RDS files are generated using R code.
-	'''
+    """
+    This function reads the rds file and generates training/predict set using the given symbols and labels.
+    RDS files are generated using R code.
+    """
     logging.info('Loading data from RDS file to create a dictionary')
     rdsdata = pyreadr.read_r(inFile)
     df = rdsdata[None]
@@ -137,7 +137,7 @@ def generateTrainPredictFromRDS(inFile, negProtein=None):
     # trainData[False] = set(np.where(rdsdata[None]['Y']=='neg')[0])
 
     # if negative label was not provided, use default protein ids
-    if (negProtein is not None):
+    if negProtein is not None:
         trainData[False].update(negProtein)
 
     # determine train and predict set
@@ -146,7 +146,7 @@ def generateTrainPredictFromRDS(inFile, negProtein=None):
     predictData['unknown'] = predictProteinSet
     logging.info('Count of positive labels: {0}, count of negative labels: {1}'.format(len(trainData[True]),
                                                                                        len(trainData[False])))
-    if (len(trainData[True]) == 0 or len(trainData[False]) == 0):
+    if len(trainData[True]) == 0 or len(trainData[False]) == 0:
         logging.error('ML codes cannot be run with one class')
         exit()
     else:
@@ -154,9 +154,10 @@ def generateTrainPredictFromRDS(inFile, negProtein=None):
 
 
 def saveTrainPredictSet(trainData, predictData, outDir, outBaseName):
-    '''
-	This function saves training and predict data sets in pickle format.
-	'''
+    """
+    This function saves training and predict data sets in pickle format.
+    """
+    logging.info('Saving train and predict data sets')
     pklTrainFile = outDir + '/' + outBaseName + '.pkl'
     pklPredictFile = outDir + '/' + outBaseName + '_predict.pkl'
 
@@ -176,7 +177,7 @@ def saveTrainPredictSet(trainData, predictData, outDir, outBaseName):
         pickle.dump(predictData, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-###########START OF MAIN PROGRAM###########################
+# ******************************START OF MAIN PROGRAM ******************************** #
 if __name__ == '__main__':
     """
     This program is used to generate dictionaries for training and predict sets that contain protein_ids for both 
@@ -188,13 +189,15 @@ if __name__ == '__main__':
     # dataDirRDS = '/home/oleg/workspace/metap/data/input/'
     DBS = ['olegdb', 'tcrd']
     parser = argparse.ArgumentParser(description='Generate training and predict set definition files.',
-                                     epilog='Output files to same dir as input file, pickled dictionary files suffixed ".pkl" and "_predict.pkl".')
+                                     epilog='Output files to same dir as input file, pickled dictionary files '
+                                            'suffixed ".pkl" and "_predict.pkl".')
     parser.add_argument('--i', dest='ifile', metavar='INPUT_FILE', required=True,
-                        help='input file, with protein IDs or symbols, positive and optionally negative labels (CSV|XLSX)')
+                        help='input file, with protein IDs or symbols, positive and optionally negative labels ('
+                             'CSV|XLSX)')
     parser.add_argument('--symbol_or_pid', choices=('symbol', 'pid'), default='symbol', help='symbol|pid')
     parser.add_argument('--use_default_negatives', default=False, action='store_true',
                         help='required if negatives not specified by input')
-    parser.add_argument('--db', choices=DBS, default="olegdb", help='{0}'.format(str(DBS)))
+    parser.add_argument('--db', choices=DBS, default="tcrd", help='{0}'.format(str(DBS)))
     parser.add_argument("-v", "--verbose", action="count", default=0, help="verbosity")
 
     args = parser.parse_args()
@@ -209,9 +212,9 @@ if __name__ == '__main__':
     if fileExt.lower() not in ('csv', 'tsv', 'txt', 'rds', 'xlsx', 'xls'):
         parser.error('Unsupported filetype: {0} ({1})'.format(fileName, fileExt))
 
-    # Access the db adaptor
-    # dbAdapter = OlegDB()
-    dbAdapter = TCRD() if args.db == "tcrd" else OlegDB()
+    # Access the db adaptor. Make TCRD as the default DB
+    dbAdapter = OlegDB() if args.db == "olegdb" else TCRD()
+
     allProteinIds = dbAdapter.fetchAllProteinIds()
     allProteinIds = set(allProteinIds['protein_id'].tolist())
 

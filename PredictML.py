@@ -31,7 +31,7 @@ parser.add_argument('--predictfile', help='input file, pickled predict data, e.g
 parser.add_argument('--modelfile', help='ML model file full path')
 parser.add_argument('--infofile', help='protein information file with full path')
 parser.add_argument('--resultdir', help='folder where results will be saved, e.g. "diabetes_no_lincs"')
-parser.add_argument('--db', choices=DBS, default="olegdb", help='{0}'.format(str(DBS)))
+parser.add_argument('--db', choices=DBS, default="tcrd", help='{0}'.format(str(DBS)))
 parser.add_argument("-v", "--verbose", action="count", default=0, help="verbosity")
 
 args = parser.parse_args()
@@ -72,9 +72,9 @@ else:
     logging.error('Result directory is needed')
     exit()
 
-# fetch the description of proteins and pathway_ids
-# dbAdapter = OlegDB()
-dbAdapter = TCRD() if args.db == "tcrd" else OlegDB()
+# Access the db adaptor. Make TCRD as the default DB
+dbAdapter = OlegDB() if args.db == "olegdb" else TCRD()
+
 idDescription = dbAdapter.fetchPathwayIdDescription()  # fetch the description
 idNameSymbol = dbAdapter.fetchSymbolForProteinId()  # fetch name and symbol for protein
 

@@ -17,7 +17,7 @@ if __name__ == "__main__":
     """
     DBS = ['olegdb', 'tcrd']
     parser = argparse.ArgumentParser(description='Create Protein-Disease knowledge graph (KG) from source RDB')
-    parser.add_argument('--db', choices=DBS, default="olegdb", help='{0}'.format(str(DBS)))
+    parser.add_argument('--db', choices=DBS, default="tcrd", help='{0}'.format(str(DBS)))
     parser.add_argument('--o', dest="ofile", help='output pickled KG')
     parser.add_argument('--logfile', help='KG construction log.')
     parser.add_argument('--cyjsfile', help='Save KG as CYJS.')
@@ -36,7 +36,8 @@ if __name__ == "__main__":
     ## Construct base protein-disease map from ProteinDiseaseAssociationGraph.
     ## Db is PonyORM db (https://docs.ponyorm.org/api_reference.html).
 
-    dbad = TCRD() if args.db == "tcrd" else OlegDB()
+    # Make TCRD as the default DB
+    dbad = OlegDB() if args.db == "olegdb" else TCRD()
 
     pdg = ProteinDiseaseAssociationGraph(dbad)
 

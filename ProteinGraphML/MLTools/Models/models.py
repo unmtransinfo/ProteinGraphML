@@ -268,9 +268,9 @@ class BaseModel:
                 newResultObject = getattr(resultObject, resultType)()  # self.MODEL_RUN_NAME
                 # print(type(newResultObject))
                 resultList.append(newResultObject)
-                # print(resultObject)
-                # print("MODEL DIR",self.MODEL_PROCEDURE) #self.MODEL_RUN_NAME
-                # if resultType == "rocCurve" and self.MODEL_PROCEDURE == "XGBCrossVal": # if it's XGB cross val we will write output (hack)
+                # print(resultObject) print("MODEL DIR",self.MODEL_PROCEDURE) #self.MODEL_RUN_NAME if resultType ==
+                # "rocCurve" and self.MODEL_PROCEDURE == "XGBCrossVal": # if it's XGB cross val we will write output
+                # (hack)
                 if resultType == "rocCurve":
                     aucFileName = self.MODEL_DIR + '/auc_' + self.MODEL_PROCEDURE
                     # newResultObject.fileOutput(fileString=self.MODEL_RUN_NAME)
@@ -362,27 +362,8 @@ class XGBoostModel(BaseModel):
         self.savePredictedProbability(testData, predictions, idDescription, idNameSymbol, proteinInfo, "TEST")
 
     # def cross_val_predict(self,testData,outputTypes):
-    def cross_val_predict(self, testData, idDescription, idNameSymbol, idSource, outputTypes, params={}, cv=1):
-        # print (params,cv)
-        # other model options
-        # clf = LogisticRegression(random_state=0, solver='lbfgs',multi_class='multinomial')#.fit(X, y)
-        # self.m = clf.fit(testData.features,testData.labels)
-        # inputData = xgb.DMatrix(testData.features)
-        # these are the params... for this kind of classifier
-        # "seed"	"max_depth"	"eta"	"gamma"	"min_child_weight"	"subsample"	"colsample_bytree"	"nrounds"	"auc"
-        # 1001	                      10	0.2	                 0.1	0	                                   0.9	                               0.5	39	0.7980698
-        # base_score=0.5, booster='gbtree', colsample_bylevel=1,
-        # colsample_bynode=1, colsample_bytree=1, gamma=0,
-        # learning_rate=0.02, max_delta_step=0, max_depth=4,
-        '''
-		min_child_weight=1, missing=None, n_estimators=5, n_jobs=1,
-			  nthread=1, objective='binary:logistic', random_state=0,
-			  reg_alpha=0, reg_lambda=1, scale_pos_weight=1, seed=None,
-			  silent=False, subsample=1, verbosity=1
-		'''
-        # scale_pos_weight
-        # scale_pos_weight=testData.posWeight,
-        # clf = xgb.XGBClassifier(scale_pos_weight=testData.posWeight,max_depth=10,gamma=0.1,min_child_weight=0,subsample=0.9,colsample_bytree=0.5, n_jobs=8)
+    def cross_val_predict(self, testData, idDescription, idNameSymbol, idSource, outputTypes, params={}, cv=5):
+        logging.info("Running XGboost 5-fold cross-validation on the train set")
 
         metrics = {"roc": 0., "mcc": 0., "acc": 0.}
         clf = xgb.XGBClassifier(**params)
@@ -395,13 +376,13 @@ class XGBoostModel(BaseModel):
         metrics["mcc"] = mcc.data
         metrics["acc"] = acc.data
 
-        # find imporant features and save them in a text file
+        # find important features and save them in a text file
         importance = Counter(
             clf.fit(testData.features, testData.labels).get_booster().get_score(importance_type='gain'))
         self.saveImportantFeatures(importance, idDescription, idNameSymbol, idSource=idSource)
         self.saveImportantFeaturesAsPickle(importance)
 
-        # save predicted class 1 probabilty in a text file
+        # save predicted class 1 probability in a text file
         # proteinInfo = self.fetchProteinInformation(infoFile)
         self.savePredictedProbability(testData, predictions, idDescription, idNameSymbol, "", "TRAIN")
 
@@ -410,106 +391,12 @@ class XGBoostModel(BaseModel):
         # return roc,acc,mcc, CM,report,importance
         logging.info("METRICS: {0}".format(str(metrics)))
 
-    '''
-	def average_cross_val(self,testData,idDescription,idNameSymbol,outputTypes,folds=1,split=0.8,params={},cv=1):
-		# this function will take the average of metrics per fold... which is a random fold
-		#print (params,cv)
-		#CROSSVAL = 10
-		collection = []
-		importance = None
-		#self.DIR = 
-		#self.MODEL_PROCEDURE+"-"+
-		#dummyModel = XGBoostModel(self.MODEL_PROCEDURE)
-		#DIR = "results/{0}-{1}".format(self.MODEL_PROCEDURE,str(int(time.time())))
-		
-		#logging.info("THING: {0}".format(dummyModel.MODEL_RUN_NAME))
-		
-		#DIR = dummyModel.MODEL_RUN_NAME # This will get us a model with a specific timestamp
-		
-		#logging.info("THIS IS THE DIR {0}".format(DIR))
-
-		metrics = {"average-roc":0., "average-mcc":0., "average-acc":0.} #add mcc and accuracy too
-		logging.info("=== RUNNING {0} FOLDS".format(folds))
-		
-		#Initialize variable to store predicted probs
-		predictedProb = []
-		totalData = len(testData.labels.tolist())
-		logging.info('Total records...{0}'.format(totalData))
-		for r in range(totalData):
-			predictedProb.append([])
-		#print (predictedProb)
-		
-		for k in range(0,folds):
-			logging.info("DOING {0} FOLD".format(k+1))
-			
-			#newModel = XGBoostModel(self.MODEL_PROCEDURE)
-			#train,test = testData.splitSet(split)
-			# make a loop, so we can split it 
-			
-			#newModel = XGBoostModel() 
-
-			# YOU can add in parameters to here
-			#{'max_depth':0,'eta':0.1,'gamma':1,'min_child_weight':2} NO PARAMS
-			
-			#newModel.train(train,{})
-			#newModel.train(train,params) #pass the default parameters
-			#roc,rc = newModel.predict(test,["roc","rocCurve"])
-			#roc,rc,acc,mcc = newModel.predict(test,outputTypes) #use the passed outputTypes
-			#roc.printOutput()
-		
-			clf = xgb.XGBClassifier(**params)
-			self.m = clf
-			class01Probs = cross_val_predict(self.m,testData.features,y=testData.labels,cv=cv,method='predict_proba') #calls sklearn's cross_val_predict
-			predictions = [i[1] for i in class01Probs] #select class1 probability
-			roc,rc,acc,mcc = self.createResultObjects(testData,outputTypes,predictions)
-			
-			#append predicted class 1 probability 
-			for r in range(totalData):
-				predictedProb[r].append(predictions[r])
-			#print (predictedProb)
-			metrics["average-roc"] += roc.data
-			metrics["average-mcc"] += mcc.data
-			metrics["average-acc"] += acc.data
-			
-			#model.predict ...
-			if importance:
-				importance = importance + Counter(clf.fit(testData.features,testData.labels).get_booster().get_score(importance_type='gain'))
-				#print(Counter(newModel.m.get_score(importance_type='gain')))
-			else:
-				importance = Counter(clf.fit(testData.features,testData.labels).get_booster().get_score(importance_type='gain'))				
-		
-		for key in importance:
-			importance[key] = importance[key]/folds
-
-		for key in metrics:
-			metrics[key] = metrics[key]/folds			
-		
-		avgPredictedProb = []
-		for r in range(totalData):
-			avgPredictedProb.append(sum(predictedProb[r])/folds)
-			
-			
-		logging.info("METRICS: {0}".format(str(metrics))) # write this metric to a file...
-		
-		self.saveImportantFeatures(importance, idDescription) #save important features
-		self.saveImportantFeaturesAsPickle(importance)
-		#print (avgPredictedProb)
-		self.savePredictedProbability(testData, avgPredictedProb, idDescription, idNameSymbol, "TRAIN") #save predicted probabilities
-	
-		#train the model using all train data and save it
-		self.train(testData, param=params)
-
-		#with open(FINALDIR, 'wb') as f:
-		#	pickle.dump(importance, f, pickle.HIGHEST_PROTOCOL)
-		#return importance
-	'''
-
-    # This function divides the data into train and test sets 'n' (number of folds) times.
-    # Model trained on the train data is tested on the test data. Average MCC, Accuracy and ROC
-    # is reported.
-    def average_cross_val(self, allData, idDescription, idNameSymbol, idSource, outputTypes, iterations, testSize=0.2, params={}):
-
-        collection = []
+    def average_cross_val(self, allData, idDescription, idNameSymbol, idSource, outputTypes, iterations, testSize=0.2,
+                          params={}):
+        # This function divides the data into train and test sets 'n' (number of folds) times.
+        # Model trained on the train data is tested on the test data. Average MCC, Accuracy and ROC
+        # is reported.
+        logging.info("Running ML models to compute average MCC/ROC/ACC")
         importance = None
         metrics = {"average-roc": 0., "average-mcc": 0., "average-acc": 0.}  # add mcc and accuracy too
         logging.info("=== RUNNING {0} FOLDS".format(iterations))
@@ -571,7 +458,8 @@ class XGBoostModel(BaseModel):
 
         logging.info("METRICS: {0}".format(str(metrics)))  # write this metrics to a file...
 
-        self.saveImportantFeatures(importance, idDescription, idNameSymbol, idSource=idSource)  # save important features
+        self.saveImportantFeatures(importance, idDescription, idNameSymbol,
+                                   idSource=idSource)  # save important features
         self.saveImportantFeaturesAsPickle(importance)
         self.saveSeedPerformance(seedAUC)
         # print (avgPredictedProb)
@@ -585,48 +473,30 @@ class XGBoostModel(BaseModel):
     # FEATURE SEARCH, will create the dataset with different sets of features, and search over them to get resutls
     def gridSearch(self, allData, idDescription, idNameSymbol, outputTypes, paramGrid, rseed, nthreads):
 
-        # param_comb = 200
-        # clf = xgb.XGBClassifier(learning_rate=0.02, n_estimators=600, objective='binary:logistic',
-        #			silent=True, nthread=1)
-
-        # random_search = GridSearchCV(clf,
-        # 	param_distributions=params,
-        # 	n_iter=param_comb,
-        # 	scoring='roc_auc', n_jobs=1, cv=None,
-        # 	verbose=3,
-        # 	random_state=1001)
-
-        # colsample bytree = 0.6
-        # gamma = 0.5
-        # max depth = 0.8
-        # min child weight = 2
-        # subsample = 1
-
         # split test and train data
-        testSize = 0.20
-        trainData, testData = allData.splitSet(testSize, rseed)
+        # testSize = 0.20
+        # trainData, testData = allData.splitSet(testSize, rseed)
         # print (trainData.features.shape)
         # print (testData.features.shape)
         # print (trainData.labels)
         # print (testData.labels)
 
         logging.info("XGBoost parameters search started")
-        # clf = xgb.XGBClassifier(n_jobs=nthreads, scale_pos_weight=allData.posWeight, random_state=rseed)
-        clf = xgb.XGBClassifier(n_jobs=nthreads, random_state=rseed)
-        random_search = GridSearchCV(clf,
+        clf = xgb.XGBClassifier(random_state=rseed)
+        random_search = GridSearchCV(clf, n_jobs=nthreads,
                                      param_grid=paramGrid,
-                                     scoring='roc_auc', cv=5, verbose=3)
+                                     scoring='roc_auc', cv=5, verbose=7)
 
         # save the output of each iteration of gridsearch to a file
         tempFileName = self.MODEL_DIR + '/temp.tsv'
         sys.stdout = open(tempFileName, 'w')
-        # random_search.fit(trainData.features, trainData.labels)
         random_search.fit(allData.features, allData.labels)
 
         # model trained with best parameters
         bst = random_search.best_estimator_
         # self.m = bst
         sys.stdout.close()
+        self.saveBestEstimator(str(bst))
 
         # predict the test data using the best estimator
         # metrics = {"roc":0., "mcc":0., "acc":0.}
@@ -650,10 +520,8 @@ class XGBoostModel(BaseModel):
         # self.train(allData, param=random_search.best_params_)
 
         # save the XGBoost parameters for the best estimator
-        self.saveBestEstimator(str(bst))
-
-    # return roc,acc,mcc, CM,report,importance
-    # logging.info("METRICS: {0}".format(str(metrics)))
+        # return roc,acc,mcc, CM,report,importance
+        # logging.info("METRICS: {0}".format(str(metrics)))
 
     # save the xgboost parameters selected using GirdSearchCV
     def saveBestEstimator(self, estimator):
