@@ -103,7 +103,7 @@ Command line parameters:
 * `--use_default_negatives` : Use default negatives, ~3500 genes with known associations but not with query disease. If false, input training set must include negatives.
 * `--db` : database (olegdb or tcrd) (default: tcrd)
 
-If the file is a spreadsheet, the header should have "Protein_id Label" or "Symbol Label".
+If the file is a spreadsheet, the header should have "Protein_id Label" or "Symbol Label" and the sheet name should be "Sheet1".
 If the file is a text file, the Protein_id/symbol and
 Label should be comma-separated. There should not be any header in the text file. 
 If a disease is not present in the graph, use the corresponding RDS file in this program to generate sets of training and predict protein ids. E.g. 104300.rds, PS168600.rds
