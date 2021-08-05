@@ -42,7 +42,7 @@ multiple ML models. Re-run only required if database updated.
 
 `BuildKG.py`, from the relational db, generates a knowledge graph,
 a `ProteinDiseaseAssociationGraph`, saved as a pickled `networkX` graph. 
-Via the adaptor and [`pony`](https://docs.ponyorm.org)
+Via the adapter and [`pony`](https://docs.ponyorm.org)
 object-relational model (ORM), nodes and edges are queried from the db to comprise the
 graph.
 
