@@ -25,21 +25,27 @@ if [ ! -e "$DATADIR" ]; then
 fi
 #
 #
-${cwd}/BuildKG.py --db tcrd --tsvfile ${cwd}/data/kg.tsv
+tsvfile="ProteinDisease_GRAPH_tcrd6110.tsv"
+#
+${cwd}/BuildKG.py --db tcrd --tsvfile ${cwd}/data/${tsvfile}
 #
 ###
 # Perhaps "neo4j-admin import" would be faster?
 #
-cp ${cwd}/data/kg.tsv ${DATADIR}
+cp ${cwd}/data/${tsvfile} ${DATADIR}
 #
 #$CQLAPP "CALL db.constraints() YIELD name AS constraint_name DROP CONSTRAINT constraint_name"
 #
+# Delete all:
+$CQLAPP 'MATCH (n) DETACH DELETE n'
+#
+###
 $CQLAPP -f cql/load_main_node.cql
 $CQLAPP -f cql/load_main_edge.cql
 #
 $CQLAPP "\
 USING PERIODIC COMMIT 100 \
-LOAD CSV WITH HEADERS FROM \"file:///ProteinGraphML/kg.tsv\" \
+LOAD CSV WITH HEADERS FROM \"file:///ProteinGraphML/${tsvfile}\" \
 AS row FIELDTERMINATOR '\t' WITH row \
 MATCH (s {ID:row.sourceId}), (t {ID:row.targetId}) \
 WHERE row.node_or_edge = 'edge' \
