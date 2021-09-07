@@ -3,7 +3,7 @@
 This software is designed to predict to predict disease-to-protein (protein-coding
 gene) associations, from a biomedical knowledge graph, via machine learning (ML).
 This codebase abstracts the ML from the domain knowledge and data sources, to
-allow reuse for other applications. The input PostgreSQL relational database is
+allow reuse for other applications. The input (MySQL or PostgreSQL) relational database is
 converted to a knowledge graph, then converted to feature vectors by metapath
 matching, based on an input disease, defining a training set of proteins. Then
 XGBoost is used to generate and optimize a predictive model.
