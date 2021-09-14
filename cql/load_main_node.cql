@@ -59,13 +59,6 @@ AS row FIELDTERMINATOR '\t' WITH row
 WHERE row.node_or_edge = 'node' AND row.class = 'MP'
 CREATE (g:MP { ID:row.id, Name:trim(row.name)}) ;
 
-// Report node counts:
-MATCH (n) RETURN COUNT(n) AS N_NODES_ALL ;
-MATCH (n:Protein) RETURN COUNT(n) AS N_NODES_Protein ;
-MATCH (n:GO) RETURN COUNT(n) AS N_NODES_GO ;
-MATCH (n:REACTOME) RETURN COUNT(n) AS N_NODES_REACTOME ;
-MATCH (n:INTERPRO) RETURN COUNT(n) AS N_NODES_INTERPRO ;
-
 ////
 // Indexes. AUTO-GENERATED WITH UNIQUENESS CONSTRAINTS.
 // Community:

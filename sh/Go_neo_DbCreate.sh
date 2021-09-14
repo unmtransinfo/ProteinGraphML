@@ -1,4 +1,14 @@
 #!/bin/bash
+###
+#
+function MessageBreak {
+  printf "============================================\n"
+  printf "=== [%s] %s\n" "$(date +'%Y-%m-%d:%H:%M:%S')" "$1"
+}
+#
+T0=$(date +%s)
+#
+MessageBreak "STARTING $(basename $0)"
 #
 cwd=$(pwd)
 #
@@ -18,15 +28,13 @@ fi
 #
 # Unfortunately neo4j-client and cypher-shell have different syntax.
 #
-if [ "$(which neo4j-client)" ]; then
-	CQLAPP="neo4j-client"
-elif [ "$(which cypher-shell)" ]; then
-	CQLAPP="cypher-shell"
+if [ "$(which cypher-shell)" ]; then
+	CYSH="$(which cypher-shell)"
 else
-	echo "ERROR: Neo4j/CQL client app not found."
+	echo "ERROR: cypher-shell not found."
 	exit
 fi
-printf "CQLAPP = %s\n" "$CQLAPP"
+printf "CYSH = %s\n" "$CYSH"
 #
 DATADIR="$NEO_IMPORT_DIR/ProteinGraphML"
 if [ ! -e "$DATADIR" ]; then
@@ -44,27 +52,30 @@ ${cwd}/BuildKG.py --db tcrd --tsvfile ${cwd}/data/${tsvfile}
 #
 cp ${cwd}/data/${tsvfile} ${DATADIR}/kg.tsv
 #
-#$CQLAPP "CALL db.constraints() YIELD name AS constraint_name DROP CONSTRAINT constraint_name"
+#$CYSH "CALL db.constraints() YIELD name AS constraint_name DROP CONSTRAINT constraint_name"
 #
 # Delete all:
-$CQLAPP 'MATCH (n) DETACH DELETE n'
+$CYSH 'MATCH (n) DETACH DELETE n'
 #
 ###
-$CQLAPP -i cql/load_main_node.cql ${NEO4J_URL}
-$CQLAPP -i cql/load_main_edge.cql ${NEO4J_URL}
+MessageBreak "LOAD NODES:"
+$CYSH <cql/load_main_node.cql
 #
-$CQLAPP "\
-USING PERIODIC COMMIT 100 \
-LOAD CSV WITH HEADERS FROM \"file:///ProteinGraphML/kg.tsv\" \
-AS row FIELDTERMINATOR '\t' WITH row \
-MATCH (s {ID:row.sourceId}), (t {ID:row.targetId}) \
-WHERE row.node_or_edge = 'edge' \
-AND toString(row.sourceId) =~ '[0-9]+' \
-AND SUBSTRING(row.targetId, 0, 3) = 'GO:' \
-CREATE (s)-[:GO]->(t)"
-
-#$CQLAPP -i cql/load_extras.cql
-#$CQLAPP -i cql/db_describe.cql
+MessageBreak "LOAD EDGES (STRING):"
+$CYSH <cql/load_edge_string.cql
+MessageBreak "LOAD EDGES (REACTOME):"
+$CYSH <cql/load_edge_reactome.cql
+MessageBreak "LOAD EDGES (INTERPRO):"
+$CYSH <cql/load_edge_interpro.cql
+MessageBreak "LOAD EDGES (KEGG):"
+$CYSH <cql/load_edge_kegg.cql
+MessageBreak "LOAD EDGES (GO):"
+$CYSH <cql/load_edge_go.cql
+MessageBreak "LOAD EDGES (MP):"
+$CYSH <cql/load_edge_mp.cql
+#
+#$CYSH <cql/load_extras.cql
+#$CYSH <cql/db_describe.cql
 #
 ###
 # Delete edges with:
@@ -72,4 +83,6 @@ CREATE (s)-[:GO]->(t)"
 # Delete all with:
 # cypher-shell 'MATCH (n) DETACH DELETE n'
 ###
+#
+MessageBreak "DONE $(basename $0)"
 #
