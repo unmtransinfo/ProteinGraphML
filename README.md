@@ -1,6 +1,6 @@
 # ProteinGraphML
 
-This software is designed to predict to predict disease-to-protein (protein-coding
+This software is designed to to predict disease-to-protein (protein-coding
 gene) associations, from a biomedical knowledge graph, via machine learning (ML).
 This codebase abstracts the ML from the domain knowledge and data sources, to
 allow reuse for other applications. The input PostgreSQL relational database is
