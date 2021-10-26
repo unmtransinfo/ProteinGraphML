@@ -1,0 +1,113 @@
+[tool.poetry]
+name = "ProteinGraphML"
+version = "0.1.0"
+description = "Knowledge Graphs for Protein Science"
+authors = ["UNM Translational Informatics <datascience.software@salud.unm.edu>"]
+license = "BSD-2-Clause"
+readme = "README.md"
+homepage = "https://github.com/unmtransinfo/ProteinGraphML"
+repository = "https://github.com/unmtransinfo/ProteinGraphML"
+documentation = "https://github.com/unmtransinfo/ProteinGraphML"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Natural Language :: English",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+keywords = [
+    "science",
+    "biology",
+    "machine learning",
+    "drug discovery"
+]
+
+[tool.poetry.urls]
+Changelog = "https://github.com/unmtransinfo/ProteinGraphML/releases"
+
+[tool.poetry.dependencies]
+python = "^3.8.1,<3.10"
+colorama = "*"
+raven = {extras=["flask"], version="*"}
+numpy = "*"
+pandas = "*"
+xgboost = "*"
+pony = "*"
+networkx = "*"
+matplotlib = "*"
+xlrd = "*"
+XlsxWriter = "*"
+scikit-learn = "*"
+pyreadr = "*"
+PyYAML = "*"
+mysqlclient = "*"
+openpyxl = "*"
+
+[tool.poetry.dev-dependencies]
+black = "*"
+pytest = "*"
+coverage = {extras = ["toml"], version = "*"}
+safety = "*"
+typeguard = "*"
+xdoctest = {extras = ["colors"], version = "*"}
+sphinx = "*"
+sphinx-autobuild = "*"
+pre-commit = "*"
+flake8 = "*"
+flake8-bandit = "*"
+flake8-bugbear = "*"
+flake8-docstrings = "*"
+pep8-naming = "*"
+darglint = "*"
+reorder-python-imports = "*"
+pre-commit-hooks = "*"
+sphinx-rtd-theme = "*"
+Pygments = "*"
+nox-poetry = "*"
+pytest-cov = "*"
+flake8-rst-docstrings = "*"
+sphinx-click = "*"
+
+[tool.black]
+line-length = 79
+target-version = ['py38', 'py39']
+include = '\.pyi?$'
+exclude = '''
+/(
+  \.git
+  | \.mypy
+  _cache
+  | \.nox
+  | \.idea
+  | \.pytest-cache
+  | _build
+  | build
+  | dist
+  | tests/
+)/
+'''
+
+[tool.coverage.paths]
+source = ["ProteinGraphML", "*site-packages/ProteinGraphML"]
+
+[tool.coverage.report]
+show_missing = true
+ignore_errors = true
+exclude_lines = [
+    "if self.debug:",
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:"
+    ]
+
+[tool.pytest.ini_options]
+addopts = "-x"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
