@@ -3,58 +3,78 @@ import networkx as nx
 
 
 from .Analysis.featureLabel import convertLabels
-from .DataAdapter import OlegDB,selectAsDF,TCRD
+from .DataAdapter import OlegDB, selectAsDF, TCRD
 from .MLTools.MetapathFeatures import ProteinInteractionNode
 
+
 def FindCutoff(graph, disease, middleNode):
-	'''
-	Find the value for cutoff
-	'''
-	FOUND = 0
-	cutoff = 1
-	while(FOUND == 0):
-		cutoff+=1
-		print('Testing cutoff...', cutoff)
-		if len(list(nx.all_simple_paths(graph, source=disease, target=middleNode, cutoff=cutoff))) > 0:
-			FOUND = 1
-	return cutoff
-
-def Visualize(importance,graph,disease,resultDir, dbAdapter=None):
-	firstFeature = importance
-
-	nodesInGraph = set()
-
-
-	middleNode = firstFeature[0]
-	if ProteinInteractionNode.isThisNode(firstFeature[0]):
-		middleNode = int(middleNode)
-	
-	cutoff = FindCutoff(graph, disease, middleNode)
-	
-
-	print("here is the cuttoff",cutoff)
-	for path in nx.all_simple_paths(graph, source=disease, target=middleNode, cutoff=cutoff):
-		nodesInGraph |= set(path)
+    """
+    Find the value for cutoff
+    """
+    FOUND = 0
+    cutoff = 1
+    while FOUND == 0:
+        cutoff += 1
+        print("Testing cutoff...", cutoff)
+        if (
+            len(
+                list(
+                    nx.all_simple_paths(
+                        graph, source=disease, target=middleNode, cutoff=cutoff
+                    )
+                )
+            )
+            > 0
+        ):
+            FOUND = 1
+    return cutoff
 
 
-	if dbAdapter is None:
-		dbAdapter = OlegDB()
-	
-	niceLabels = convertLabels(list(nodesInGraph),dbAdapter,selectAsDF,type='graph')
-	finalGraph = graph.subgraph(list(nodesInGraph))
-	cytoscapeDump = nx.cytoscape_data(finalGraph)
-	for k,n in enumerate(cytoscapeDump['elements']['nodes']):
-		cytoscapeDump['elements']['nodes'][k]['data']['name'] = niceLabels[n['data']['value']]
+def Visualize(importance, graph, disease, resultDir, dbAdapter=None):
+    firstFeature = importance
 
-		if ProteinInteractionNode.isThisNode(n['data']['value']): #isinstance(n['data']['value'],int):
-			cytoscapeDump['elements']['nodes'][k]['data']['value'] = str(n['data']['value'])
-		
-	dataOut = str(cytoscapeDump).replace("True","true").replace("False","false")[:-1]
+    nodesInGraph = set()
 
+    middleNode = firstFeature[0]
+    if ProteinInteractionNode.isThisNode(firstFeature[0]):
+        middleNode = int(middleNode)
 
+    cutoff = FindCutoff(graph, disease, middleNode)
 
+    print("here is the cuttoff", cutoff)
+    for path in nx.all_simple_paths(
+        graph, source=disease, target=middleNode, cutoff=cutoff
+    ):
+        nodesInGraph |= set(path)
 
-	header = """
+    if dbAdapter is None:
+        dbAdapter = OlegDB()
+
+    niceLabels = convertLabels(
+        list(nodesInGraph), dbAdapter, selectAsDF, type="graph"
+    )
+    finalGraph = graph.subgraph(list(nodesInGraph))
+    cytoscapeDump = nx.cytoscape_data(finalGraph)
+    for k, n in enumerate(cytoscapeDump["elements"]["nodes"]):
+        cytoscapeDump["elements"]["nodes"][k]["data"]["name"] = niceLabels[
+            n["data"]["value"]
+        ]
+
+        if ProteinInteractionNode.isThisNode(
+            n["data"]["value"]
+        ):  # isinstance(n['data']['value'],int):
+            cytoscapeDump["elements"]["nodes"][k]["data"]["value"] = str(
+                n["data"]["value"]
+            )
+
+    dataOut = (
+        str(cytoscapeDump)
+        .replace("True", "true")
+        .replace("False", "false")[:-1]
+    )
+
+    header = (
+        """
 		<style type="text/css">
 		.disease {
 			background-color: blue;
@@ -73,12 +93,15 @@ def Visualize(importance,graph,disease,resultDir, dbAdapter=None):
 
 
 	</div>
-        """+firstFeature[0]+"""
+        """
+        + firstFeature[0]
+        + """
 	<script type="text/javascript">
 	data = 
 	"""
+    )
 
-	footer = """
+    footer = """
 	,'container':document.getElementById('cy')
 	,
 	'style': [{
@@ -240,11 +263,10 @@ cy.layout(options).run();
 </script>
 	"""
 
-	filePath = resultDir + "/{0}{1}{2}.html".format(str(firstFeature[0]),str(int(time.time())),disease)
-	text_file = open(filePath, "w")
-	text_file.write(header+dataOut+footer)
-	text_file.close()
-	print("Output visualization file: {0}".format(filePath))
-
-
-
+    filePath = resultDir + "/{0}{1}{2}.html".format(
+        str(firstFeature[0]), str(int(time.time())), disease
+    )
+    text_file = open(filePath, "w")
+    text_file.write(header + dataOut + footer)
+    text_file.close()
+    print("Output visualization file: {0}".format(filePath))

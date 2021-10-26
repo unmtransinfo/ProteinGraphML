@@ -7,16 +7,30 @@ import numpy as np
 import xgboost as xgb
 import matplotlib.pyplot as plt
 
-from sklearn.model_selection import RandomizedSearchCV, GridSearchCV, cross_val_predict, StratifiedShuffleSplit, \
-    cross_val_score
-from sklearn.metrics import accuracy_score, auc, confusion_matrix, classification_report, matthews_corrcoef
-from sklearn.metrics import roc_auc_score, \
-    roc_curve  # .roc_auc_score(y_true, y_score, average='macro', sample_weight=None, max_fpr=None)
+from sklearn.model_selection import (
+    RandomizedSearchCV,
+    GridSearchCV,
+    cross_val_predict,
+    StratifiedShuffleSplit,
+    cross_val_score,
+)
+from sklearn.metrics import (
+    accuracy_score,
+    auc,
+    confusion_matrix,
+    classification_report,
+    matthews_corrcoef,
+)
+from sklearn.metrics import (
+    roc_auc_score,
+    roc_curve,
+)  # .roc_auc_score(y_true, y_score, average='macro', sample_weight=None, max_fpr=None)
 
 
-# this model system will hopefully make a simple API for dealing with large data 
+# this model system will hopefully make a simple API for dealing with large data
 
-# iterating on our platform across domains 
+# iterating on our platform across domains
+
 
 class Result:
     data = None
@@ -32,16 +46,22 @@ class Result:
         # print("HERE IS THE MODEL")
         self.resultDIR = modelDIR
         # we put the functions here which actually convert the data to a binary score
-        self.predLabel = [round(p) for p in self.predictions]  # generate label using probability
+        self.predLabel = [
+            round(p) for p in self.predictions
+        ]  # generate label using probability
 
     def acc(self):
         return Output("ACC", accuracy_score(self.data.labels, self.predLabel))
 
     def mcc(self):  # Add MCC since data is imbalanced
-        return Output("MCC", matthews_corrcoef(self.data.labels, self.predLabel))
+        return Output(
+            "MCC", matthews_corrcoef(self.data.labels, self.predLabel)
+        )
 
     def roc(self):
-        roc = Output("AUCROC", roc_auc_score(self.data.labels, self.predictions))
+        roc = Output(
+            "AUCROC", roc_auc_score(self.data.labels, self.predictions)
+        )
         # roc.fileOutput(self.modelName)
         return roc
 
@@ -74,7 +94,9 @@ class Output:  # base output...
 
         logging.info("results/" + modelName)
         f = open(base, "w")
-        f.write(str(self.textOutput()[1]))  # this needs to be some kind of representation
+        f.write(
+            str(self.textOutput()[1])
+        )  # this needs to be some kind of representation
         f.close()
 
     def textOutput(self):
@@ -125,20 +147,21 @@ class RocCurve(Output):
         logging.info("ROOT: {0}".format(rootName))
         # root is the type...
 
-
         roc_auc = auc(self.fpr, self.tpr)
-        plt.title('Receiver Operating Characteristic')
-        plt.plot(self.fpr, self.tpr, 'b', label='AUC = %0.2f' % roc_auc)
-        plt.legend(loc='lower right')
-        plt.plot([0, 1], [0, 1], 'r--')
+        plt.title("Receiver Operating Characteristic")
+        plt.plot(self.fpr, self.tpr, "b", label="AUC = %0.2f" % roc_auc)
+        plt.legend(loc="lower right")
+        plt.plot([0, 1], [0, 1], "r--")
         plt.xlim([0, 1])
         plt.ylim([0, 1])
-        plt.ylabel('True Positive Rate')
-        plt.xlabel('False Positive Rate')
+        plt.ylabel("True Positive Rate")
+        plt.xlabel("False Positive Rate")
 
         if fileString is not None:
-            pltfile = fileString + '.png'
-            logging.info("INFO: AUC-ROC curve will be saved as {0}".format(pltfile))
+            pltfile = fileString + ".png"
+            logging.info(
+                "INFO: AUC-ROC curve will be saved as {0}".format(pltfile)
+            )
             plt.savefig(pltfile)
 
     # plt ROC curves for n folds
@@ -152,23 +175,40 @@ class RocCurve(Output):
             fpr, tpr, threshold = roc_curve(labels, predictions)
             roc_auc = auc(fpr, tpr)
             rocValues.append(roc_auc)
-            plt.plot(fpr, tpr, color='gainsboro')
+            plt.plot(fpr, tpr, color="gainsboro")
 
-        plt.plot(fpr, tpr, color='darkblue', label='Mean AUC = %0.3f' % np.mean(rocValues))
-        plt.plot(fpr, tpr, color='darkred', label='Median AUC = %0.3f' % np.median(rocValues))
-        plt.legend(loc='lower right')
-        plt.plot([0, 1], [0, 1], 'r--')
+        plt.plot(
+            fpr,
+            tpr,
+            color="darkblue",
+            label="Mean AUC = %0.3f" % np.mean(rocValues),
+        )
+        plt.plot(
+            fpr,
+            tpr,
+            color="darkred",
+            label="Median AUC = %0.3f" % np.median(rocValues),
+        )
+        plt.legend(loc="lower right")
+        plt.plot([0, 1], [0, 1], "r--")
         plt.xlim([0, 1])
         plt.ylim([0, 1])
-        plt.title('Receiver Operating Characteristic,' + 'Range: ' + str('%.3f' % np.min(rocValues)) + ' - ' + str(
-            '%.3f' % np.max(rocValues)))
-        plt.ylabel('True Positive Rate')
-        plt.xlabel('False Positive Rate')
+        plt.title(
+            "Receiver Operating Characteristic,"
+            + "Range: "
+            + str("%.3f" % np.min(rocValues))
+            + " - "
+            + str("%.3f" % np.max(rocValues))
+        )
+        plt.ylabel("True Positive Rate")
+        plt.xlabel("False Positive Rate")
 
         # logging.info("RESULT DIR: {0}".format(self.resultDIR))
         if fileString is not None:
-            pltfile = fileString + '.png'
-            logging.info("INFO: AUC-ROC curve will be saved as {0}".format(pltfile))
+            pltfile = fileString + ".png"
+            logging.info(
+                "INFO: AUC-ROC curve will be saved as {0}".format(pltfile)
+            )
             plt.savefig(pltfile)
 
     def printOutput(self, file=None):
@@ -176,14 +216,14 @@ class RocCurve(Output):
             return
 
         roc_auc = auc(self.fpr, self.tpr)
-        plt.title('Receiver Operating Characteristic')
-        plt.plot(self.fpr, self.tpr, 'b', label='AUC = %0.2f' % roc_auc)
-        plt.legend(loc='lower right')
-        plt.plot([0, 1], [0, 1], 'r--')
+        plt.title("Receiver Operating Characteristic")
+        plt.plot(self.fpr, self.tpr, "b", label="AUC = %0.2f" % roc_auc)
+        plt.legend(loc="lower right")
+        plt.plot([0, 1], [0, 1], "r--")
         plt.xlim([0, 1])
         plt.ylim([0, 1])
-        plt.ylabel('True Positive Rate')
-        plt.xlabel('False Positive Rate')
+        plt.ylabel("True Positive Rate")
+        plt.xlabel("False Positive Rate")
         plt.show()
 
 
@@ -192,8 +232,12 @@ class BaseModel:
 
     def __init__(self, MODEL_PROCEDURE, RESULT_DIR=None):
         self.MODEL_PROCEDURE = MODEL_PROCEDURE
-        if RESULT_DIR is None:  # control will NEVER come here as RESULT_DIR is mandatory now
-            self.MODEL_RUN_NAME = "{0}-{1}".format(self.MODEL_PROCEDURE, str(int(time.time())))
+        if (
+            RESULT_DIR is None
+        ):  # control will NEVER come here as RESULT_DIR is mandatory now
+            self.MODEL_RUN_NAME = "{0}-{1}".format(
+                self.MODEL_PROCEDURE, str(int(time.time()))
+            )
             self.MODEL_DIR = "results/{0}".format(self.MODEL_RUN_NAME)
         else:
             self.MODEL_RUN_NAME = "{0}".format(self.MODEL_PROCEDURE)
@@ -202,10 +246,12 @@ class BaseModel:
     def getFile(self):
 
         self.createDirectoryIfNeed(self.MODEL_DIR)
-        WRITEFILE = self.MODEL_DIR + '/metrics_' + self.MODEL_PROCEDURE + '.txt'
+        WRITEFILE = (
+            self.MODEL_DIR + "/metrics_" + self.MODEL_PROCEDURE + ".txt"
+        )
 
         fileName = WRITEFILE
-        writeSpace = open(fileName, 'w')
+        writeSpace = open(fileName, "w")
         return writeSpace
 
     def createDirectoryIfNeed(self, dir):
@@ -217,7 +263,9 @@ class BaseModel:
     def setClassifier(self, classifier):
         self.m = classifier
 
-    def createResultObjects(self, testData, outputTypes, predictions, saveData=True):
+    def createResultObjects(
+        self, testData, outputTypes, predictions, saveData=True
+    ):
 
         self.createDirectoryIfNeed("results")
 
@@ -230,17 +278,25 @@ class BaseModel:
 
             resultList = []
             # resultObject = Result(testData,predictions,self.MODEL_RUN_NAME,modelDIR=self.MODEL_RUN_NAME)
-            resultObject = Result(testData, predictions, modelDIR=self.MODEL_DIR)
+            resultObject = Result(
+                testData, predictions, modelDIR=self.MODEL_DIR
+            )
             for resultType in outputTypes:
 
                 print(resultType, file=writeSpace)
-                logging.info("HERES MODEL NAME: {0}".format(self.MODEL_RUN_NAME))
-                newResultObject = getattr(resultObject, resultType)()  # self.MODEL_RUN_NAME
+                logging.info(
+                    "HERES MODEL NAME: {0}".format(self.MODEL_RUN_NAME)
+                )
+                newResultObject = getattr(
+                    resultObject, resultType
+                )()  # self.MODEL_RUN_NAME
                 # print(type(newResultObject))
                 resultList.append(newResultObject)
                 # (hack)
                 if resultType == "rocCurve":
-                    aucFileName = self.MODEL_DIR + '/auc_' + self.MODEL_PROCEDURE
+                    aucFileName = (
+                        self.MODEL_DIR + "/auc_" + self.MODEL_PROCEDURE
+                    )
                     # newResultObject.fileOutput(fileString=self.MODEL_RUN_NAME)
                     newResultObject.fileOutput(fileString=aucFileName)
                 else:
@@ -250,11 +306,13 @@ class BaseModel:
 
         else:
             for resultType in outputTypes:
-                newResultObject = getattr(resultObject, resultType)(self.MODEL_RUN_NAME)
+                newResultObject = getattr(resultObject, resultType)(
+                    self.MODEL_RUN_NAME
+                )
                 resultList.append(newResultObject)
 
         # for each of the items in the result list, write them to the shared space
-        if (len(resultList) == 1):
+        if len(resultList) == 1:
             return resultList[0]
         else:
             return iter(resultList)
@@ -272,7 +330,9 @@ class SkModel(BaseModel):
         return self.createResultObjects(testData, outputTypes, predictions)
 
     def cross_val_predict(self, testData, outputTypes):
-        predictions = cross_val_predict(self.m, testData.features, y=testData.labels, cv=10)
+        predictions = cross_val_predict(
+            self.m, testData.features, y=testData.labels, cv=10
+        )
         return self.createResultObjects(testData, outputTypes, predictions)
 
 
@@ -280,76 +340,131 @@ class XGBoostModel(BaseModel):
     m = None
     param = None
 
-    def setParam(self, ):
+    def setParam(
+        self,
+    ):
         self.param = param
 
     def train(self, trainData, param):
 
         ###FOR SKLEARN WRAPPER###
-        bst = xgb.XGBClassifier(**param).fit(trainData.features, trainData.labels)
+        bst = xgb.XGBClassifier(**param).fit(
+            trainData.features, trainData.labels
+        )
         # self.m = bst
-        modelName = self.MODEL_DIR + '/' + self.MODEL_PROCEDURE + '.model'
-        pickle.dump(bst, open(modelName, 'wb'))
-        logging.info('Trained ML Model was saved as {0}'.format(modelName))
+        modelName = self.MODEL_DIR + "/" + self.MODEL_PROCEDURE + ".model"
+        pickle.dump(bst, open(modelName, "wb"))
+        logging.info("Trained ML Model was saved as {0}".format(modelName))
 
     def predict(self, testData, outputTypes):
         inputData = xgb.DMatrix(testData.features)
         predictions = self.m.predict(inputData)  #
         return self.createResultObjects(testData, outputTypes, predictions)
 
-    def predict_using_saved_model(self, testData, idDescription, idNameSymbol, modelName, infoFile):
+    def predict_using_saved_model(
+        self, testData, idDescription, idNameSymbol, modelName, infoFile
+    ):
 
         ###FOR SKLEARN WRAPPER###
-        bst = pickle.load(open(modelName, 'rb'))
+        bst = pickle.load(open(modelName, "rb"))
         print(bst.get_xgb_params())
         inputData = testData.features  # for wrapper
         class01Probs = bst.predict_proba(inputData)  # for wrapper
-        predictions = [i[1] for i in class01Probs]  # select class1 probability - wrapper
+        predictions = [
+            i[1] for i in class01Probs
+        ]  # select class1 probability - wrapper
         proteinInfo = self.fetchProteinInformation(infoFile)
-        self.savePredictedProbability(testData, predictions, idDescription, idNameSymbol, proteinInfo, "TEST")
+        self.savePredictedProbability(
+            testData,
+            predictions,
+            idDescription,
+            idNameSymbol,
+            proteinInfo,
+            "TEST",
+        )
 
-    def cross_val_predict(self, testData, idDescription, idNameSymbol, idSource, outputTypes, params={}, cv=5):
-        logging.info("Running XGboost 5-fold cross-validation on the train set")
+    def cross_val_predict(
+        self,
+        testData,
+        idDescription,
+        idNameSymbol,
+        idSource,
+        outputTypes,
+        params={},
+        cv=5,
+    ):
+        logging.info(
+            "Running XGboost 5-fold cross-validation on the train set"
+        )
 
-        metrics = {"roc": 0., "mcc": 0., "acc": 0.}
+        metrics = {"roc": 0.0, "mcc": 0.0, "acc": 0.0}
         clf = xgb.XGBClassifier(**params)
         self.m = clf
-        class01Probs = cross_val_predict(self.m, testData.features, y=testData.labels, cv=cv,
-                                         method='predict_proba')  # calls sklearn's cross_val_predict
+        class01Probs = cross_val_predict(
+            self.m,
+            testData.features,
+            y=testData.labels,
+            cv=cv,
+            method="predict_proba",
+        )  # calls sklearn's cross_val_predict
         predictions = [i[1] for i in class01Probs]  # select class1 probability
-        roc, rc, acc, mcc, CM, report = self.createResultObjects(testData, outputTypes, predictions)
+        roc, rc, acc, mcc, CM, report = self.createResultObjects(
+            testData, outputTypes, predictions
+        )
         metrics["roc"] = roc.data
         metrics["mcc"] = mcc.data
         metrics["acc"] = acc.data
 
         # find important features and save them in a text file
         importance = Counter(
-            clf.fit(testData.features, testData.labels).get_booster().get_score(importance_type='gain'))
-        self.saveImportantFeatures(importance, idDescription, idNameSymbol, idSource=idSource)
+            clf.fit(testData.features, testData.labels)
+            .get_booster()
+            .get_score(importance_type="gain")
+        )
+        self.saveImportantFeatures(
+            importance, idDescription, idNameSymbol, idSource=idSource
+        )
         self.saveImportantFeaturesAsPickle(importance)
 
         # save predicted class 1 probability in a text file
-        self.savePredictedProbability(testData, predictions, idDescription, idNameSymbol, "", "TRAIN")
+        self.savePredictedProbability(
+            testData, predictions, idDescription, idNameSymbol, "", "TRAIN"
+        )
 
         # train the model using all train data and save it
         self.train(testData, param=params)
         # return roc,acc,mcc, CM,report,importance
         logging.info("METRICS: {0}".format(str(metrics)))
 
-    def average_cross_val(self, allData, idDescription, idNameSymbol, idSource, outputTypes, iterations, testSize=0.2,
-                          params={}):
+    def average_cross_val(
+        self,
+        allData,
+        idDescription,
+        idNameSymbol,
+        idSource,
+        outputTypes,
+        iterations,
+        testSize=0.2,
+        params={},
+    ):
         # This function divides the data into train and test sets 'n' (number of folds) times.
         # Model trained on the train data is tested on the test data. Average MCC, Accuracy and ROC
         # is reported.
         logging.info("Running ML models to compute average MCC/ROC/ACC")
         importance = None
-        metrics = {"average-roc": 0., "average-mcc": 0., "average-acc": 0.}  # add mcc and accuracy too
+        metrics = {
+            "average-roc": 0.0,
+            "average-mcc": 0.0,
+            "average-acc": 0.0,
+        }  # add mcc and accuracy too
         logging.info("=== RUNNING {0} FOLDS".format(iterations))
 
         # Initialize variable to store predicted probs of test data
         predictedProb_ROC = []
         predictedProbs = {}  # will be used for o/p file
-        seedAUC = {}  # to store seed value and corresponding classification resutls
+        seedAUC = (
+            {}
+        )  # to store seed value and corresponding classification resutls
         for r in range(iterations):
             predictedProb_ROC.append([])
 
@@ -364,8 +479,12 @@ class XGBoostModel(BaseModel):
             bst = clf.fit(trainData.features, trainData.labels)
             # test the model
             class01Probs = bst.predict_proba(testData.features)
-            predictions = [i[1] for i in class01Probs]  # select class1 probability
-            roc, acc, mcc = self.createResultObjects(testData, outputTypes, predictions)
+            predictions = [
+                i[1] for i in class01Probs
+            ]  # select class1 probability
+            roc, acc, mcc = self.createResultObjects(
+                testData, outputTypes, predictions
+            )
 
             # append predicted probability and true class for ROC curve
             predictedProb_ROC[k] = zip(testData.labels.tolist(), predictions)
@@ -384,9 +503,13 @@ class XGBoostModel(BaseModel):
 
             # model.predict ...
             if importance:
-                importance = importance + Counter(bst.get_booster().get_score(importance_type='gain'))
+                importance = importance + Counter(
+                    bst.get_booster().get_score(importance_type="gain")
+                )
             else:
-                importance = Counter(bst.get_booster().get_score(importance_type='gain'))
+                importance = Counter(
+                    bst.get_booster().get_score(importance_type="gain")
+                )
 
         # compute average values
         for key in importance:
@@ -399,34 +522,59 @@ class XGBoostModel(BaseModel):
         for k, v in predictedProbs.items():
             avgPredictedProbs[k] = np.mean(v)
 
-        logging.info("METRICS: {0}".format(str(metrics)))  # write this metrics to a file...
+        logging.info(
+            "METRICS: {0}".format(str(metrics))
+        )  # write this metrics to a file...
 
-        self.saveImportantFeatures(importance, idDescription, idNameSymbol,
-                                   idSource=idSource)  # save important features
+        self.saveImportantFeatures(
+            importance, idDescription, idNameSymbol, idSource=idSource
+        )  # save important features
         self.saveImportantFeaturesAsPickle(importance)
         self.saveSeedPerformance(seedAUC)
         # print (avgPredictedProb)
-        self.savePredictedProbability(allData, avgPredictedProbs, idDescription, idNameSymbol, "",
-                                      "AVERAGE")  # save predicted probabilities
+        self.savePredictedProbability(
+            allData,
+            avgPredictedProbs,
+            idDescription,
+            idNameSymbol,
+            "",
+            "AVERAGE",
+        )  # save predicted probabilities
         # plot ROC curves
         rc = RocCurve("rocCurve", None, None)
-        aucFileName = self.MODEL_DIR + '/auc_' + self.MODEL_PROCEDURE
-        rc.fileOutputForAverage(predictedProb_ROC, fileString=aucFileName, folds=iterations)
+        aucFileName = self.MODEL_DIR + "/auc_" + self.MODEL_PROCEDURE
+        rc.fileOutputForAverage(
+            predictedProb_ROC, fileString=aucFileName, folds=iterations
+        )
 
     # FEATURE SEARCH, will create the dataset with different sets of features, and search over them to get resutls
-    def gridSearch(self, allData, idDescription, idNameSymbol, outputTypes, paramGrid, rseed, nthreads):
+    def gridSearch(
+        self,
+        allData,
+        idDescription,
+        idNameSymbol,
+        outputTypes,
+        paramGrid,
+        rseed,
+        nthreads,
+    ):
 
         # split test and train data
 
         logging.info("XGBoost parameters search started")
         clf = xgb.XGBClassifier(random_state=rseed)
-        random_search = GridSearchCV(clf, n_jobs=nthreads,
-                                     param_grid=paramGrid,
-                                     scoring='roc_auc', cv=5, verbose=7)
+        random_search = GridSearchCV(
+            clf,
+            n_jobs=nthreads,
+            param_grid=paramGrid,
+            scoring="roc_auc",
+            cv=5,
+            verbose=7,
+        )
 
         # save the output of each iteration of gridsearch to a file
-        tempFileName = self.MODEL_DIR + '/temp.tsv'
-        sys.stdout = open(tempFileName, 'w')
+        tempFileName = self.MODEL_DIR + "/temp.tsv"
+        sys.stdout = open(tempFileName, "w")
         random_search.fit(allData.features, allData.labels)
 
         # model trained with best parameters
@@ -437,144 +585,206 @@ class XGBoostModel(BaseModel):
 
         # predict the test data using the best estimator
 
-
     # save the xgboost parameters selected using GirdSearchCV
     def saveBestEstimator(self, estimator):
 
-        xgbParamFile = self.MODEL_DIR + '/XGBParameters.txt'
-        logging.info("XGBoost parameters for the best estimator written to: {0}".format(xgbParamFile))
+        xgbParamFile = self.MODEL_DIR + "/XGBParameters.txt"
+        logging.info(
+            "XGBoost parameters for the best estimator written to: {0}".format(
+                xgbParamFile
+            )
+        )
 
         # save the optimized parameters for XGboost
-        paramVals = estimator.strip().split('(')[1].split(',')
-        with open(xgbParamFile, 'w') as fo:
-            fo.write('{')
+        paramVals = estimator.strip().split("(")[1].split(",")
+        with open(xgbParamFile, "w") as fo:
+            fo.write("{")
             for vals in paramVals:
-                keyVal = vals.strip(' ').split('=')
-                if ('scale_pos_weight' in keyVal[0] or
-                        'n_jobs' in keyVal[0] or
-                        'nthread' in keyVal[0] or
-                        'None' in keyVal[1]):
+                keyVal = vals.strip(" ").split("=")
+                if (
+                    "scale_pos_weight" in keyVal[0]
+                    or "n_jobs" in keyVal[0]
+                    or "nthread" in keyVal[0]
+                    or "None" in keyVal[1]
+                ):
                     continue
-                elif (')' in keyVal[1]):  # last parameter
-                    line = "'" + keyVal[0].strip().strip(' ') + "': " + keyVal[1].strip().strip(' ').strip(')') + '\n'
+                elif ")" in keyVal[1]:  # last parameter
+                    line = (
+                        "'"
+                        + keyVal[0].strip().strip(" ")
+                        + "': "
+                        + keyVal[1].strip().strip(" ").strip(")")
+                        + "\n"
+                    )
                 else:
-                    line = "'" + keyVal[0].strip().strip(' ') + "': " + keyVal[1].strip().strip(' ').strip(')') + ',\n'
+                    line = (
+                        "'"
+                        + keyVal[0].strip().strip(" ")
+                        + "': "
+                        + keyVal[1].strip().strip(" ").strip(")")
+                        + ",\n"
+                    )
                 fo.write(line)
-            fo.write('}')
+            fo.write("}")
 
         # save parameters used in each iteration
-        tuneFileName = self.MODEL_DIR + '/tune.tsv'
-        logging.info("Parameter values in each iteration of GridSearchCV written to: {0}".format(tuneFileName))
-        ft = open(tuneFileName, 'w')
-        headerWritten = 'N'
-        tempFileName = self.MODEL_DIR + '/temp.tsv'
-        with open(tempFileName, 'r') as fin:
+        tuneFileName = self.MODEL_DIR + "/tune.tsv"
+        logging.info(
+            "Parameter values in each iteration of GridSearchCV written to: {0}".format(
+                tuneFileName
+            )
+        )
+        ft = open(tuneFileName, "w")
+        headerWritten = "N"
+        tempFileName = self.MODEL_DIR + "/temp.tsv"
+        with open(tempFileName, "r") as fin:
             for line in fin:
-                header = ''
-                rec = ''
-                if ('score' in line):
-                    if (headerWritten == 'N'):
-                        vals = line.strip().strip('[CV]').split(',')
+                header = ""
+                rec = ""
+                if "score" in line:
+                    if headerWritten == "N":
+                        vals = line.strip().strip("[CV]").split(",")
                         for val in vals:
-                            k, v = val.strip(' ').split('=')
-                            header = header + k + '\t'
-                            rec = rec + v + '\t'
-                        ft.write(header + '\n')
-                        ft.write(rec + '\n')
-                        headerWritten = 'Y'
+                            k, v = val.strip(" ").split("=")
+                            header = header + k + "\t"
+                            rec = rec + v + "\t"
+                        ft.write(header + "\n")
+                        ft.write(rec + "\n")
+                        headerWritten = "Y"
                     else:
-                        vals = line.strip().strip('[CV]').split(',')
+                        vals = line.strip().strip("[CV]").split(",")
                         for val in vals:
-                            k, v = val.strip(' ').split('=')
-                            rec = rec + v + '\t'
-                        ft.write(rec + '\n')
+                            k, v = val.strip(" ").split("=")
+                            rec = rec + v + "\t"
+                        ft.write(rec + "\n")
         ft.close()
         os.remove(tempFileName)  # delete temp file
 
     # Save important features as pickle file. It will be used by visualization code
     def saveImportantFeaturesAsPickle(self, importance):
-        '''
-		Save important features in a pickle dictionary
-		'''
-        featureFile = self.MODEL_DIR + '/featImportance_' + self.MODEL_PROCEDURE + '.pkl'
-        logging.info("IMPORTANT FEATURES WRITTEN TO PICKLE FILE {0}".format(featureFile))
-        with open(featureFile, 'wb') as ff:
+        """
+        Save important features in a pickle dictionary
+        """
+        featureFile = (
+            self.MODEL_DIR + "/featImportance_" + self.MODEL_PROCEDURE + ".pkl"
+        )
+        logging.info(
+            "IMPORTANT FEATURES WRITTEN TO PICKLE FILE {0}".format(featureFile)
+        )
+        with open(featureFile, "wb") as ff:
             pickle.dump(importance, ff, pickle.HIGHEST_PROTOCOL)
 
     # Save seed number and corresponding AUC, ACC and MCC
     def saveSeedPerformance(self, seedAUC):
-        '''
-		Save important features in a pickle dictionary
-		'''
-        seedFile = self.MODEL_DIR + '/seed_val_auc.tsv'
-        logging.info("SEED VALUES AND THEIR CORRESPONDING AUC/ACC/MCC WRITTEN TO {0}".format(seedFile))
+        """
+        Save important features in a pickle dictionary
+        """
+        seedFile = self.MODEL_DIR + "/seed_val_auc.tsv"
+        logging.info(
+            "SEED VALUES AND THEIR CORRESPONDING AUC/ACC/MCC WRITTEN TO {0}".format(
+                seedFile
+            )
+        )
 
-        with open(seedFile, 'w') as ff:
-            hdr = 'Seed' + '\t' + 'AUC' + '\t' + 'Accuracy' + '\t' + 'MCC' + '\n'
+        with open(seedFile, "w") as ff:
+            hdr = (
+                "Seed" + "\t" + "AUC" + "\t" + "Accuracy" + "\t" + "MCC" + "\n"
+            )
             ff.write(hdr)
             for k, v in seedAUC.items():
-                rec = str(k) + '\t' + str(v[0]) + '\t' + str(v[1]) + '\t' + str(v[2]) + '\n'
+                rec = (
+                    str(k)
+                    + "\t"
+                    + str(v[0])
+                    + "\t"
+                    + str(v[1])
+                    + "\t"
+                    + str(v[2])
+                    + "\n"
+                )
                 ff.write(rec)
 
     # Save the important features in a text file.
-    def saveImportantFeatures(self, importance, idDescription, idNameSymbol, idSource=None):
+    def saveImportantFeatures(
+        self, importance, idDescription, idNameSymbol, idSource=None
+    ):
         """
-		This function saves the important features in a text file.
-		"""
+        This function saves the important features in a text file.
+        """
 
-        dataForDataframe = {'Feature': [], 'Symbol': [], 'Cell_id': [], 'Drug_name': [],
-                            'Tissue': [], 'Source': [], 'Name': [], 'Gain Value': []}
+        dataForDataframe = {
+            "Feature": [],
+            "Symbol": [],
+            "Cell_id": [],
+            "Drug_name": [],
+            "Tissue": [],
+            "Source": [],
+            "Name": [],
+            "Gain Value": [],
+        }
         for feature, gain in importance.items():
-            dataForDataframe['Feature'].append(feature)
-            dataForDataframe['Gain Value'].append(gain)
+            dataForDataframe["Feature"].append(feature)
+            dataForDataframe["Gain Value"].append(gain)
 
             if feature.lower().islower():  # alphanumeric feature
                 # source
                 if idSource is not None and feature in idSource:
-                    dataForDataframe['Source'].append(idSource[feature])
+                    dataForDataframe["Source"].append(idSource[feature])
                 else:
-                    dataForDataframe['Source'].append('')
+                    dataForDataframe["Source"].append("")
 
                 # Name
                 if feature in idDescription:
-                    dataForDataframe['Name'].append(idDescription[feature])
+                    dataForDataframe["Name"].append(idDescription[feature])
                 else:
-                    dataForDataframe['Name'].append('')
-                    logging.debug('INFO: saveImportantFeatures - Unknown feature = {0}'.format(feature))
+                    dataForDataframe["Name"].append("")
+                    logging.debug(
+                        "INFO: saveImportantFeatures - Unknown feature = {0}".format(
+                            feature
+                        )
+                    )
 
                 # Symbol
                 if feature in idNameSymbol:
-                    dataForDataframe['Symbol'].append(idNameSymbol[feature])
+                    dataForDataframe["Symbol"].append(idNameSymbol[feature])
                 else:
-                    dataForDataframe['Symbol'].append('')
+                    dataForDataframe["Symbol"].append("")
 
             else:  # numeric feature
                 # Source
                 if idSource is not None:
-                    dataForDataframe['Source'].append(idSource[int(feature)])
+                    dataForDataframe["Source"].append(idSource[int(feature)])
                 else:
-                    dataForDataframe['Source'].append('')
+                    dataForDataframe["Source"].append("")
 
                 # Name
                 if int(feature) in idDescription:
-                    dataForDataframe['Name'].append(idDescription[int(feature)])
+                    dataForDataframe["Name"].append(
+                        idDescription[int(feature)]
+                    )
                 else:
-                    dataForDataframe['Name'].append('')
-                    logging.debug('INFO: saveImportantFeatures - Unknown feature = {0}'.format(feature))
+                    dataForDataframe["Name"].append("")
+                    logging.debug(
+                        "INFO: saveImportantFeatures - Unknown feature = {0}".format(
+                            feature
+                        )
+                    )
 
                 # Symbol
                 if int(feature) in idNameSymbol:
-                    dataForDataframe['Symbol'].append(idNameSymbol[int(feature)])
+                    dataForDataframe["Symbol"].append(
+                        idNameSymbol[int(feature)]
+                    )
                 else:
-                    dataForDataframe['Symbol'].append('')
+                    dataForDataframe["Symbol"].append("")
 
             # for CCLE only
             if feature in idSource and idSource[feature] == "ccle":
-                cid = feature[:feature.index('_')]
-                tissue = feature[feature.index('_') + 1:]
-                dataForDataframe['Cell_id'].append(cid)
-                dataForDataframe['Tissue'].append(tissue)
-                dataForDataframe['Drug_name'].append('')
+                cid = feature[: feature.index("_")]
+                tissue = feature[feature.index("_") + 1 :]
+                dataForDataframe["Cell_id"].append(cid)
+                dataForDataframe["Tissue"].append(tissue)
+                dataForDataframe["Drug_name"].append("")
 
             # for LINCS only.
             # LINCS features contain pert_id and cell_id, separated by :. The drug_id in “olegdb” is the DrugCentral
@@ -582,33 +792,40 @@ class XGBoostModel(BaseModel):
             # used as drug_id to fetch the drug name from the dictionary.
 
             elif feature in idSource and idSource[feature] == "lincs":
-                drugid = feature[:feature.index(':')]
+                drugid = feature[: feature.index(":")]
                 try:
-                    drugname = idSource['drug_' + drugid]
+                    drugname = idSource["drug_" + drugid]
                 except:
-                    drugname = ''
-                cid = feature[feature.index(':') + 1:]
-                dataForDataframe['Cell_id'].append(cid)
-                dataForDataframe['Drug_name'].append(drugname)
-                dataForDataframe['Tissue'].append('')
+                    drugname = ""
+                cid = feature[feature.index(":") + 1 :]
+                dataForDataframe["Cell_id"].append(cid)
+                dataForDataframe["Drug_name"].append(drugname)
+                dataForDataframe["Tissue"].append("")
             else:
-                dataForDataframe['Cell_id'].append('')
-                dataForDataframe['Drug_name'].append('')
-                dataForDataframe['Tissue'].append('')
+                dataForDataframe["Cell_id"].append("")
+                dataForDataframe["Drug_name"].append("")
+                dataForDataframe["Tissue"].append("")
 
         # for k,v in dataForDataframe.items():
         #    print(k, len(v))
 
         df = pd.DataFrame(dataForDataframe)
-        df = df.sort_values(by=['Gain Value'], ascending=False)
-        impFileTsv = self.MODEL_DIR + '/featImportance_' + self.MODEL_PROCEDURE + '.tsv'
+        df = df.sort_values(by=["Gain Value"], ascending=False)
+        impFileTsv = (
+            self.MODEL_DIR + "/featImportance_" + self.MODEL_PROCEDURE + ".tsv"
+        )
         fout = open(impFileTsv, "w")
-        df.to_csv(fout, '\t', index=False)
+        df.to_csv(fout, "\t", index=False)
         fout.close()
         logging.info("IMPORTANT FEATURES WRITTEN TO {0}".format(impFileTsv))
-        impFileXlsx = self.MODEL_DIR + '/featImportance_' + self.MODEL_PROCEDURE + '.xlsx'
-        writer = pd.ExcelWriter(impFileXlsx, engine='xlsxwriter')
-        df.to_excel(writer, sheet_name='Sheet1', index=False)
+        impFileXlsx = (
+            self.MODEL_DIR
+            + "/featImportance_"
+            + self.MODEL_PROCEDURE
+            + ".xlsx"
+        )
+        writer = pd.ExcelWriter(impFileXlsx, engine="xlsxwriter")
+        df.to_excel(writer, sheet_name="Sheet1", index=False)
         writer.save()
         logging.info("IMPORTANT FEATURES WRITTEN TO {0}".format(impFileXlsx))
 
@@ -617,26 +834,37 @@ class XGBoostModel(BaseModel):
         Read infoFile to fetch information about test proteins.
         """
         df = pd.read_excel(infoFile)
-        df = df.fillna(value='')
+        df = df.fillna(value="")
         symbol = df["sym"]
         uniprot = df["uniprot"]
         tdl = df["tdl"]
         fam = df["fam"]
         novelty = df["novelty"]
         importance = df["importance"]
-        symInfo = {symbol[i]: [uniprot[i], tdl[i], fam[i], novelty[i], importance[i]] for i in range(len(symbol))}
+        symInfo = {
+            symbol[i]: [uniprot[i], tdl[i], fam[i], novelty[i], importance[i]]
+            for i in range(len(symbol))
+        }
         return symInfo
 
     # save predicted probability
-    def savePredictedProbability(self, testData, predictions, idDescription, idNameSymbol, proteinInfo, DataType):
-        '''
-		This function will save true labels and predicted class 1 probability of all protein ids.
-		'''
+    def savePredictedProbability(
+        self,
+        testData,
+        predictions,
+        idDescription,
+        idNameSymbol,
+        proteinInfo,
+        DataType,
+    ):
+        """
+        This function will save true labels and predicted class 1 probability of all protein ids.
+        """
         TrueLabels = []
         proteinIds = list(testData.features.index.values)
         if DataType == "TEST":
             for p in proteinIds:
-                TrueLabels.append('')
+                TrueLabels.append("")
         elif DataType == "AVERAGE":
             avgPredictions = []
             trueClass = []
@@ -658,47 +886,70 @@ class XGBoostModel(BaseModel):
             TrueLabels = testData.labels.tolist()
 
         # Write data to the file
-        dataForDataframe = {'Protein Id': [], 'Symbol': [], 'Name': [], 'Uniprot': [], 'tdl': [], 'fam': [],
-                            'novelty': [], 'importance': [], 'True Label': [], 'Predicted Probability': []
-                            }
+        dataForDataframe = {
+            "Protein Id": [],
+            "Symbol": [],
+            "Name": [],
+            "Uniprot": [],
+            "tdl": [],
+            "fam": [],
+            "novelty": [],
+            "importance": [],
+            "True Label": [],
+            "Predicted Probability": [],
+        }
 
         for i in range(len(proteinIds)):
             proteinId = proteinIds[i]
-            dataForDataframe['Protein Id'].append(proteinId)
-            dataForDataframe['True Label'].append(TrueLabels[i])
-            dataForDataframe['Predicted Probability'].append(predictions[i])
+            dataForDataframe["Protein Id"].append(proteinId)
+            dataForDataframe["True Label"].append(TrueLabels[i])
+            dataForDataframe["Predicted Probability"].append(predictions[i])
 
             if proteinId in idNameSymbol:
-                dataForDataframe['Name'].append(idDescription[proteinId])
-                dataForDataframe['Symbol'].append(idNameSymbol[proteinId])
+                dataForDataframe["Name"].append(idDescription[proteinId])
+                dataForDataframe["Symbol"].append(idNameSymbol[proteinId])
             else:
-                dataForDataframe['Name'].append(proteinId)
-                dataForDataframe['Symbol'].append(proteinId)
+                dataForDataframe["Name"].append(proteinId)
+                dataForDataframe["Symbol"].append(proteinId)
 
             if DataType == "TEST" and idNameSymbol[proteinId] in proteinInfo:
                 v = proteinInfo[idNameSymbol[proteinId]]
-                dataForDataframe['Uniprot'].append(v[0])
-                dataForDataframe['tdl'].append(v[1])
-                dataForDataframe['fam'].append(v[2])
-                dataForDataframe['novelty'].append(v[3])
-                dataForDataframe['importance'].append(v[4])
+                dataForDataframe["Uniprot"].append(v[0])
+                dataForDataframe["tdl"].append(v[1])
+                dataForDataframe["fam"].append(v[2])
+                dataForDataframe["novelty"].append(v[3])
+                dataForDataframe["importance"].append(v[4])
             else:
-                dataForDataframe['Uniprot'].append("")
-                dataForDataframe['tdl'].append("")
-                dataForDataframe['fam'].append("")
-                dataForDataframe['novelty'].append("")
-                dataForDataframe['importance'].append("")
+                dataForDataframe["Uniprot"].append("")
+                dataForDataframe["tdl"].append("")
+                dataForDataframe["fam"].append("")
+                dataForDataframe["novelty"].append("")
+                dataForDataframe["importance"].append("")
 
         df = pd.DataFrame(dataForDataframe)
-        df = df.sort_values(by=['Predicted Probability'], ascending=False)
+        df = df.sort_values(by=["Predicted Probability"], ascending=False)
 
-        resultsFileTsv = self.MODEL_DIR + '/classificationResults_' + self.MODEL_PROCEDURE + '.tsv'
+        resultsFileTsv = (
+            self.MODEL_DIR
+            + "/classificationResults_"
+            + self.MODEL_PROCEDURE
+            + ".tsv"
+        )
         fout = open(resultsFileTsv, "w")
-        df.to_csv(fout, '\t', index=False)
+        df.to_csv(fout, "\t", index=False)
         fout.close()
-        logging.info("CLASSIFICATION RESULTS WRITTEN TO {0}".format(resultsFileTsv))
-        resultsFileXlsx = self.MODEL_DIR + '/classificationResults_' + self.MODEL_PROCEDURE + '.xlsx'
-        writer = pd.ExcelWriter(resultsFileXlsx, engine='xlsxwriter')
-        df.to_excel(writer, sheet_name='Sheet1', index=False)
+        logging.info(
+            "CLASSIFICATION RESULTS WRITTEN TO {0}".format(resultsFileTsv)
+        )
+        resultsFileXlsx = (
+            self.MODEL_DIR
+            + "/classificationResults_"
+            + self.MODEL_PROCEDURE
+            + ".xlsx"
+        )
+        writer = pd.ExcelWriter(resultsFileXlsx, engine="xlsxwriter")
+        df.to_excel(writer, sheet_name="Sheet1", index=False)
         writer.save()
-        logging.info("CLASSIFICATION RESULTS WRITTEN TO {0}".format(resultsFileXlsx))
+        logging.info(
+            "CLASSIFICATION RESULTS WRITTEN TO {0}".format(resultsFileXlsx)
+        )

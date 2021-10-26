@@ -22,66 +22,87 @@ INFO:3.  3599: features: 21674 / 22054 ; missing 0 / 22054; zeros 380 / 22054
 INFO:4. 15387: features: 2933 / 22054 ; missing 0 / 22054; zeros 19121 / 22054
 
 """
-import sys, pickle,logging
+import sys, pickle, logging
 import pandas as pd
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
 
-  logging.basicConfig(format='%(levelname)s:%(message)s', level=(logging.DEBUG))
+    logging.basicConfig(
+        format="%(levelname)s:%(message)s", level=(logging.DEBUG)
+    )
 
-  if len(sys.argv)<2:
-    logging.error(f"Syntax: {sys.argv[0]} PICKLEFILE")
-    
-  with open(sys.argv[1], 'rb') as f:
-    df = pickle.load(f)
+    if len(sys.argv) < 2:
+        logging.error(f"Syntax: {sys.argv[0]} PICKLEFILE")
 
-  logging.info(f"rows: {df.shape[0]}; columns: {df.shape[1]}")
+    with open(sys.argv[1], "rb") as f:
+        df = pickle.load(f)
 
-  df.reset_index(level=0, inplace=True) #protein_id
+    logging.info(f"rows: {df.shape[0]}; columns: {df.shape[1]}")
 
-  tag = "Y"
-  for key,val in df[tag].value_counts().iteritems():
-    logging.info(f"{tag}: {val:6d}: {key}")
+    df.reset_index(level=0, inplace=True)  # protein_id
 
-  #for tag in df.columns: print(f"{tag}")
-  coltags = pd.Series([tag for tag in df.columns])
+    tag = "Y"
+    for key, val in df[tag].value_counts().iteritems():
+        logging.info(f"{tag}: {val:6d}: {key}")
 
-  # Columns with PIDs:
-  ppi_match = coltags.str.fullmatch('[0-9]+\s*')
-  logging.info(f"PPI columns : {ppi_match.sum()}/{df.shape[1]} ({100*ppi_match.sum()/df.shape[1]:.2f}%)")
+    # for tag in df.columns: print(f"{tag}")
+    coltags = pd.Series([tag for tag in df.columns])
 
-  # Columns with cell lines? co-expression?:
-  cell_match = coltags.str.match('[0-9]+:[A-Z]')
-  logging.info(f"cell line columns : {cell_match.sum()}/{df.shape[1]} ({100*cell_match.sum()/df.shape[1]:.2f}%)")
+    # Columns with PIDs:
+    ppi_match = coltags.str.fullmatch("[0-9]+\s*")
+    logging.info(
+        f"PPI columns : {ppi_match.sum()}/{df.shape[1]} ({100*ppi_match.sum()/df.shape[1]:.2f}%)"
+    )
 
-  # Columns with GO:
-  go_match = coltags.str.match('GO:')
-  logging.info(f"GO columns : {go_match.sum()}/{df.shape[1]} ({100*go_match.sum()/df.shape[1]:.2f}%)")
+    # Columns with cell lines? co-expression?:
+    cell_match = coltags.str.match("[0-9]+:[A-Z]")
+    logging.info(
+        f"cell line columns : {cell_match.sum()}/{df.shape[1]} ({100*cell_match.sum()/df.shape[1]:.2f}%)"
+    )
 
-  # Columns with IPR:
-  ipr_match = coltags.str.match('IPR')
-  logging.info(f"IPR columns : {ipr_match.sum()}/{df.shape[1]} ({100*ipr_match.sum()/df.shape[1]:.2f}%)")
+    # Columns with GO:
+    go_match = coltags.str.match("GO:")
+    logging.info(
+        f"GO columns : {go_match.sum()}/{df.shape[1]} ({100*go_match.sum()/df.shape[1]:.2f}%)"
+    )
 
-  # Columns with HSA (KEGG):
-  rhsa_match = coltags.str.match('R-HSA')
-  logging.info(f"KEGG/R-HSA columns : {rhsa_match.sum()}/{df.shape[1]} ({100*rhsa_match.sum()/df.shape[1]:.2f}%)")
-  # Columns with hsa (KEGG):
-  hsa_match = coltags.str.match('hsa')
-  logging.info(f"KEGG/hsa columns : {hsa_match.sum()}/{df.shape[1]} ({100*hsa_match.sum()/df.shape[1]:.2f}%)")
+    # Columns with IPR:
+    ipr_match = coltags.str.match("IPR")
+    logging.info(
+        f"IPR columns : {ipr_match.sum()}/{df.shape[1]} ({100*ipr_match.sum()/df.shape[1]:.2f}%)"
+    )
 
-  # Columns with ACH:
-  ach_match = coltags.str.match(r'.*\(ACH-')
-  logging.info(f"ACH columns : {ach_match.sum()}/{df.shape[1]} ({100*ach_match.sum()/df.shape[1]:.2f}%)")
+    # Columns with HSA (KEGG):
+    rhsa_match = coltags.str.match("R-HSA")
+    logging.info(
+        f"KEGG/R-HSA columns : {rhsa_match.sum()}/{df.shape[1]} ({100*rhsa_match.sum()/df.shape[1]:.2f}%)"
+    )
+    # Columns with hsa (KEGG):
+    hsa_match = coltags.str.match("hsa")
+    logging.info(
+        f"KEGG/hsa columns : {hsa_match.sum()}/{df.shape[1]} ({100*hsa_match.sum()/df.shape[1]:.2f}%)"
+    )
 
-  ###
-  # Training positives
-  # Counts and categories of non-empty features.
+    # Columns with ACH:
+    ach_match = coltags.str.match(r".*\(ACH-")
+    logging.info(
+        f"ACH columns : {ach_match.sum()}/{df.shape[1]} ({100*ach_match.sum()/df.shape[1]:.2f}%)"
+    )
 
-  for i in df[df["Y"]==1].index:
-    protein_id = int(df.iloc[i,]["protein_id"])
-    fvec = df.iloc[i,3:]
-    missing = (fvec.isna() | fvec.isnull())
-    zeros = fvec==0
-    logging.info(f"{i}. {protein_id:5d}: features: {fvec.size-missing.sum()-zeros.sum()} / {fvec.size} ; missing {missing.sum()} / {fvec.size}; zeros {zeros.sum()} / {fvec.size}")
-    
+    ###
+    # Training positives
+    # Counts and categories of non-empty features.
+
+    for i in df[df["Y"] == 1].index:
+        protein_id = int(
+            df.iloc[
+                i,
+            ]["protein_id"]
+        )
+        fvec = df.iloc[i, 3:]
+        missing = fvec.isna() | fvec.isnull()
+        zeros = fvec == 0
+        logging.info(
+            f"{i}. {protein_id:5d}: features: {fvec.size-missing.sum()-zeros.sum()} / {fvec.size} ; missing {missing.sum()} / {fvec.size}; zeros {zeros.sum()} / {fvec.size}"
+        )
