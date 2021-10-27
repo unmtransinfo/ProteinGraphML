@@ -20,7 +20,7 @@ if __name__ == "__main__":
         description="Create Protein-Disease knowledge graph (KG) from source RDB"
     )
     parser.add_argument(
-        "--db", choices=DBS, default="tcrd", help="{0}".format(str(DBS))
+        "--db", choices=DBS, default="tcrd", help=f"{str(DBS)}"
     )
     parser.add_argument("--o", dest="ofile", help="output pickled KG")
     parser.add_argument("--logfile", help="KG construction log.")
@@ -74,13 +74,13 @@ if __name__ == "__main__":
     try:
         pdg.attach(dbad.loadInterpro(proteinSet))
     except Exception as e:
-        logging.error("InterPro failed to load: {0}".format(e))
+        logging.error(f"InterPro failed to load: {e}")
 
     # TCRD only: (Would these add value?)
     try:
         pdg.attach(dbad.loadOMIM(proteinSet))
     except Exception as e:
-        logging.error("OMIM failed to load: {0}".format(e))
+        logging.error(f"OMIM failed to load: {e}")
     # try:
     #  pdg.attach(dbad.loadPfam(proteinSet))
     # except Exception as e:
@@ -126,7 +126,7 @@ if __name__ == "__main__":
     try:
         idUniprot = dbad.fetchUniprotForProteinId()
     except Exception as e:
-        logging.error("No Uniprot in OlegDB: {0}".format(e))
+        logging.error(f"No Uniprot in OlegDB: {e}")
         idUniprot = {}
 
     # add name, symbol and uniprot id to graph nodes
@@ -148,19 +148,19 @@ if __name__ == "__main__":
 
     # Save graph in pickle format.
     if args.ofile is not None:
-        logging.info("Saving pickled graph to: {0}".format(args.ofile))
+        logging.info(f"Saving pickled graph to: {args.ofile}")
         pdg.save(args.ofile)
 
     # Save graph in CYJS format.
     if args.cyjsfile is not None:
-        logging.info("Saving KG to CYJS file: {0}".format(args.cyjsfile))
+        logging.info(f"Saving KG to CYJS file: {args.cyjsfile}")
         gdata = cytoscape_data(pdg.graph)
         with open(args.cyjsfile, "w") as fcyjs:
             json.dump(gdata, fcyjs, indent=2)
 
     # Save graph in GraphML format.
     if args.graphmlfile is not None:
-        logging.info("Saving KG to GraphML file: {0}".format(args.graphmlfile))
+        logging.info(f"Saving KG to GraphML file: {args.graphmlfile}")
         with open(args.graphmlfile, "w") as fgraphml:
             for line in generate_graphml(
                 pdg.graph, encoding="utf-8", prettyprint=True
@@ -186,7 +186,7 @@ if __name__ == "__main__":
                         + "\n"
                     )
                 except:
-                    logging.error("Node not found: {0}".format(node))
+                    logging.error(f"Node not found: {node}")
             allEdges = set(pdg.graph.edges)
             for edge in allEdges:
                 edgeCount += 1
@@ -201,11 +201,9 @@ if __name__ == "__main__":
                         + "\n"
                     )
                 except:
-                    logging.error("Edge node not found: {0}".format(node))
+                    logging.error(f"Edge node not found: {node}")
         logging.info(
-            "{0} nodes, {1} edges written to {2}".format(
-                nodeCount, edgeCount, args.logfile
-            )
+            f"{nodeCount} nodes, {edgeCount} edges written to {args.logfile}"
         )
 
     # TSV node and edge info, importable by Neo4j.
@@ -220,9 +218,7 @@ if __name__ == "__main__":
                 try:
                     name = idDescription[node]
                 except:
-                    logging.error(
-                        "idDescription[node] not found: {0}".format(node)
-                    )
+                    logging.error(f"idDescription[node] not found: {node}")
                     continue
 
                 if re.match(r"\d+$", str(node)):
@@ -257,9 +253,7 @@ if __name__ == "__main__":
                     "edge\t\t\t\t" + str(edge[0]) + "\t" + str(edge[1]) + "\n"
                 )
         logging.info(
-            "{0} nodes, {1} edges written to {2}".format(
-                nodeCount, edgeCount, args.tsvfile
-            )
+            f"{nodeCount} nodes, {edgeCount} edges written to {args.tsvfile}"
         )
 
     logging.info(

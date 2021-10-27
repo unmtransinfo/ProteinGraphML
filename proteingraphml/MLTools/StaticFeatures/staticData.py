@@ -20,9 +20,7 @@ def gtex(dbad):
     df = basicPivot(df, "protein_id", "tissue_type_detail", "median_tpm")
     df.reset_index(drop=False, inplace=True)
     logging.info(
-        "staticData: GTEX proteins: rows: {0}; cols: {1}".format(
-            df.shape[0], df.shape[1]
-        )
+        f"staticData: GTEX proteins: rows: {df.shape[0]}; cols: {df.shape[1]}"
     )
     return df
 
@@ -37,9 +35,7 @@ def lincs(dbad):
     df = basicPivot(df, "protein_id", "col_id", "zscore")
     df.reset_index(drop=False, inplace=True)
     logging.info(
-        "staticData: LINCS proteins: rows: {0}; cols: {1}".format(
-            df.shape[0], df.shape[1]
-        )
+        f"staticData: LINCS proteins: rows: {df.shape[0]}; cols: {df.shape[1]}"
     )
     return df
 
@@ -57,9 +53,7 @@ def ccle(dbad):
     df = basicPivot(df, "protein_id", "col_id", "expression")
     df.reset_index(drop=False, inplace=True)
     logging.info(
-        "staticData: CCLE proteins: rows: {0}; cols: {1}".format(
-            df.shape[0], df.shape[1]
-        )
+        f"staticData: CCLE proteins: rows: {df.shape[0]}; cols: {df.shape[1]}"
     )
     return df
 

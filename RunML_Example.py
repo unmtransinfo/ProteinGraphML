@@ -11,9 +11,9 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s:%(message)s", level=logging.INFO
 )
 
-logging.info("Python version: {0}".format(sys.version.split()[0]))
-logging.info("Pandas version: {0}".format(pd.__version__))
-logging.info("NetworkX version: {0}".format(nx.__version__))
+logging.info(f"Python version: {sys.version.split()[0]}")
+logging.info(f"Pandas version: {pd.__version__}")
+logging.info(f"NetworkX version: {nx.__version__}")
 
 from proteingraphml.DataAdapter import OlegDB, selectAsDF
 from proteingraphml.GraphTools import ProteinDiseaseAssociationGraph
@@ -39,7 +39,7 @@ with db_session:
     dname = dbAdapter.db.get(
         "SELECT name FROM mp_onto WHERE mp_term_id = '" + disease + "'"
     )
-    logging.info('disease: {0}: "{1}"'.format(disease, dname))
+    logging.info(f'disease: {disease}: "{dname}"')
 
 fileData = None
 
@@ -48,17 +48,17 @@ pickleFile = "ProteinDisease_GRAPH.pickle"
 currentGraph = ProteinDiseaseAssociationGraph.load(pickleFile)
 
 # SOME DISEASES CAUSE "DIVIDE BY 0 error"
-logging.info("GRAPH LOADED: {0}".format(pickleFile))
+logging.info(f"GRAPH LOADED: {pickleFile}")
 
 nodes = [ProteinInteractionNode, KeggNode, ReactomeNode, GoNode, InterproNode]
 staticFeatures = []  # ALL OPTIONS HERE... ["gtex","lincs","hpa","ccle"]
 
-logging.info("USING {0} METAPATH FEATURE SETS".format(len(nodes)))
-logging.info("USING {0} STATIC FEATURE SETS".format(len(staticFeatures)))
+logging.info(f"USING {len(nodes)} METAPATH FEATURE SETS")
+logging.info(f"USING {len(staticFeatures)} STATIC FEATURE SETS")
 
 if fileData is not None:
-    logging.info("FOUND {0} POSITIVE LABELS".format(len(fileData[True])))
-    logging.info("FOUND {0} NEGATIVE LABELS".format(len(fileData[False])))
+    logging.info(f"FOUND {len(fileData[True])} POSITIVE LABELS")
+    logging.info(f"FOUND {len(fileData[False])} NEGATIVE LABELS")
     trainData = metapathFeatures(
         disease, currentGraph, nodes, staticFeatures, loadedLists=fileData
     ).fillna(0)

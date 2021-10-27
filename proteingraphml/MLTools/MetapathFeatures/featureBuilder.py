@@ -93,22 +93,16 @@ def metapathFeatures(
         unknownP = []
 
     logging.info(
-        "(metapathFeatures) PREPARING TRUE ASSOCIATIONS: {0}".format(
-            len(trueP)
-        )
+        f"(metapathFeatures) PREPARING TRUE ASSOCIATIONS: {len(trueP)}"
     )
     logging.info(
-        "(metapathFeatures) PREPARING FALSE ASSOCIATIONS: {0}".format(
-            len(falseP)
-        )
+        f"(metapathFeatures) PREPARING FALSE ASSOCIATIONS: {len(falseP)}"
     )
     logging.info(
-        "(metapathFeatures) PREPARING UNKNOWN ASSOCIATIONS: {0}".format(
-            len(unknownP)
-        )
+        f"(metapathFeatures) PREPARING UNKNOWN ASSOCIATIONS: {len(unknownP)}"
     )
-    logging.info("(metapathFeatures) NODES IN GRAPH: {0}".format(len(G.nodes)))
-    logging.info("(metapathFeatures) EDGES IN GRAPH: {0}".format(len(G.edges)))
+    logging.info(f"(metapathFeatures) NODES IN GRAPH: {len(G.nodes)}")
+    logging.info(f"(metapathFeatures) EDGES IN GRAPH: {len(G.edges)}")
 
     proteinNodes = [
         pro for pro in list(G.nodes) if ProteinInteractionNode.isThisNode(pro)
@@ -117,9 +111,7 @@ def metapathFeatures(
     if len(proteinNodes) == 0:
         raise Exception("No protein nodes detected in graph")
 
-    logging.info(
-        "(metapathFeatures) DETECTED PROTEINS: {0}".format(len(proteinNodes))
-    )
+    logging.info(f"(metapathFeatures) DETECTED PROTEINS: {len(proteinNodes)}")
 
     nodeListPairs = []
     for n in featureList:
@@ -129,9 +121,7 @@ def metapathFeatures(
 
     metapaths = []
     flog = "metapath_features.log"
-    logging.info(
-        "(metapathFeatures) Metapath features logfile: {0}".format(flog)
-    )
+    logging.info(f"(metapathFeatures) Metapath features logfile: {flog}")
     fh = open(flog, "w")  # file to save nodes used for metapaths
     for pair in nodeListPairs:
         nodes = pair[1]

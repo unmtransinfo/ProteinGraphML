@@ -10,10 +10,10 @@ def list_of_columns(pdata, rdata):
     for comparison.
     """
     r_cols = set(rdata.columns)
-    print("Number of columns in R file...{0}".format(len(r_cols)))
+    print(f"Number of columns in R file...{len(r_cols)}")
 
     p_cols = set(pdata.columns)
-    print("Number of columns in Python file...{0}".format(len(p_cols)))
+    print(f"Number of columns in Python file...{len(p_cols)}")
 
     if len(p_cols) == len(r_cols):
         selected_cols = []
@@ -24,8 +24,8 @@ def list_of_columns(pdata, rdata):
             elif col in r_cols:
                 selected_cols.append(col)
             else:
-                print("Unmatched column...{0}".format(col))
-        print("Total common column...{0}".format(len(selected_cols)))
+                print(f"Unmatched column...{col}")
+        print(f"Total common column...{len(selected_cols)}")
     else:
         print("Python and R file do not have the same number of features")
         return 0

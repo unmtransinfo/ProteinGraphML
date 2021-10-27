@@ -47,9 +47,7 @@ def convertLabels(featureLabels, adapter, selectAsDF, type="graph"):
                 prefix = "PPI:"
 
             print(protein)
-            newValue = "{0}{1}".format(
-                prefix, getValueForId("protein_id", item, "symbol", protein)
-            )
+            newValue = f"{prefix}{getValueForId('protein_id', item, 'symbol', protein)}"
 
         # name = getValueForId("kegg_pathway_id",value,"kegg_pathway_name",kegg)
         if KeggNode.isThisNode(item):

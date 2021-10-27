@@ -52,9 +52,7 @@ parser.add_argument(
     help="pickled file with ML features",
 )
 # parser.add_argument('--dir', default=dataDir, help='input dir')
-parser.add_argument(
-    "--db", choices=DBS, default="olegdb", help="{0}".format(str(DBS))
-)
+parser.add_argument("--db", choices=DBS, default="olegdb", help=f"{str(DBS)}")
 parser.add_argument(
     "--featurefile", required=True, help="full path to the pickle feature file"
 )
@@ -75,7 +73,7 @@ fileName = argData["featurefile"]
 numOfFeatures = argData["num"]
 diseaseName = argData["disease"]
 
-logging.info("Running visualization using file...{0}".format(fileName))
+logging.info(f"Running visualization using file...{fileName}")
 # filePath = argData['dir'] + fileName #IMPORTANT: update this if folder name changes
 tmpPath = fileName.split("/")[:-1]
 filePath = "/".join(i for i in tmpPath)

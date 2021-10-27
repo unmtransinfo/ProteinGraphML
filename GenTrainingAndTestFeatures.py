@@ -32,9 +32,7 @@ def saveTrainPredictSet(
     """
     This function saves training and predict data sets in pickle format.
     """
-    logging.info(
-        "Number of rows and features in allData: {0}".format(allData.shape)
-    )
+    logging.info(f"Number of rows and features in allData: {allData.shape}")
     if disease is not None:
         pklTrainFile = outputDir + "/" + disease + "_TrainingData.pkl"
         pklPredictFile = outputDir + "/" + disease + "_PredictData.pkl"
@@ -42,11 +40,9 @@ def saveTrainPredictSet(
         # extract train data from the dataframe
         trainData = allData.loc[allData["Y"].isin([0, 1])]
         logging.info(
-            "Number of rows and features in training data: {0}".format(
-                trainData.shape
-            )
+            f"Number of rows and features in training data: {trainData.shape}"
         )
-        logging.info("Writing train data to file: {0}".format(pklTrainFile))
+        logging.info(f"Writing train data to file: {pklTrainFile}")
         savePickleObject(pklTrainFile, trainData)
         # print (trainData)
 
@@ -54,13 +50,9 @@ def saveTrainPredictSet(
         PredictData = allData.loc[allData["Y"] == -1]
         # PredictData = PredictData.drop('Y', axis=1) #drop label from the predict data
         logging.info(
-            "Number of rows and features in predict data: {0}".format(
-                PredictData.shape
-            )
+            f"Number of rows and features in predict data: {PredictData.shape}"
         )
-        logging.info(
-            "Writing predict data to file: {0}".format(pklPredictFile)
-        )
+        logging.info(f"Writing predict data to file: {pklPredictFile}")
         savePickleObject(pklPredictFile, PredictData)
     # print (PredictData)
 
@@ -71,7 +63,7 @@ def saveTrainPredictSet(
             + os.path.basename(trainingfile).split(".")[0]
             + "_TrainingData.pkl"
         )
-        logging.info("Writing train data to file: {0}".format(pklTrainFile))
+        logging.info(f"Writing train data to file: {pklTrainFile}")
         savePickleObject(pklTrainFile, allData)
 
     elif predictfile is not None and trainingfile is not None:
@@ -91,11 +83,9 @@ def saveTrainPredictSet(
         # extract train data from the dataframe
         trainData = allData.loc[allData["Y"].isin([0, 1])]
         logging.info(
-            "Number of rows and features in training data: {0}".format(
-                trainData.shape
-            )
+            f"Number of rows and features in training data: {trainData.shape}"
         )
-        logging.info("Writing train data to file: {0}".format(pklTrainFile))
+        logging.info(f"Writing train data to file: {pklTrainFile}")
         savePickleObject(pklTrainFile, trainData)
         # print (trainData)
 
@@ -103,13 +93,9 @@ def saveTrainPredictSet(
         PredictData = allData.loc[allData["Y"] == -1]
         # PredictData = PredictData.drop('Y', axis=1) #drop label from the predict data
         logging.info(
-            "Number of rows and features in predict data: {0}".format(
-                PredictData.shape
-            )
+            f"Number of rows and features in predict data: {PredictData.shape}"
         )
-        logging.info(
-            "Writing predict data to file: {0}".format(pklPredictFile)
-        )
+        logging.info(f"Writing predict data to file: {pklPredictFile}")
         savePickleObject(pklPredictFile, PredictData)
     # print (PredictData)
     else:
@@ -157,19 +143,19 @@ if __name__ == "__main__":
     parser.add_argument(
         "--kgfile",
         default=DEFAULT_GRAPH,
-        help='input pickled KG (default: "{0}")'.format(DEFAULT_GRAPH),
+        help=f'input pickled KG (default: "{DEFAULT_GRAPH}")',
     )
     parser.add_argument(
         "--static_data",
         default=DEFAULT_STATIC_FEATURES,
-        help='(default: "{0}")'.format(DEFAULT_STATIC_FEATURES),
+        help=f'(default: "{DEFAULT_STATIC_FEATURES}")',
     )
     parser.add_argument(
         "--static_dir",
         default=os.getcwd() + "/ProteinGraphML/MLTools/StaticFeatures",
     )
     parser.add_argument(
-        "--db", choices=DBS, default="tcrd", help="{0}".format(str(DBS))
+        "--db", choices=DBS, default="tcrd", help=f"{str(DBS)}"
     )
     parser.add_argument(
         "-v", "--verbose", action="count", default=0, help="verbosity"
@@ -193,9 +179,7 @@ if __name__ == "__main__":
         logging.info("Create the output directory")
         os.makedirs(args.outputdir)
     logging.info(
-        "Output directory for ML data(Training/predict): {0}".format(
-            args.outputdir
-        )
+        f"Output directory for ML data(Training/predict): {args.outputdir}"
     )
 
     # check whether file or disease was given
@@ -205,14 +189,14 @@ if __name__ == "__main__":
     # fetch KG data
     # graphString = args.kgfile
     currentGraph = ProteinDiseaseAssociationGraph.load(args.kgfile)
-    logging.info("GRAPH {0} LOADED".format(args.kgfile))
+    logging.info(f"GRAPH {args.kgfile} LOADED")
 
     # Access the db adaptor. Make TCRD as the default DB
     dbAdapter = OlegDB() if args.db == "olegdb" else TCRD()
 
     if args.trainingfile is not None and args.disease is None:
         # trainingPklFile = trainingfile
-        logging.info("Input training file: {0}".format(args.trainingfile))
+        logging.info(f"Input training file: {args.trainingfile}")
         try:
             with open(args.trainingfile, "rb") as f:
                 fileData = pickle.load(f)
@@ -223,7 +207,7 @@ if __name__ == "__main__":
         # Also add predict data if provided
         if args.predictfile is not None:
             # predictPklFile = predictfile
-            logging.info("Input predict file: {0}".format(args.predictfile))
+            logging.info(f"Input predict file: {args.predictfile}")
             try:
                 with open(args.predictfile, "rb") as f:
                     fileData.update(
@@ -233,7 +217,7 @@ if __name__ == "__main__":
                 logging.error("Invalid pickled predict set file")
                 exit()
     elif args.trainingfile is None and args.disease is not None:
-        logging.info("running on this disease: {0}".format(args.disease))
+        logging.info(f"running on this disease: {args.disease}")
         fullData = {}
         # get positive and negative training protein ids
         trainP, trainF = getTrainingProteinIds(args.disease, currentGraph)
@@ -265,9 +249,9 @@ if __name__ == "__main__":
     else:
         staticFeatures = args.static_data.split(",")
     logging.info(staticFeatures)
-    logging.info("--- METAPATH FEATURE SETS: {0}".format(len(nodes)))
-    logging.info("--- STATIC FEATURE SETS: {0}".format(len(staticFeatures)))
-    logging.info("--- STATIC FEATURE DIR: {0}".format(args.static_dir))
+    logging.info(f"--- METAPATH FEATURE SETS: {len(nodes)}")
+    logging.info(f"--- STATIC FEATURE SETS: {len(staticFeatures)}")
+    logging.info(f"--- STATIC FEATURE DIR: {args.static_dir}")
 
     # fetch the description of proteins
     idDescription = (

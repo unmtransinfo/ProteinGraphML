@@ -43,7 +43,7 @@ def generateTrainPredictFromExcel(inFile, idType, negProtein=None):
             else:
                 logging.error("Invalid label")
     else:
-        logging.error("Invalid idType: {0}".format(idType))
+        logging.error(f"Invalid idType: {idType}")
         exit()
     # if negative label was not provided, use default protein ids
     if negProtein is not None:
@@ -61,9 +61,7 @@ def generateTrainPredictFromExcel(inFile, idType, negProtein=None):
         )
     )
     logging.info(
-        "Count of predict set (unlabeled): {0}".format(
-            len(predictData["unknown"])
-        )
+        f"Count of predict set (unlabeled): {len(predictData['unknown'])}"
     )
     if len(trainData[True]) == 0 or len(trainData[False]) == 0:
         logging.error("ML codes cannot be run with one class")
@@ -113,7 +111,7 @@ def generateTrainPredictFromText(inFile, idType, negProtein=None):
             else:
                 logging.info("Invalid label")
     else:
-        logging.error("Invalid idType: {0}".format(idType))
+        logging.error(f"Invalid idType: {idType}")
         exit()
 
     # if negative label was not provided, use default protein ids
@@ -192,17 +190,13 @@ def saveTrainPredictSet(trainData, predictData, outDir, outBaseName):
                 len(trainData[True]) + len(trainData[False]),
             )
         )
-        logging.info("Writing train data to file: {0}".format(pklTrainFile))
+        logging.info(f"Writing train data to file: {pklTrainFile}")
         pickle.dump(trainData, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     # save the predict set
     with open(pklPredictFile, "wb") as handle:
-        logging.info(
-            "Predict dataset: {0} cases".format(len(predictData["unknown"]))
-        )
-        logging.info(
-            "Writing predict data to file: {0}".format(pklPredictFile)
-        )
+        logging.info(f"Predict dataset: {len(predictData['unknown'])} cases")
+        logging.info(f"Writing predict data to file: {pklPredictFile}")
         pickle.dump(predictData, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
@@ -243,7 +237,7 @@ if __name__ == "__main__":
         help="required if negatives not specified by input",
     )
     parser.add_argument(
-        "--db", choices=DBS, default="tcrd", help="{0}".format(str(DBS))
+        "--db", choices=DBS, default="tcrd", help=f"{str(DBS)}"
     )
     parser.add_argument(
         "-v", "--verbose", action="count", default=0, help="verbosity"
@@ -262,9 +256,7 @@ if __name__ == "__main__":
     outBaseName = fileName.split(".")[0]
 
     if fileExt.lower() not in ("csv", "tsv", "txt", "rds", "xlsx", "xls"):
-        parser.error(
-            "Unsupported filetype: {0} ({1})".format(fileName, fileExt)
-        )
+        parser.error(f"Unsupported filetype: {fileName} ({fileExt})")
 
     # Access the db adaptor. Make TCRD as the default DB
     dbAdapter = OlegDB() if args.db == "olegdb" else TCRD()
@@ -291,16 +283,14 @@ if __name__ == "__main__":
     predictData = {}  # dictionary to store predict protein_ids
 
     if fileExt.lower() == "rds":
-        logging.info("Input file specified: {0}".format(fileName))
+        logging.info(f"Input file specified: {fileName}")
         trainData, predictData = generateTrainPredictFromRDS(
             args.ifile,
             negProtein=(negProteinIds if args.use_default_negatives else None),
         )
     elif fileExt.lower() in ("xlsx", "xls"):
         logging.info(
-            'Input file with ID type "{0}" specified: {1}'.format(
-                args.symbol_or_pid, fileName
-            )
+            f'Input file with ID type "{args.symbol_or_pid}" specified: {fileName}'
         )
         trainData, predictData = generateTrainPredictFromExcel(
             args.ifile,
@@ -309,9 +299,7 @@ if __name__ == "__main__":
         )
     elif fileExt.lower() in ("csv", "tsv", "txt"):
         logging.info(
-            'Input file with ID type "{0}" specified: {1}'.format(
-                args.symbol_or_pid, fileName
-            )
+            f'Input file with ID type "{args.symbol_or_pid}" specified: {fileName}'
         )
         trainData, predictData = generateTrainPredictFromText(
             args.ifile,
@@ -320,5 +308,5 @@ if __name__ == "__main__":
         )
     else:
         pass  # ERROR
-    logging.info("Writing output to: {0}".format(dataDir))
+    logging.info(f"Writing output to: {dataDir}")
     saveTrainPredictSet(trainData, predictData, dataDir, outBaseName)

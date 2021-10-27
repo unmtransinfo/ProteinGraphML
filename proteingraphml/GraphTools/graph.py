@@ -97,14 +97,10 @@ class ProteinDiseaseAssociationGraph(GraphData):  # on top of networkx?
 
         # nx.write_gpickle(self.graph,path)
         logging.info(
-            "(ProteinDiseaseAssociationGraph.save) names map: {0}".format(
-                str(self.namesMap)
-            )
+            f"(ProteinDiseaseAssociationGraph.save) names map: {str(self.namesMap)}"
         )
         logging.info(
-            "(ProteinDiseaseAssociationGraph.save) {0}".format(
-                str(vars(self).keys())
-            )
+            f"(ProteinDiseaseAssociationGraph.save) {str(vars(self).keys())}"
         )
         logging.info(
             "(ProteinDiseaseAssociationGraph.save) nodes: {0}, edges: {1}".format(

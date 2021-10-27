@@ -87,12 +87,12 @@ if __name__ == "__main__":
         "-v", "--verbose", action="count", default=0, help="verbosity"
     )
     parser.add_argument(
-        "--db", choices=DBS, default="tcrd", help="{0}".format(str(DBS))
+        "--db", choices=DBS, default="tcrd", help=f"{str(DBS)}"
     )
     parser.add_argument(
         "--static_data",
         default=DEFAULT_STATIC_FEATURES,
-        help='(default: "{0}")'.format(DEFAULT_STATIC_FEATURES),
+        help=f'(default: "{DEFAULT_STATIC_FEATURES}")',
     )
     parser.add_argument("--static_dir", default=os.getcwd() + "/static_tcrd/")
 
@@ -118,14 +118,12 @@ if __name__ == "__main__":
             exit()
 
     Procedure = args.procedure
-    logging.info("Procedure: {0}".format(Procedure))
+    logging.info(f"Procedure: {Procedure}")
 
     # Get reult directory and number of folds
     if args.resultdir is not None:
         resultDir = args.resultdir  # folder where all results will be stored
-        logging.info(
-            "Results will be saved in directory: {0}".format(resultDir)
-        )
+        logging.info(f"Results will be saved in directory: {resultDir}")
     else:
         logging.error("Result directory is needed")
         exit()

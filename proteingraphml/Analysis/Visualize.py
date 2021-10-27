@@ -269,4 +269,4 @@ cy.layout(options).run();
     text_file = open(filePath, "w")
     text_file.write(header + dataOut + footer)
     text_file.close()
-    print("Output visualization file: {0}".format(filePath))
+    print(f"Output visualization file: {filePath}")

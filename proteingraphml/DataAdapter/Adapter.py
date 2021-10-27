@@ -121,9 +121,7 @@ class OlegDB(Adapter):
             reactome = reactome[reactome["protein_id"].isin(proteinFilter)]
 
         logging.debug(
-            "(OlegDB.loadReactome) Reactome rows returned: {0}".format(
-                reactome.shape[0]
-            )
+            f"(OlegDB.loadReactome) Reactome rows returned: {reactome.shape[0]}"
         )
         return GraphEdge("protein_id", "reactome_id", data=reactome)
 
@@ -140,9 +138,7 @@ class OlegDB(Adapter):
             stringDB = stringDB[stringDB["protein_id2"].isin(proteinFilter)]
 
         logging.debug(
-            "(OlegDB.loadPPI) STRING rows returned: {0}".format(
-                stringDB.shape[0]
-            )
+            f"(OlegDB.loadPPI) STRING rows returned: {stringDB.shape[0]}"
         )
         return GraphEdge(
             "protein_id1", "protein_id2", "combined_score", stringDB
@@ -158,9 +154,7 @@ class OlegDB(Adapter):
         if proteinFilter is not None:
             kegg = kegg[kegg["protein_id"].isin(proteinFilter)]
 
-        logging.debug(
-            "(OlegDB.loadKegg) KEGG rows returned: {0}".format(kegg.shape[0])
-        )
+        logging.debug(f"(OlegDB.loadKegg) KEGG rows returned: {kegg.shape[0]}")
         return GraphEdge("protein_id", "kegg_pathway_id", data=kegg)
 
     def loadInterpro(self, proteinFilter=None):
@@ -175,9 +169,7 @@ class OlegDB(Adapter):
             interpro = interpro[interpro["protein_id"].isin(proteinFilter)]
 
         logging.debug(
-            "(OlegDB.loadInterpro) Interpro rows returned: {0}".format(
-                interpro.shape[0]
-            )
+            f"(OlegDB.loadInterpro) Interpro rows returned: {interpro.shape[0]}"
         )
         return GraphEdge("protein_id", "entry_ac", data=interpro)
 
@@ -192,9 +184,7 @@ class OlegDB(Adapter):
         if proteinFilter is not None:
             goa = goa[goa["protein_id"].isin(proteinFilter)]
 
-        logging.debug(
-            "(OlegDB.loadGo) GO rows returned: {0}".format(goa.shape[0])
-        )
+        logging.debug(f"(OlegDB.loadGo) GO rows returned: {goa.shape[0]}")
         return GraphEdge("protein_id", "go_id", data=goa)
 
     # static features
@@ -204,9 +194,7 @@ class OlegDB(Adapter):
             ["protein_id", "median_tpm", "tissue_type_detail"],
             self.db,
         )
-        logging.debug(
-            "(OlegDB.loadGTEX) GTEx rows returned: {0}".format(gtex.shape[0])
-        )
+        logging.debug(f"(OlegDB.loadGTEX) GTEx rows returned: {gtex.shape[0]}")
         return gtex
 
     def loadCCLE(self):
@@ -215,9 +203,7 @@ class OlegDB(Adapter):
             ["protein_id", "cell_id", "tissue", "expression"],
             self.db,
         )
-        logging.debug(
-            "(OlegDB.loadCCLE) CCLE rows returned: {0}".format(ccle.shape[0])
-        )
+        logging.debug(f"(OlegDB.loadCCLE) CCLE rows returned: {ccle.shape[0]}")
         return ccle
 
     def loadLINCS(self):
@@ -227,9 +213,7 @@ class OlegDB(Adapter):
             self.db,
         )
         logging.debug(
-            "(OlegDB.loadLINCS) LINCS rows returned: {0}".format(
-                lincs.shape[0]
-            )
+            f"(OlegDB.loadLINCS) LINCS rows returned: {lincs.shape[0]}"
         )
         return lincs
 
@@ -240,9 +224,7 @@ class OlegDB(Adapter):
             ["protein_id", "col_id", "level"],
             self.db,
         )
-        logging.debug(
-            "(OlegDB.loadHPA) HPA rows returned: {0}".format(hpa.shape[0])
-        )
+        logging.debug(f"(OlegDB.loadHPA) HPA rows returned: {hpa.shape[0]}")
         return hpa
 
     #
@@ -252,9 +234,7 @@ class OlegDB(Adapter):
                 credentials = yaml.safe_load(stream)
             except yaml.YAMLError as exc:
                 logging.error(
-                    "DB credentials not found in {0}: {1}".format(
-                        self.config_file, str(exc)
-                    )
+                    f"DB credentials not found in {self.config_file}: {str(exc)}"
                 )
 
         user = credentials["user"]
@@ -394,9 +374,7 @@ class OlegDB(Adapter):
             self.db,
         )
         logging.debug(
-            "(OlegDB.fetchPathwayIdDescription) Reactome IDs: {0}".format(
-                reactome.shape[0]
-            )
+            f"(OlegDB.fetchPathwayIdDescription) Reactome IDs: {reactome.shape[0]}"
         )
         reactomeDict = reactome.set_index("reactome_id").T.to_dict("records")[
             0
@@ -409,9 +387,7 @@ class OlegDB(Adapter):
             self.db,
         )
         logging.debug(
-            "(OlegDB.fetchPathwayIdDescription) KEGG pathway IDs: {0}".format(
-                kegg.shape[0]
-            )
+            f"(OlegDB.fetchPathwayIdDescription) KEGG pathway IDs: {kegg.shape[0]}"
         )
         keggDict = kegg.set_index("kegg_pathway_id").T.to_dict("records")[
             0
@@ -424,9 +400,7 @@ class OlegDB(Adapter):
             self.db,
         )
         logging.debug(
-            "(OlegDB.fetchPathwayIdDescription) Interpro IDs: {0}".format(
-                interpro.shape[0]
-            )
+            f"(OlegDB.fetchPathwayIdDescription) Interpro IDs: {interpro.shape[0]}"
         )
         interproDict = interpro.set_index("entry_ac").T.to_dict("records")[
             0
@@ -437,9 +411,7 @@ class OlegDB(Adapter):
             "select distinct go_id, name from go", ["go_id", "name"], self.db
         )
         logging.debug(
-            "(OlegDB.fetchPathwayIdDescription) GO IDs: {0}".format(
-                goa.shape[0]
-            )
+            f"(OlegDB.fetchPathwayIdDescription) GO IDs: {goa.shape[0]}"
         )
         goaDict = goa.set_index("go_id").T.to_dict("records")[
             0
@@ -452,9 +424,7 @@ class OlegDB(Adapter):
             self.db,
         )
         logging.debug(
-            "(OlegDB.fetchPathwayIdDescription) Protein IDs: {0}".format(
-                ppi.shape[0]
-            )
+            f"(OlegDB.fetchPathwayIdDescription) Protein IDs: {ppi.shape[0]}"
         )
         ppiDict = ppi.set_index("protein_id").T.to_dict("records")[
             0
@@ -467,9 +437,7 @@ class OlegDB(Adapter):
             self.db,
         )
         logging.debug(
-            "(OlegDB.fetchPathwayIdDescription) MP IDs: {0}".format(
-                mp.shape[0]
-            )
+            f"(OlegDB.fetchPathwayIdDescription) MP IDs: {mp.shape[0]}"
         )
         mpDict = mp.set_index("mp_term_id").T.to_dict("records")[
             0
@@ -486,9 +454,7 @@ class OlegDB(Adapter):
             self.db,
         )
         logging.debug(
-            "(OlegDB.addDatabaseSourceToProteinId) Reactome IDs: {0}".format(
-                reactome.shape[0]
-            )
+            f"(OlegDB.addDatabaseSourceToProteinId) Reactome IDs: {reactome.shape[0]}"
         )
         reactomeDict = reactome.set_index("reactome_id").T.to_dict("records")[
             0
@@ -501,9 +467,7 @@ class OlegDB(Adapter):
             self.db,
         )
         logging.debug(
-            "(OlegDB.addDatabaseSourceToProteinId) KEGG pathway IDs: {0}".format(
-                kegg.shape[0]
-            )
+            f"(OlegDB.addDatabaseSourceToProteinId) KEGG pathway IDs: {kegg.shape[0]}"
         )
         keggDict = kegg.set_index("kegg_pathway_id").T.to_dict("records")[
             0
@@ -516,9 +480,7 @@ class OlegDB(Adapter):
             self.db,
         )
         logging.debug(
-            "(OlegDB.addDatabaseSourceToProteinId) Interpro IDs: {0}".format(
-                interpro.shape[0]
-            )
+            f"(OlegDB.addDatabaseSourceToProteinId) Interpro IDs: {interpro.shape[0]}"
         )
         interproDict = interpro.set_index("entry_ac").T.to_dict("records")[
             0
@@ -531,9 +493,7 @@ class OlegDB(Adapter):
             self.db,
         )
         logging.debug(
-            "(OlegDB.addDatabaseSourceToProteinId) GO IDs: {0}".format(
-                goa.shape[0]
-            )
+            f"(OlegDB.addDatabaseSourceToProteinId) GO IDs: {goa.shape[0]}"
         )
         goaDict = goa.set_index("go_id").T.to_dict("records")[
             0
@@ -546,9 +506,7 @@ class OlegDB(Adapter):
             self.db,
         )
         logging.debug(
-            "(OlegDB.addDatabaseSourceToProteinId) Protein IDs: {0}".format(
-                ppi.shape[0]
-            )
+            f"(OlegDB.addDatabaseSourceToProteinId) Protein IDs: {ppi.shape[0]}"
         )
         ppiDict = ppi.set_index("protein_id").T.to_dict("records")[
             0
@@ -561,9 +519,7 @@ class OlegDB(Adapter):
             self.db,
         )
         logging.debug(
-            "(OlegDB.addDatabaseSourceToProteinId) MP IDs: {0}".format(
-                mp.shape[0]
-            )
+            f"(OlegDB.addDatabaseSourceToProteinId) MP IDs: {mp.shape[0]}"
         )
         mpDict = mp.set_index("mp_term_id").T.to_dict("records")[
             0
@@ -617,9 +573,7 @@ class OlegDB(Adapter):
             self.db,
         )
         logging.debug(
-            "(OlegDB.fetchAllProteinIds) All Protein Ids: {0}".format(
-                allProteinIds.shape[0]
-            )
+            f"(OlegDB.fetchAllProteinIds) All Protein Ids: {allProteinIds.shape[0]}"
         )
         return allProteinIds
 
@@ -712,9 +666,7 @@ class TCRD(Adapter):
         if proteinFilter is not None:
             reactome = reactome[reactome["protein_id"].isin(proteinFilter)]
         logging.debug(
-            "(TCRD.loadReactome) Reactome rows returned: {0}".format(
-                reactome.shape[0]
-            )
+            f"(TCRD.loadReactome) Reactome rows returned: {reactome.shape[0]}"
         )
         return GraphEdge("protein_id", "reactome_id", data=reactome)
 
@@ -728,9 +680,7 @@ class TCRD(Adapter):
             stringDB = stringDB[stringDB["protein_id1"].isin(proteinFilter)]
             stringDB = stringDB[stringDB["protein_id2"].isin(proteinFilter)]
         logging.debug(
-            "(TCRD.loadPPI) STRING rows returned: {0}".format(
-                stringDB.shape[0]
-            )
+            f"(TCRD.loadPPI) STRING rows returned: {stringDB.shape[0]}"
         )
         return GraphEdge(
             "protein_id1", "protein_id2", "combined_score", stringDB
@@ -744,9 +694,7 @@ class TCRD(Adapter):
         )
         if proteinFilter is not None:
             kegg = kegg[kegg["protein_id"].isin(proteinFilter)]
-        logging.debug(
-            "(TCRD.loadKegg) KEGG rows returned: {0}".format(kegg.shape[0])
-        )
+        logging.debug(f"(TCRD.loadKegg) KEGG rows returned: {kegg.shape[0]}")
         return GraphEdge("protein_id", "kegg_pathway_id", data=kegg)
 
     def loadInterpro(self, proteinFilter=None):
@@ -758,9 +706,7 @@ class TCRD(Adapter):
         if proteinFilter is not None:
             interpro = interpro[interpro["protein_id"].isin(proteinFilter)]
         logging.debug(
-            "(TCRD.loadInterpro) Interpro rows returned: {0}".format(
-                interpro.shape[0]
-            )
+            f"(TCRD.loadInterpro) Interpro rows returned: {interpro.shape[0]}"
         )
         return GraphEdge("protein_id", "entry_ac", data=interpro)
 
@@ -772,9 +718,7 @@ class TCRD(Adapter):
         )
         if proteinFilter is not None:
             pfam = pfam[pfam["protein_id"].isin(proteinFilter)]
-        logging.debug(
-            "(TCRD.loadPFAM) Pfam rows returned: {0}".format(pfam.shape[0])
-        )
+        logging.debug(f"(TCRD.loadPFAM) Pfam rows returned: {pfam.shape[0]}")
         return GraphEdge("protein_id", "entry_ac", data=pfam)
 
     def loadPROSITE(self, proteinFilter=None):
@@ -786,9 +730,7 @@ class TCRD(Adapter):
         if proteinFilter is not None:
             prosite = prosite[prosite["protein_id"].isin(proteinFilter)]
         logging.debug(
-            "(TCRD.loadPROSITE) Prosite rows returned: {0}".format(
-                prosite.shape[0]
-            )
+            f"(TCRD.loadPROSITE) Prosite rows returned: {prosite.shape[0]}"
         )
         return GraphEdge("protein_id", "entry_ac", data=prosite)
 
@@ -800,9 +742,7 @@ class TCRD(Adapter):
         )
         if proteinFilter is not None:
             goa = goa[goa["protein_id"].isin(proteinFilter)]
-        logging.debug(
-            "(TCRD.loadGo) GO rows returned: {0}".format(goa.shape[0])
-        )
+        logging.debug(f"(TCRD.loadGo) GO rows returned: {goa.shape[0]}")
         return GraphEdge("protein_id", "go_id", data=goa)
 
     def loadOMIM(self, proteinFilter=None):
@@ -846,9 +786,7 @@ WHERE
 
         if proteinFilter is not None:
             omim = omim[omim["protein_id"].isin(proteinFilter)]
-        logging.debug(
-            "(TCRD.loadOMIM) OMIM rows returned: {0}".format(omim.shape[0])
-        )
+        logging.debug(f"(TCRD.loadOMIM) OMIM rows returned: {omim.shape[0]}")
         return GraphEdge("protein_id", "mim_id", data=omim)
 
     # static features
@@ -861,9 +799,7 @@ WHERE
             self.db,
         )
         logging.debug(
-            "({0}.loadGTEX) gtex rows: {1}".format(
-                type(self).__name__, gtex.shape[0]
-            )
+            f"({type(self).__name__}.loadGTEX) gtex rows: {gtex.shape[0]}"
         )
         gtex.median_tpm = gtex.median_tpm.astype(float)  # Why necessary?
         gtex.info()
@@ -876,9 +812,7 @@ WHERE
             self.db,
         )
         logging.debug(
-            "({0}.loadCCLE) ccle rows: {1}".format(
-                type(self).__name__, ccle.shape[0]
-            )
+            f"({type(self).__name__}.loadCCLE) ccle rows: {ccle.shape[0]}"
         )
         ccle.expression = ccle.expression.astype(float)  # Why necessary?
         return ccle
@@ -890,9 +824,7 @@ WHERE
             self.db,
         )
         logging.debug(
-            "({0}.loadLINCS) lincs rows: {1}".format(
-                type(self).__name__, lincs.shape[0]
-            )
+            f"({type(self).__name__}.loadLINCS) lincs rows: {lincs.shape[0]}"
         )
         lincs.zscore = lincs.zscore.astype(float)  # Why necessary?
         lincs.info()
@@ -923,9 +855,7 @@ WHERE
                 credentials = yaml.safe_load(stream)
             except yaml.YAMLError as exc:
                 logging.error(
-                    "DB credentials not found in {0}: {1}".format(
-                        self.config_file, str(exc)
-                    )
+                    f"DB credentials not found in {self.config_file}: {str(exc)}"
                 )
 
         self.db = Database()
@@ -1108,9 +1038,7 @@ WHERE
             self.db,
         )
         logging.debug(
-            "(TCRD.fetchPathwayIdDescription) reactome rows: {0}".format(
-                reactome.shape[0]
-            )
+            f"(TCRD.fetchPathwayIdDescription) reactome rows: {reactome.shape[0]}"
         )
         reactomeDict = reactome.set_index("reactome_id").T.to_dict("records")[
             0
@@ -1124,9 +1052,7 @@ WHERE
             self.db,
         )
         logging.debug(
-            "(TCRD.fetchPathwayIdDescription) kegg rows: {0}".format(
-                kegg.shape[0]
-            )
+            f"(TCRD.fetchPathwayIdDescription) kegg rows: {kegg.shape[0]}"
         )
         keggDict = kegg.set_index("kegg_pathway_id").T.to_dict("records")[
             0
@@ -1139,9 +1065,7 @@ WHERE
             self.db,
         )
         logging.debug(
-            "(TCRD.fetchPathwayIdDescription) interpro rows: {0}".format(
-                interpro.shape[0]
-            )
+            f"(TCRD.fetchPathwayIdDescription) interpro rows: {interpro.shape[0]}"
         )
         interproDict = interpro.set_index("entry_ac").T.to_dict("records")[
             0
@@ -1154,9 +1078,7 @@ WHERE
             self.db,
         )
         logging.debug(
-            "(TCRD.fetchPathwayIdDescription) goa rows: {0}".format(
-                goa.shape[0]
-            )
+            f"(TCRD.fetchPathwayIdDescription) goa rows: {goa.shape[0]}"
         )
         goaDict = goa.set_index("go_id").T.to_dict("records")[
             0
@@ -1169,9 +1091,7 @@ WHERE
             self.db,
         )
         logging.debug(
-            "(TCRD.fetchPathwayIdDescription) ppi rows: {0}".format(
-                ppi.shape[0]
-            )
+            f"(TCRD.fetchPathwayIdDescription) ppi rows: {ppi.shape[0]}"
         )
         ppiDict = ppi.set_index("protein_id").T.to_dict("records")[
             0
@@ -1184,7 +1104,7 @@ WHERE
             self.db,
         )
         logging.debug(
-            "(TCRD.fetchPathwayIdDescription) mp rows: {0}".format(mp.shape[0])
+            f"(TCRD.fetchPathwayIdDescription) mp rows: {mp.shape[0]}"
         )
         mpDict = mp.set_index("mp_term_id").T.to_dict("records")[
             0
@@ -1201,9 +1121,7 @@ WHERE
             self.db,
         )
         logging.debug(
-            "(TCRD.addDatabaseSourceToProteinId) Reactome IDs: {0}".format(
-                reactome.shape[0]
-            )
+            f"(TCRD.addDatabaseSourceToProteinId) Reactome IDs: {reactome.shape[0]}"
         )
         reactomeDict = reactome.set_index("reactome_id").T.to_dict("records")[
             0
@@ -1217,9 +1135,7 @@ WHERE
             self.db,
         )
         logging.debug(
-            "(TCRD.addDatabaseSourceToProteinId) KEGG pathway IDs: {0}".format(
-                kegg.shape[0]
-            )
+            f"(TCRD.addDatabaseSourceToProteinId) KEGG pathway IDs: {kegg.shape[0]}"
         )
         keggDict = kegg.set_index("kegg_pathway_id").T.to_dict("records")[
             0
@@ -1232,9 +1148,7 @@ WHERE
             self.db,
         )
         logging.debug(
-            "(TCRD.addDatabaseSourceToProteinId) Interpro IDs: {0}".format(
-                interpro.shape[0]
-            )
+            f"(TCRD.addDatabaseSourceToProteinId) Interpro IDs: {interpro.shape[0]}"
         )
         interproDict = interpro.set_index("entry_ac").T.to_dict("records")[
             0
@@ -1247,9 +1161,7 @@ WHERE
             self.db,
         )
         logging.debug(
-            "(TCRD.addDatabaseSourceToProteinId) GO IDs: {0}".format(
-                goa.shape[0]
-            )
+            f"(TCRD.addDatabaseSourceToProteinId) GO IDs: {goa.shape[0]}"
         )
         goaDict = goa.set_index("go_id").T.to_dict("records")[
             0
@@ -1262,9 +1174,7 @@ WHERE
             self.db,
         )
         logging.debug(
-            "(TCRD.addDatabaseSourceToProteinId) Protein IDs: {0}".format(
-                ppi.shape[0]
-            )
+            f"(TCRD.addDatabaseSourceToProteinId) Protein IDs: {ppi.shape[0]}"
         )
         ppiDict = ppi.set_index("protein_id").T.to_dict("records")[
             0
@@ -1277,9 +1187,7 @@ WHERE
             self.db,
         )
         logging.debug(
-            "(TCRD.addDatabaseSourceToProteinId) MP IDs: {0}".format(
-                mp.shape[0]
-            )
+            f"(TCRD.addDatabaseSourceToProteinId) MP IDs: {mp.shape[0]}"
         )
         mpDict = mp.set_index("mp_term_id").T.to_dict("records")[
             0
@@ -1293,9 +1201,7 @@ WHERE
             self.db,
         )
         logging.debug(
-            "(TCRD.addDatabaseSourceToProteinId) All Drug Ids: {0}".format(
-                allDrugNames.shape[0]
-            )
+            f"(TCRD.addDatabaseSourceToProteinId) All Drug Ids: {allDrugNames.shape[0]}"
         )
         drugIdNameDict = allDrugNames.set_index("col_id").T.to_dict("records")[
             0

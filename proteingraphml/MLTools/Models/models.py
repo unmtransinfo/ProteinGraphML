@@ -72,7 +72,7 @@ class Result:
         # fpr, tpr, threshold = metrics.roc_curve(y_test, preds)
         fpr, tpr, threshold = roc_curve(self.data.labels, self.predictions)
         rocCurve = RocCurve("rocCurve", fpr, tpr)
-        logging.info("RESULT DIR: {0}".format(self.resultDIR))
+        logging.info(f"RESULT DIR: {self.resultDIR}")
         # rocCurve.fileOutput(self.resultDIR)
         return rocCurve
 
@@ -144,7 +144,7 @@ class RocCurve(Output):
     def fileOutput(self, file=None, fileString=None):
         rootName = self.stringType
         # base = modelName+"/"+rootName
-        logging.info("ROOT: {0}".format(rootName))
+        logging.info(f"ROOT: {rootName}")
         # root is the type...
 
         roc_auc = auc(self.fpr, self.tpr)
@@ -159,16 +159,14 @@ class RocCurve(Output):
 
         if fileString is not None:
             pltfile = fileString + ".png"
-            logging.info(
-                "INFO: AUC-ROC curve will be saved as {0}".format(pltfile)
-            )
+            logging.info(f"INFO: AUC-ROC curve will be saved as {pltfile}")
             plt.savefig(pltfile)
 
     # plt ROC curves for n folds
     def fileOutputForAverage(self, savedData, fileString=None, folds=5):
 
         rootName = self.stringType
-        logging.info("ROOT: {0}".format(rootName))
+        logging.info(f"ROOT: {rootName}")
         rocValues = []
         for n in range(folds):
             labels, predictions = zip(*list(savedData[n]))  # unzip the data
@@ -196,9 +194,9 @@ class RocCurve(Output):
         plt.title(
             "Receiver Operating Characteristic,"
             + "Range: "
-            + str("%.3f" % np.min(rocValues))
+            + str(f"{np.min(rocValues):.3f}")
             + " - "
-            + str("%.3f" % np.max(rocValues))
+            + str(f"{np.max(rocValues):.3f}")
         )
         plt.ylabel("True Positive Rate")
         plt.xlabel("False Positive Rate")
@@ -206,9 +204,7 @@ class RocCurve(Output):
         # logging.info("RESULT DIR: {0}".format(self.resultDIR))
         if fileString is not None:
             pltfile = fileString + ".png"
-            logging.info(
-                "INFO: AUC-ROC curve will be saved as {0}".format(pltfile)
-            )
+            logging.info(f"INFO: AUC-ROC curve will be saved as {pltfile}")
             plt.savefig(pltfile)
 
     def printOutput(self, file=None):
@@ -235,12 +231,12 @@ class BaseModel:
         if (
             RESULT_DIR is None
         ):  # control will NEVER come here as RESULT_DIR is mandatory now
-            self.MODEL_RUN_NAME = "{0}-{1}".format(
-                self.MODEL_PROCEDURE, str(int(time.time()))
+            self.MODEL_RUN_NAME = (
+                f"{self.MODEL_PROCEDURE}-{str(int(time.time()))}"
             )
-            self.MODEL_DIR = "results/{0}".format(self.MODEL_RUN_NAME)
+            self.MODEL_DIR = f"results/{self.MODEL_RUN_NAME}"
         else:
-            self.MODEL_RUN_NAME = "{0}".format(self.MODEL_PROCEDURE)
+            self.MODEL_RUN_NAME = f"{self.MODEL_PROCEDURE}"
             self.MODEL_DIR = RESULT_DIR
 
     def getFile(self):
@@ -255,7 +251,7 @@ class BaseModel:
         return writeSpace
 
     def createDirectoryIfNeed(self, dir):
-        logging.info("AYYEE: {0}".format(dir))
+        logging.info(f"AYYEE: {dir}")
 
         if not os.path.isdir(dir):
             os.mkdir(dir)
@@ -284,9 +280,7 @@ class BaseModel:
             for resultType in outputTypes:
 
                 print(resultType, file=writeSpace)
-                logging.info(
-                    "HERES MODEL NAME: {0}".format(self.MODEL_RUN_NAME)
-                )
+                logging.info(f"HERES MODEL NAME: {self.MODEL_RUN_NAME}")
                 newResultObject = getattr(
                     resultObject, resultType
                 )()  # self.MODEL_RUN_NAME
@@ -354,7 +348,7 @@ class XGBoostModel(BaseModel):
         # self.m = bst
         modelName = self.MODEL_DIR + "/" + self.MODEL_PROCEDURE + ".model"
         pickle.dump(bst, open(modelName, "wb"))
-        logging.info("Trained ML Model was saved as {0}".format(modelName))
+        logging.info(f"Trained ML Model was saved as {modelName}")
 
     def predict(self, testData, outputTypes):
         inputData = xgb.DMatrix(testData.features)
@@ -434,7 +428,7 @@ class XGBoostModel(BaseModel):
         # train the model using all train data and save it
         self.train(testData, param=params)
         # return roc,acc,mcc, CM,report,importance
-        logging.info("METRICS: {0}".format(str(metrics)))
+        logging.info(f"METRICS: {str(metrics)}")
 
     def average_cross_val(
         self,
@@ -457,7 +451,7 @@ class XGBoostModel(BaseModel):
             "average-mcc": 0.0,
             "average-acc": 0.0,
         }  # add mcc and accuracy too
-        logging.info("=== RUNNING {0} FOLDS".format(iterations))
+        logging.info(f"=== RUNNING {iterations} FOLDS")
 
         # Initialize variable to store predicted probs of test data
         predictedProb_ROC = []
@@ -469,7 +463,7 @@ class XGBoostModel(BaseModel):
             predictedProb_ROC.append([])
 
         for k in range(0, iterations):
-            logging.info("DOING {0} FOLD".format(k + 1))
+            logging.info(f"DOING {k + 1} FOLD")
             clf = xgb.XGBClassifier(**params)
             self.m = clf
             randomState = 1000 + k
@@ -523,7 +517,7 @@ class XGBoostModel(BaseModel):
             avgPredictedProbs[k] = np.mean(v)
 
         logging.info(
-            "METRICS: {0}".format(str(metrics))
+            f"METRICS: {str(metrics)}"
         )  # write this metrics to a file...
 
         self.saveImportantFeatures(
@@ -590,9 +584,7 @@ class XGBoostModel(BaseModel):
 
         xgbParamFile = self.MODEL_DIR + "/XGBParameters.txt"
         logging.info(
-            "XGBoost parameters for the best estimator written to: {0}".format(
-                xgbParamFile
-            )
+            f"XGBoost parameters for the best estimator written to: {xgbParamFile}"
         )
 
         # save the optimized parameters for XGboost
@@ -669,7 +661,7 @@ class XGBoostModel(BaseModel):
             self.MODEL_DIR + "/featImportance_" + self.MODEL_PROCEDURE + ".pkl"
         )
         logging.info(
-            "IMPORTANT FEATURES WRITTEN TO PICKLE FILE {0}".format(featureFile)
+            f"IMPORTANT FEATURES WRITTEN TO PICKLE FILE {featureFile}"
         )
         with open(featureFile, "wb") as ff:
             pickle.dump(importance, ff, pickle.HIGHEST_PROTOCOL)
@@ -681,9 +673,7 @@ class XGBoostModel(BaseModel):
         """
         seedFile = self.MODEL_DIR + "/seed_val_auc.tsv"
         logging.info(
-            "SEED VALUES AND THEIR CORRESPONDING AUC/ACC/MCC WRITTEN TO {0}".format(
-                seedFile
-            )
+            f"SEED VALUES AND THEIR CORRESPONDING AUC/ACC/MCC WRITTEN TO {seedFile}"
         )
 
         with open(seedFile, "w") as ff:
@@ -739,9 +729,7 @@ class XGBoostModel(BaseModel):
                 else:
                     dataForDataframe["Name"].append("")
                     logging.debug(
-                        "INFO: saveImportantFeatures - Unknown feature = {0}".format(
-                            feature
-                        )
+                        f"INFO: saveImportantFeatures - Unknown feature = {feature}"
                     )
 
                 # Symbol
@@ -765,9 +753,7 @@ class XGBoostModel(BaseModel):
                 else:
                     dataForDataframe["Name"].append("")
                     logging.debug(
-                        "INFO: saveImportantFeatures - Unknown feature = {0}".format(
-                            feature
-                        )
+                        f"INFO: saveImportantFeatures - Unknown feature = {feature}"
                     )
 
                 # Symbol
@@ -817,7 +803,7 @@ class XGBoostModel(BaseModel):
         fout = open(impFileTsv, "w")
         df.to_csv(fout, "\t", index=False)
         fout.close()
-        logging.info("IMPORTANT FEATURES WRITTEN TO {0}".format(impFileTsv))
+        logging.info(f"IMPORTANT FEATURES WRITTEN TO {impFileTsv}")
         impFileXlsx = (
             self.MODEL_DIR
             + "/featImportance_"
@@ -827,7 +813,7 @@ class XGBoostModel(BaseModel):
         writer = pd.ExcelWriter(impFileXlsx, engine="xlsxwriter")
         df.to_excel(writer, sheet_name="Sheet1", index=False)
         writer.save()
-        logging.info("IMPORTANT FEATURES WRITTEN TO {0}".format(impFileXlsx))
+        logging.info(f"IMPORTANT FEATURES WRITTEN TO {impFileXlsx}")
 
     def fetchProteinInformation(self, infoFile):
         """
@@ -938,9 +924,7 @@ class XGBoostModel(BaseModel):
         fout = open(resultsFileTsv, "w")
         df.to_csv(fout, "\t", index=False)
         fout.close()
-        logging.info(
-            "CLASSIFICATION RESULTS WRITTEN TO {0}".format(resultsFileTsv)
-        )
+        logging.info(f"CLASSIFICATION RESULTS WRITTEN TO {resultsFileTsv}")
         resultsFileXlsx = (
             self.MODEL_DIR
             + "/classificationResults_"
@@ -950,6 +934,4 @@ class XGBoostModel(BaseModel):
         writer = pd.ExcelWriter(resultsFileXlsx, engine="xlsxwriter")
         df.to_excel(writer, sheet_name="Sheet1", index=False)
         writer.save()
-        logging.info(
-            "CLASSIFICATION RESULTS WRITTEN TO {0}".format(resultsFileXlsx)
-        )
+        logging.info(f"CLASSIFICATION RESULTS WRITTEN TO {resultsFileXlsx}")

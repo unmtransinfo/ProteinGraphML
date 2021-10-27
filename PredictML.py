@@ -18,9 +18,7 @@ DBS = ["olegdb", "tcrd"]
 
 parser = argparse.ArgumentParser(
     description="Run ML Procedure",
-    epilog="--file must be specified; available procedures: {0}".format(
-        str(PROCEDURES)
-    ),
+    epilog=f"--file must be specified; available procedures: {str(PROCEDURES)}",
 )
 parser.add_argument(
     "procedure", choices=PROCEDURES, help="ML procedure to run"
@@ -37,9 +35,7 @@ parser.add_argument(
     "--resultdir",
     help='folder where results will be saved, e.g. "diabetes_no_lincs"',
 )
-parser.add_argument(
-    "--db", choices=DBS, default="tcrd", help="{0}".format(str(DBS))
-)
+parser.add_argument("--db", choices=DBS, default="tcrd", help=f"{str(DBS)}")
 parser.add_argument(
     "-v", "--verbose", action="count", default=0, help="verbosity"
 )
@@ -66,32 +62,24 @@ else:
             predictData = pickle.load(f)
     except:
         logging.error(
-            "Failed to open pickled predict data file {0}".format(
-                args.predictfile
-            )
+            f"Failed to open pickled predict data file {args.predictfile}"
         )
         exit()
 
 # Get ML procedure
-logging.info(
-    "Procedure: {0} ({1})".format(args.procedure, locals()[args.procedure])
-)
+logging.info(f"Procedure: {args.procedure} ({locals()[args.procedure]})")
 
 # directory and file name for the ML Model
 if args.modelfile is None:
     logging.error("--modelfile required.")
     exit()
 else:
-    logging.info(
-        "Model '{0}' will be used for prediction".format(args.modelfile)
-    )
+    logging.info(f"Model '{args.modelfile}' will be used for prediction")
 
 # Get result directory
 if args.resultdir is not None:
     logging.info(
-        "Results will be saved in directory: {0}".format(
-            "results/" + args.resultdir
-        )
+        f"Results will be saved in directory: {'results/' + args.resultdir}"
     )
 else:
     logging.error("Result directory is needed")
