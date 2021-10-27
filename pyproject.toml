@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "proteingraphml"
-version = "0.1.0"
+version = "0.1.1"
 description = "Knowledge Graphs for Protein Science"
 authors = ["UNM Translational Informatics <datascience.software@salud.unm.edu>"]
 license = "BSD-2-Clause"
