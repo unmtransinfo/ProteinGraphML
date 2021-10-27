@@ -1,10 +1,8 @@
-from .MLTools.MetapathFeatures import (
-    ProteinInteractionNode,
-    KeggNode,
-    ReactomeNode,
-    GoNode,
-    InterproNode,
-)
+from .MLTools.MetapathFeatures import GoNode
+from .MLTools.MetapathFeatures import InterproNode
+from .MLTools.MetapathFeatures import KeggNode
+from .MLTools.MetapathFeatures import ProteinInteractionNode
+from .MLTools.MetapathFeatures import ReactomeNode
 
 
 def getValueForId(label, inputValue, extractKey, DB):

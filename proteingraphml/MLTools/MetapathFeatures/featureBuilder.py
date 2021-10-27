@@ -1,5 +1,6 @@
 import itertools
 import logging
+
 import pandas as pd
 
 from .nodes import ProteinInteractionNode

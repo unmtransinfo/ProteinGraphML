@@ -1,30 +1,27 @@
-import os, sys
-import time, logging, random
-import pickle, random
+import logging
+import os
+import pickle
+import random
+import sys
+import time
 from collections import Counter
-import pandas as pd
-import numpy as np
-import xgboost as xgb
-import matplotlib.pyplot as plt
 
-from sklearn.model_selection import (
-    RandomizedSearchCV,
-    GridSearchCV,
-    cross_val_predict,
-    StratifiedShuffleSplit,
-    cross_val_score,
-)
-from sklearn.metrics import (
-    accuracy_score,
-    auc,
-    confusion_matrix,
-    classification_report,
-    matthews_corrcoef,
-)
-from sklearn.metrics import (
-    roc_auc_score,
-    roc_curve,
-)  # .roc_auc_score(y_true, y_score, average='macro', sample_weight=None, max_fpr=None)
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import xgboost as xgb
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import auc
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import matthews_corrcoef
+from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_curve
+from sklearn.model_selection import cross_val_predict
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.model_selection import StratifiedShuffleSplit
 
 
 # this model system will hopefully make a simple API for dealing with large data

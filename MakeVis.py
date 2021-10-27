@@ -3,14 +3,15 @@
 # SAVED DATA
 # WHERE TO SAVE
 # TYPE, FIG OR GRAPH
-import logging
-from proteingraphml.Analysis import Visualize
-
-from proteingraphml.DataAdapter import OlegDB, selectAsDF, TCRD
-from proteingraphml.GraphTools import ProteinDiseaseAssociationGraph
-
-import pickle
 import argparse
+import logging
+import pickle
+
+from proteingraphml.Analysis import Visualize
+from proteingraphml.DataAdapter import OlegDB
+from proteingraphml.DataAdapter import selectAsDF
+from proteingraphml.DataAdapter import TCRD
+from proteingraphml.GraphTools import ProteinDiseaseAssociationGraph
 
 ## we construct a base map of protein to disease just by creating the ProteinDiseaseAs
 

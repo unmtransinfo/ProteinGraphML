@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 ###
-import pyreadr
 import pickle
+
 import numpy as np
+import pyreadr
 
 data = pyreadr.read_r("104300.rds")
 labels = {}

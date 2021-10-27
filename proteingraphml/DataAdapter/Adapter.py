@@ -1,11 +1,13 @@
+import logging
 import os
-from pony.orm import *
+
 import pandas as pd
 import yaml
-import logging
+from pony.orm import *
 
-
-from .biodata_helper import selectAsDF, attachColumn, generateDepthMap
+from .biodata_helper import attachColumn
+from .biodata_helper import generateDepthMap
+from .biodata_helper import selectAsDF
 
 
 # our graph takes a list of pandas frames, w/ relationships, and constructs a graph from all of it ... we may wrap

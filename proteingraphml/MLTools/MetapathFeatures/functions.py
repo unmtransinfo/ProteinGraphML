@@ -1,6 +1,8 @@
+import itertools
+import logging
+
 import networkx as nx
 import numpy as np
-import itertools, logging
 import pandas as pd
 
 

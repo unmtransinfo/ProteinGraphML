@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 ###
-import pickle
-import pyreadr
 import argparse
+import pickle
+
+import pyreadr
 
 
 def extract_train_predict(rdsfile):

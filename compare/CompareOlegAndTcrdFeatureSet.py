@@ -1,7 +1,8 @@
+import argparse
 import pickle
+
 import numpy as np
 import pandas as pd
-import argparse
 
 
 def list_of_columns(odata, tdata):

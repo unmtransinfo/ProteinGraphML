@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 ###
-import sys, os, logging, time
 import argparse
-import pandas as pd
+import logging
+import os
 import pickle
+import sys
+import time
+
 import networkx as nx
+import pandas as pd
 from pony.orm import *
 
 logging.basicConfig(

@@ -1,6 +1,7 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import argparse
+
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
 

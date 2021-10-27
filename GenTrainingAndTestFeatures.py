@@ -1,20 +1,24 @@
 #!/usr/bin/env python3
 ###
-import sys, os, time, argparse, logging
+import argparse
+import logging
+import os
 import pickle
+import sys
+import time
 
-from proteingraphml.DataAdapter import OlegDB, selectAsDF, TCRD
+from proteingraphml.DataAdapter import OlegDB
+from proteingraphml.DataAdapter import selectAsDF
+from proteingraphml.DataAdapter import TCRD
 from proteingraphml.GraphTools import ProteinDiseaseAssociationGraph
-from proteingraphml.MLTools.MetapathFeatures import (
-    metapathFeatures,
-    ProteinInteractionNode,
-    KeggNode,
-    ReactomeNode,
-    GoNode,
-    InterproNode,
-    getMetapaths,
-    getTrainingProteinIds,
-)
+from proteingraphml.MLTools.MetapathFeatures import getMetapaths
+from proteingraphml.MLTools.MetapathFeatures import getTrainingProteinIds
+from proteingraphml.MLTools.MetapathFeatures import GoNode
+from proteingraphml.MLTools.MetapathFeatures import InterproNode
+from proteingraphml.MLTools.MetapathFeatures import KeggNode
+from proteingraphml.MLTools.MetapathFeatures import metapathFeatures
+from proteingraphml.MLTools.MetapathFeatures import ProteinInteractionNode
+from proteingraphml.MLTools.MetapathFeatures import ReactomeNode
 from proteingraphml.MLTools.Procedures import *
 
 

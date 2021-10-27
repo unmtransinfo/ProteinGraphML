@@ -1,9 +1,11 @@
 import time
+
 import networkx as nx
 
-
 from .Analysis.featureLabel import convertLabels
-from .DataAdapter import OlegDB, selectAsDF, TCRD
+from .DataAdapter import OlegDB
+from .DataAdapter import selectAsDF
+from .DataAdapter import TCRD
 from .MLTools.MetapathFeatures import ProteinInteractionNode
 
 

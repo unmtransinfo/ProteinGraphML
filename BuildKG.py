@@ -2,12 +2,19 @@
 """
 	Create Protein Disease knowledge graph from DB adapter 'OlegDB' or 'TCRD'.
 """
-import sys, os, re, argparse, time, json
+import argparse
+import json
 import logging
-from networkx.readwrite.json_graph import cytoscape_data
-from networkx.readwrite.graphml import generate_graphml
+import os
+import re
+import sys
+import time
 
-from proteingraphml.DataAdapter import OlegDB, TCRD
+from networkx.readwrite.graphml import generate_graphml
+from networkx.readwrite.json_graph import cytoscape_data
+
+from proteingraphml.DataAdapter import OlegDB
+from proteingraphml.DataAdapter import TCRD
 from proteingraphml.GraphTools import ProteinDiseaseAssociationGraph
 
 if __name__ == "__main__":

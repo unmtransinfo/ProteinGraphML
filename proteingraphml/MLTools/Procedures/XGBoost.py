@@ -1,13 +1,10 @@
 # this will run a version of XGB, with a gross validation score
-
-
 # this will compute a cross val score...
-
 # ASSUME LOCKED HYPER PARAMS
 # ASSUME LOCKED ALGO, PASS IN THE DATA
+import logging
 
 from ProteinGraphML.MLTools.Models import XGBoostModel
-import logging
 
 CROSSVAL = 5
 

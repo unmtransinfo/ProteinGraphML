@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 ###
-
-import sys, os, argparse, re, time
+import argparse
 import logging
+import os
+import re
+import sys
+import time
 
-from proteingraphml.DataAdapter import OlegDB, TCRD
+from proteingraphml.DataAdapter import OlegDB
+from proteingraphml.DataAdapter import TCRD
 from proteingraphml.MLTools.StaticFeatures import staticData
 
 ###

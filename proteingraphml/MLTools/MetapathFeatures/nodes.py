@@ -1,5 +1,7 @@
-from .functions import computeType, sPPICompute
 import numpy as np
+
+from .functions import computeType
+from .functions import sPPICompute
 
 
 class KeggNode:

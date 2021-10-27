@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
 ###
-import sys, os, time, argparse, logging
+import argparse
+import logging
+import os
 import pickle
+import sys
+import time
 
-from proteingraphml.DataAdapter import OlegDB, selectAsDF, TCRD
+from proteingraphml.DataAdapter import OlegDB
+from proteingraphml.DataAdapter import selectAsDF
+from proteingraphml.DataAdapter import TCRD
 from proteingraphml.MLTools.Data import BinaryLabel
 from proteingraphml.MLTools.Procedures import *
 

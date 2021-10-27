@@ -1,8 +1,9 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import argparse
-import pandas as pd
 from textwrap import wrap
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
 
 def read_python_file(pythonfile):

@@ -1,2 +1,2 @@
-from .Visualize import *
 from .featureLabel import *
+from .Visualize import *

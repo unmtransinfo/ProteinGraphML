@@ -1,8 +1,16 @@
 #!/usr/bin/env python3
 ###
-import os, argparse, pyreadr, pickle, logging
+import argparse
+import logging
+import os
+import pickle
+
 import pandas as pd
-from proteingraphml.DataAdapter import OlegDB, selectAsDF, TCRD
+import pyreadr
+
+from proteingraphml.DataAdapter import OlegDB
+from proteingraphml.DataAdapter import selectAsDF
+from proteingraphml.DataAdapter import TCRD
 
 
 def generateTrainPredictFromExcel(inFile, idType, negProtein=None):

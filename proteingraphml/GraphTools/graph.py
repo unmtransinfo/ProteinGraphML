@@ -1,6 +1,7 @@
-import networkx as nx
-import pickle
 import logging
+import pickle
+
+import networkx as nx
 
 
 # chain a list of compose functions together to build the graph
