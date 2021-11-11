@@ -180,9 +180,9 @@ Example commands:
 
 ```
 TrainModelML.py -h
-TrainModelML.py XGBGridSearch --trainingfile results/ATG/ATG_TrainingData.pkl --rseed 1234 --nthreads 32 --resultdir results/ATG --db olegdb --static_data "gtex,lincs,ccle,hpa" --static_dir static_olegdb
-TrainModelML.py XGBCrossValPred --trainingfile results/ATG/ATG_TrainingData.pkl --resultdir results/ATG --xgboost_param_file XGBparams.txt --db olegdb --static_data "gtex,lincs,ccle,hpa" --static_dir static_olegdb
-TrainModelML.py XGBKfoldsRunPred --trainingfile results/ATG/ATG_TrainingData.pkl --resultdir results/ATG --xgboost_param_file XGBparams.txt --nrounds_for_avg 5 --db olegdb --static_data "gtex,lincs,ccle,hpa" --static_dir static_olegdb
+TrainModelML.py XGBGridSearch --trainingfile results/ATG/ATG_TrainingData.pkl --rseed 1234 --nthreads 32 --resultdir results/ATG --db tcrd --static_data "gtex,lincs,ccle,hpa" --static_dir .
+TrainModelML.py XGBCrossValPred --trainingfile results/ATG/ATG_TrainingData.pkl --resultdir results/ATG --xgboost_param_file XGBparams.txt --db tcrd --static_data "gtex,lincs,ccle,hpa" --static_dir .
+TrainModelML.py XGBKfoldsRunPred --trainingfile results/ATG/ATG_TrainingData.pkl --resultdir results/ATG --xgboost_param_file XGBparams.txt --nrounds_for_avg 5 --db tcrd --static_data "gtex,lincs,ccle,hpa" --static_dir . 
 ```
 
 Results will be saved in the specified --resultsdir. See logs for specific
@@ -210,7 +210,7 @@ Example commands:
 
 ```
 PredictML.py -h
-PredictML.py XGBPredict --predictfile results/ATG/ATG_predict_PredictData.pkl --model results/ATG/XGBCrossValPred.model --resultdir results/ATG --db olegdb --infofile data/plotDT.xlsx
+PredictML.py XGBPredict --predictfile results/ATG/ATG_predict_PredictData.pkl --model results/ATG/XGBCrossValPred.model --resultdir results/ATG --db tcrd --infofile data/plotDT.xlsx
 ```
 
 Results will be saved in the specified --resultsdir. See logs for specific
