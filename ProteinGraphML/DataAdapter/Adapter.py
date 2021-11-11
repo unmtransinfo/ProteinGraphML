@@ -1,8 +1,10 @@
 import os
+import sys
 from pony.orm import *
 import pandas as pd
 import yaml
 import logging
+
 
 # from DBCONST import *
 # from biodata_helper import *
@@ -10,7 +12,12 @@ import logging
 # import networkx as nx
 
 from .biodata_helper import selectAsDF, attachColumn, generateDepthMap
+from pathlib import Path
 
+# configuring the file path to tcrd Credentials
+CONFIG_FILE_PATH = Path.home()/"ProteinGraphML/DBcreds.yaml"
+if not CONFIG_FILE_PATH.exists():
+    print("Could not find config credentials file")
 
 # our graph takes a list of pandas frames, w/ relationships, and constructs a graph from all of it ... we may wrap
 # that, but the adapter should provide pandas frames
@@ -79,9 +86,7 @@ class Adapter:
 
 
 class OlegDB(Adapter):
-    config_file = os.environ["HOME"] + "/.ProteinGraphML.yaml"
-    # config_file = "/code/DBcreds.yaml"
-
+    CONFIG_FILE_PATH = CONFIG_FILE_PATH
     GTD = None
     mouseToHumanAssociation = None
     geneToDisease = None
@@ -182,11 +187,11 @@ class OlegDB(Adapter):
 
     #
     def load(self):
-        with open(self.config_file, 'r') as stream:
+        with open(self.CONFIG_FILE_PATH, 'r') as stream:
             try:
                 credentials = yaml.safe_load(stream)
             except yaml.YAMLError as exc:
-                logging.error('DB credentials not found in {0}: {1}'.format(self.config_file, str(exc)))
+                logging.error('DB credentials not found in {0}: {1}'.format(self.CONFIG_FILE_PATH, str(exc)))
 
         user = credentials['user']
         password = credentials['password']
@@ -397,8 +402,7 @@ WHERE
 
 # Should have same methods as OlegDB.
 class TCRD(Adapter):
-    config_file = os.environ["HOME"] + "/.ProteinGraphML.yaml"
-    # config_file = "/code/DBcreds.yaml"
+    CONFIG_FILE_PATH = CONFIG_FILE_PATH
     GTD = None
     mouseToHumanAssociation = None
     geneToDisease = None
@@ -550,11 +554,11 @@ WHERE
 
     #
     def load(self):
-        with open(self.config_file, 'r') as stream:
+        with open(self.CONFIG_FILE_PATH, 'r') as stream:
             try:
                 credentials = yaml.safe_load(stream)
             except yaml.YAMLError as exc:
-                logging.error('DB credentials not found in {0}: {1}'.format(self.config_file, str(exc)))
+                logging.error('DB credentials not found in {0}: {1}'.format(self.CONFIG_FILE_PATH, str(exc)))
 
         self.db = Database()
         self.db.bind(provider='mysql', user=credentials['tcrd_user'], password=credentials['tcrd_password'],
