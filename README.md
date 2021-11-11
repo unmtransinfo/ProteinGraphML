@@ -77,8 +77,7 @@ Command line parameters:
 * `--sources` : static features (default: ["gtex", "lincs", "ccle", "hpa"]).
 * `--decimals` : decimal place for the values (default:3)
 ```
-GenStaticFeatures.py --db tcrd --source "gtex,hpa" --outputdir .  (only 
-gtex and hpa)
+GenStaticFeatures.py --db tcrd --source "gtex,hpa" --outputdir .  (only gtex and hpa)
 GenStaticFeatures.py --db tcrd --outputdir .  (for all 4 static features)
 ```
 
@@ -112,10 +111,10 @@ Example commands:
 
 ```
 PrepTrainingAndTestSets.py -h
-PrepTrainingAndTestSets.py --i data/diabetes_pid.txt --symbol_or_pid 'pid' --db olegdb
-PrepTrainingAndTestSets.py --i data/autophagy.xlsx --db olegdb
-PrepTrainingAndTestSets.py --i data/diabetes.xlsx --use_default_negatives --db olegdb
-PrepTrainingAndTestSets.py --i data/Asthma.rds --db olegdb
+PrepTrainingAndTestSets.py --i data/diabetes_pid.txt --symbol_or_pid 'pid' --db tcrd
+PrepTrainingAndTestSets.py --i data/autophagy.xlsx --db tcrd
+PrepTrainingAndTestSets.py --i data/diabetes.xlsx --use_default_negatives --db tcrd
+PrepTrainingAndTestSets.py --i data/Asthma.rds --db tcrd
 ```
 
 ### <a name="HowtoMetapathFeatures"/>Metapath Features
@@ -145,9 +144,9 @@ Example commands:
 
 ```
 GenTrainingAndTestFeatures.py -h
-GenTrainingAndTestFeatures.py --trainingfile data/ATG.pkl --predictfile data/ATG_predict.pkl --outputdir results/ATG --kgfile ProteinDisease_GRAPH.pkl --static_data "gtex" --static_dir static_olegdb --db olegdb
-GenTrainingAndTestFeatures.py --disease MP_0000180 --outputdir results/MP_0000180 --kgfile ProteinDisease_GRAPH.pkl --static_data "gtex,lincs,ccle,hpa" --static_dir static_olegdb --db olegdb
-GenTrainingAndTestFeatures.py --trainingfile data/PS118220.pkl --predictfile data/PS118220_predict.pkl --outputdir results/PS118220 --kgfile ProteinDisease_GRAPH.pkl --static_data "gtex,lincs,ccle,hpa" --static_dir static_olegdb --db olegdb
+GenTrainingAndTestFeatures.py --trainingfile data/ATG.pkl --predictfile data/ATG_predict.pkl --outputdir results/ATG --kgfile ProteinDisease_GRAPH.pkl --static_data "gtex" --static_dir . --db tcrd
+GenTrainingAndTestFeatures.py --disease MP_0000180 --outputdir results/MP_0000180 --kgfile ProteinDisease_GRAPH.pkl --static_data "gtex,lincs,ccle,hpa" --static_dir . --db tcrd
+GenTrainingAndTestFeatures.py --trainingfile data/PS118220.pkl --predictfile data/PS118220_predict.pkl --outputdir results/PS118220 --kgfile ProteinDisease_GRAPH.pkl --static_data "gtex,lincs,ccle,hpa" --static_dir . --db tcrd
 ```
 
 ### <a name="HowtoTrainML"/>Train ML Model
