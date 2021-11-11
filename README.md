@@ -59,8 +59,8 @@ Example commands:
 
 ```
 BuildKG.py -h
-BuildKG.py --db olegdb --o ProteinDisease_GRAPH.pkl
-BuildKG.py --db olegdb --o ProteinDisease_GRAPH.pkl --logfile ProteinDisease_GRAPH.log --cyjsfile ProteinDisease_GRAPH.cyjs --tsvfile ProteinDisease_GRAPH.tsv
+BuildKG.py --db tcrd --o ProteinDisease_GRAPH.pkl
+BuildKG.py --db tcrd --o ProteinDisease_GRAPH.pkl --logfile ProteinDisease_GRAPH.log --cyjsfile ProteinDisease_GRAPH.cyjs --tsvfile ProteinDisease_GRAPH.tsv
 ```
 
 ### <a name="HowtoStaticFeatures"/>Static Features
@@ -77,9 +77,9 @@ Command line parameters:
 * `--sources` : static features (default: ["gtex", "lincs", "ccle", "hpa"]).
 * `--decimals` : decimal place for the values (default:3)
 ```
-GenStaticFeatures.py --db olegdb --source "gtex,hpa" --outputdir static_olegdb  (only 
+GenStaticFeatures.py --db tcrd --source "gtex,hpa" --outputdir .  (only 
 gtex and hpa)
-GenStaticFeatures.py --db olegdb --outputdir static_olegdb  (for all 4 static features)
+GenStaticFeatures.py --db tcrd --outputdir .  (for all 4 static features)
 ```
 
 ### <a name="HowtoPrep"/>Prepare Training and Test Sets
