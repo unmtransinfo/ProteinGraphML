@@ -19,7 +19,7 @@ t0 = time.time()
 DATA_DIR = os.getcwd() + '/DataForML/'
 NUM_OF_FOLDS = 2
 #DEFAULT_GRAPH = "newCURRENT_GRAPH"
-DEFAULT_GRAPH = "ProteinDisease_GRAPH.pkl"
+DEFAULT_GRAPH = "ProteinDisease_GRAPH_TEST.pkl"
 DEFAULT_STATIC_FEATURES = "gtex,lincs,ccle,hpa"
 
 PROCEDURES = ["XGBCrossVal", "XGBCrossValPred"]

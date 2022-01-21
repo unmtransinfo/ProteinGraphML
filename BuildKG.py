@@ -9,6 +9,7 @@ from networkx.readwrite.graphml import generate_graphml
 
 from ProteinGraphML.DataAdapter import OlegDB, TCRD
 from ProteinGraphML.GraphTools import ProteinDiseaseAssociationGraph
+from KGutilities import writeToNeo4j
 
 if __name__ == "__main__":
     """
@@ -25,13 +26,19 @@ if __name__ == "__main__":
     parser.add_argument('--tsvfile', help='Save KG as TSV.')
     # parser.add_argument('--test', help='Build KG but do not save.')
     parser.add_argument("-v", "--verbose", action="count", default=0, help="verbosity")
-
+    parser.add_argument("-c","--cypher",action="store_true",help="Generate cypher queries from MySQL database.")
+    parser.add_argument("-l","--load",help="Load cypher queries into Neo4j by specifying the Neo4J bolt connector (bolt://127.0.0.1:7687)")
     args = parser.parse_args()
 
     logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s',
                         level=(logging.DEBUG if args.verbose > 1 else logging.INFO))
 
     t0 = time.time()
+
+    if args.load is not None:
+        logging.info(f"sending cypher queries to neo4j host: {args.load}")
+        writeToNeo4j(args.load)
+        exit(0)
 
     ## Construct base protein-disease map from ProteinDiseaseAssociationGraph.
     ## Db is PonyORM db (https://docs.ponyorm.org/api_reference.html).
@@ -57,10 +64,16 @@ if __name__ == "__main__":
     # need for rebuilding for different diseases, models and analyses.
     # Also filter by proteins of interest, in this case it is our original list.
 
+    # TODO: debugging protein set.
+    with open("./logs/proteinSet.txt","w") as f:
+        for protein in proteinSet:
+            f.write(f"{protein}\n")
+        f.close()
+
     pdg.attach(dbad.loadPPI(proteinSet))
-    pdg.attach(dbad.loadKegg(proteinSet))
-    pdg.attach(dbad.loadReactome(proteinSet))
-    pdg.attach(dbad.loadGo(proteinSet))
+    pdg.attach(dbad.loadKegg(proteinSet,args.cypher))
+    pdg.attach(dbad.loadReactome(proteinSet,args.cypher))
+    pdg.attach(dbad.loadGo(proteinSet,args.cypher))
     try:
         pdg.attach(dbad.loadInterpro(proteinSet))
     except Exception as e:
@@ -162,8 +175,8 @@ if __name__ == "__main__":
 
     # TSV node and edge info, importable by Neo4j.
     if args.tsvfile is not None:
-        edgeCount = 0;
-        nodeCount = 0;
+        edgeCount = 0
+        nodeCount = 0
         with open(args.tsvfile, 'w') as fout:
             fout.write('node_or_edge\tclass\tid\tname\tsourceId\ttargetId\n')
             allNodes = set(pdg.graph.nodes)

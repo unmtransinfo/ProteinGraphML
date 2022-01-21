@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="423575fb-ee0a-41e9-bf50-faeeb9174110" name="home-RHEL8">
+        <fileTransfer rootFolder="/home/user/Downloads" accessType="SFTP" host="192.168.1.148" port="22" sshConfigId="666cd4ce-98f6-483b-b569-d726faa12e12" sshConfig="user@192.168.1.148:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="7eea2223-7abe-42e1-aee8-69ee3c1ac145" name="bandit-server2">
+        <fileTransfer rootFolder="/home/bandit/Downloads/ProteinGraphML" accessType="SFTP" host="bandit-server2" port="22" sshConfigId="3d3d3ca1-d648-4cc3-86d4-8941c5a6ec94" sshConfig="bandit@bandit-server2:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="48893b59-7817-45de-b665-28ef966418e1" name="bunny">
+        <fileTransfer rootFolder="/home/bunny/Downloads" accessType="SFTP" host="bunny1" port="22" sshConfigId="0d2a66c8-158a-4cf0-a1fc-faf667945bd5" sshConfig="bunny@bunny1:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

@@ -41,7 +41,7 @@ def load_obj(name):
         return pickle.load(f)
 
 #Get the name of the disease
-DEFAULT_GRAPH = "ProteinDisease_GRAPH.pkl"
+DEFAULT_GRAPH = "ProteinDisease_GRAPH_TEST.pkl"
 DBS=['olegdb', 'tcrd']
 parser = argparse.ArgumentParser(description='Run ML Procedure')
 parser.add_argument('--disease', metavar='disease', required=True, type=str, nargs='?', help='pickled file with ML features')

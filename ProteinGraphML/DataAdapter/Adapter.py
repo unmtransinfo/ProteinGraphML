@@ -4,6 +4,8 @@ import pandas as pd
 import yaml
 import logging
 
+from py2neo import Node, Relationship, Path
+
 # from DBCONST import *
 # from biodata_helper import *
 # from graph import GraphEdge
@@ -11,6 +13,27 @@ import logging
 
 from .biodata_helper import selectAsDF, attachColumn, generateDepthMap
 
+# Create Neo4j Nodes from resulting SQL query
+def saveResultsAsNodes(dataframe,nodeLabel,fullFilePath,methodName=None):
+    records = dataframe.to_dict("records")
+    with open(fullFilePath,"w") as f:
+        for index, record in enumerate(records):
+            node = Node(nodeLabel, **record)
+            f.write(f"CREATE {node}\n")
+            os.write(2,f"Working on {nodeLabel}: {index+1}/{len(records)} from method {methodName}\n".encode())
+        f.close()
+
+# Create Neo4j Relationships from resulting SQL query.
+def saveResultsAsRelationships(dataframe, startNodeLabel, endNodeLabel, startNodeKey, endNodeKey, relationshipLabel, fullFilePath, methodName=None):
+    records = dataframe.to_dict("records")
+    os.write(1, f"saveResultsAsRelationships: {records}".encode())
+    with open(fullFilePath, "w") as f:
+        for index, record in enumerate(records):
+            start = "(a:%s{%s:%s})" % (startNodeLabel, startNodeKey, record.get(startNodeKey))
+            end = "(b:%s{%s:%s})" % (endNodeLabel, endNodeKey, record.get(endNodeKey))
+            query = f"MATCH {start}, {end} MERGE (a) -[:{relationshipLabel}]-> (b)"
+            f.write(f"{query}\n")
+            os.write(2,f"Creating relationship between {startNodeLabel} -> {endNodeLabel}: {index+1}/{len(records)} from method {methodName}\n".encode())
 
 # our graph takes a list of pandas frames, w/ relationships, and constructs a graph from all of it ... we may wrap
 # that, but the adapter should provide pandas frames
@@ -79,7 +102,7 @@ class Adapter:
 
 
 class OlegDB(Adapter):
-    config_file = os.environ["HOME"] + "/.ProteinGraphML.yaml"
+    config_file = f"{os.getcwd()}/ProteinGraphML.yaml"
     # config_file = "/code/DBcreds.yaml"
 
     GTD = None
@@ -95,6 +118,7 @@ class OlegDB(Adapter):
     def loadTotalProteinList(self):
 
         protein = selectAsDF("select protein_id from protein where tax_id = 9606", ['protein_id'], self.db)
+
         logging.debug("(OlegDB.loadTotalProteinList) Human protein IDs returned: {0}".format(protein.shape[0]))
 
         return protein
@@ -397,8 +421,7 @@ WHERE
 
 # Should have same methods as OlegDB.
 class TCRD(Adapter):
-    config_file = os.environ["HOME"] + "/.ProteinGraphML.yaml"
-    # config_file = "/code/DBcreds.yaml"
+    config_file = f"{os.getcwd()}/ProteinGraphML.yaml"
     GTD = None
     mouseToHumanAssociation = None
     geneToDisease = None
@@ -407,14 +430,27 @@ class TCRD(Adapter):
     db = None
 
     def __init__(self):
+        self.neo4jNodeDirectoryCQL = f"{os.getcwd()}/cql/cypher/nodes"
+        self.neo4jRelationshipDirectoryCQL = f"{os.getcwd()}/cql/cypher/relationships"
+        if not os.path.exists(self.neo4jNodeDirectoryCQL):
+            os.makedirs(self.neo4jNodeDirectoryCQL)
+        if not os.path.exists(self.neo4jRelationshipDirectoryCQL):
+            os.makedirs(self.neo4jRelationshipDirectoryCQL)
         self.load()
 
     def loadTotalProteinList(self):
         protein = selectAsDF("SELECT DISTINCT id AS protein_id FROM protein", ['protein_id'], self.db)
         logging.debug("(TCRD.loadTotalProteinList) Human protein IDs returned: {0}".format(protein.shape[0]))
+
+        saveResultsAsNodes(
+            dataframe=protein,
+            nodeLabel="Protein",
+            fullFilePath=f"{self.neo4jNodeDirectoryCQL}/Protein.cql",
+            methodName="loadTotalProteinList")
+
         return protein
 
-    def loadReactome(self, proteinFilter=None):
+    def loadReactome(self, proteinFilter=None, cypherGenerate=False):
         reactome = selectAsDF(
             "SELECT protein_id, id_in_source AS reactome_id, name AS \"evidence\" FROM pathway WHERE pwtype = "
             "'Reactome'",
@@ -422,6 +458,25 @@ class TCRD(Adapter):
         if proteinFilter is not None:
             reactome = reactome[reactome['protein_id'].isin(proteinFilter)]
         logging.debug("(TCRD.loadReactome) Reactome rows returned: {0}".format(reactome.shape[0]))
+
+        if cypherGenerate:
+            saveResultsAsNodes(
+                dataframe=reactome,
+                nodeLabel="REACTOME",
+                fullFilePath=f"{self.neo4jNodeDirectoryCQL}/REACTOME.cql",
+                methodName="loadReactome")
+
+            saveResultsAsRelationships(
+                dataframe=reactome,
+                startNodeLabel="Protein",
+                endNodeLabel="REACTOME",
+                startNodeKey="protein_id",
+                endNodeKey="protein_id",
+                relationshipLabel="REACTOME",
+                fullFilePath=f"{self.neo4jRelationshipDirectoryCQL}/REACTOME_REL.cql",
+                methodName="loadReactome"
+            )
+
         return GraphEdge("protein_id", "reactome_id", data=reactome)
 
     def loadPPI(self, proteinFilter=None):
@@ -434,21 +489,61 @@ class TCRD(Adapter):
         logging.debug("(TCRD.loadPPI) STRING rows returned: {0}".format(stringDB.shape[0]))
         return GraphEdge("protein_id1", "protein_id2", "combined_score", stringDB)
 
-    def loadKegg(self, proteinFilter=None):
+    def loadKegg(self, proteinFilter=None, cypherGenerate=False):
         kegg = selectAsDF(
             "SELECT protein_id, SUBSTR(id_in_source, 6) AS kegg_pathway_id FROM pathway WHERE pwtype = 'KEGG'",
             ["protein_id", "kegg_pathway_id"], self.db)
         if proteinFilter is not None:
             kegg = kegg[kegg['protein_id'].isin(proteinFilter)]
         logging.debug("(TCRD.loadKegg) KEGG rows returned: {0}".format(kegg.shape[0]))
+
+        if cypherGenerate:
+            saveResultsAsNodes(
+                dataframe=kegg,
+                nodeLabel="KEGG",
+                fullFilePath=f"{self.neo4jNodeDirectoryCQL}/KEGG.cql",
+                methodName="loadKegg")
+
+            saveResultsAsRelationships(
+                dataframe=kegg,
+                startNodeLabel="Protein",
+                endNodeLabel="KEGG",
+                startNodeKey="protein_id",
+                endNodeKey="protein_id",
+                relationshipLabel="KEGG",
+                fullFilePath=f"{self.neo4jRelationshipDirectoryCQL}/KEGG_REL.cql",
+                methodName="loadKegg"
+            )
+
         return GraphEdge("protein_id", "kegg_pathway_id", data=kegg)
 
-    def loadInterpro(self, proteinFilter=None):
+    def loadInterpro(self, proteinFilter=None, cypherGenerate=False):
+
         interpro = selectAsDF("SELECT DISTINCT protein_id, value AS entry_ac FROM xref WHERE xtype = 'InterPro'",
                               ["protein_id", "entry_ac"], self.db)
+
         if proteinFilter is not None:
             interpro = interpro[interpro['protein_id'].isin(proteinFilter)]
         logging.debug("(TCRD.loadInterpro) Interpro rows returned: {0}".format(interpro.shape[0]))
+
+        if cypherGenerate:
+            saveResultsAsNodes(
+                dataframe=interpro,
+                nodeLabel="INTERPRO",
+                fullFilePath=f"{self.neo4jNodeDirectoryCQL}/INTERPRO.cql",
+                methodName="loadInterpro")
+
+            saveResultsAsRelationships(
+                dataframe=interpro,
+                startNodeLabel="Protein",
+                endNodeLabel="INTERPRO",
+                startNodeKey="protein_id",
+                endNodeKey="protein_id",
+                relationshipLabel="INTERPRO",
+                fullFilePath=f"{self.neo4jRelationshipDirectoryCQL}/INTERPRO_REL.cql",
+                methodName="loadInterpro"
+            )
+
         return GraphEdge("protein_id", "entry_ac", data=interpro)
 
     def loadPFAM(self, proteinFilter=None):
@@ -467,11 +562,30 @@ class TCRD(Adapter):
         logging.debug("(TCRD.loadPROSITE) Prosite rows returned: {0}".format(prosite.shape[0]))
         return GraphEdge("protein_id", "entry_ac", data=prosite)
 
-    def loadGo(self, proteinFilter=None):
+    def loadGo(self, proteinFilter=None, cypherGenerate=False):
         goa = selectAsDF("SELECT protein_id, go_id FROM goa", ["protein_id", "go_id"], self.db)
         if proteinFilter is not None:
             goa = goa[goa['protein_id'].isin(proteinFilter)]
         logging.debug("(TCRD.loadGo) GO rows returned: {0}".format(goa.shape[0]))
+
+        if cypherGenerate:
+            saveResultsAsNodes(
+                dataframe=goa,
+                nodeLabel="GO",
+                fullFilePath=f"{self.neo4jNodeDirectoryCQL}/GO.cql",
+                methodName="loadGo")
+
+            saveResultsAsRelationships(
+                dataframe=goa,
+                startNodeLabel="Protein",
+                endNodeLabel="GO",
+                startNodeKey="protein_id",
+                endNodeKey="protein_id",
+                relationshipLabel="GO",
+                fullFilePath=f"{self.neo4jRelationshipDirectoryCQL}/GO_REL.cql",
+                methodName="loadGo"
+            )
+
         return GraphEdge("protein_id", "go_id", data=goa)
 
     def loadOMIM(self, proteinFilter=None):
@@ -506,6 +620,7 @@ WHERE
         if proteinFilter is not None:
             omim = omim[omim['protein_id'].isin(proteinFilter)]
         logging.debug("(TCRD.loadOMIM) OMIM rows returned: {0}".format(omim.shape[0]))
+
         return GraphEdge("protein_id", "mim_id", data=omim)
 
     # static features
@@ -518,6 +633,7 @@ WHERE
         logging.debug("({0}.loadGTEX) gtex rows: {1}".format(type(self).__name__, gtex.shape[0]))
         gtex.median_tpm = gtex.median_tpm.astype(float)  # Why necessary?
         gtex.info()
+
         return gtex
 
     def loadCCLE(self):
@@ -557,8 +673,14 @@ WHERE
                 logging.error('DB credentials not found in {0}: {1}'.format(self.config_file, str(exc)))
 
         self.db = Database()
-        self.db.bind(provider='mysql', user=credentials['tcrd_user'], password=credentials['tcrd_password'],
-                     host=credentials['tcrd_host'], database=credentials['tcrd_database'])
+
+        self.db.bind(
+            provider='mysql',
+            user=credentials['tcrd_user'],
+            password=credentials['tcrd_password'],
+            host=credentials['tcrd_host'],
+            database=credentials['tcrd_database'])
+
         logging.debug("(TCRD.load) Connected to db (%s): %s:%s:%s" % (
             self.db.provider_name, credentials['tcrd_host'], credentials['tcrd_database'], credentials['tcrd_user']))
         self.db.generate_mapping(create_tables=False)

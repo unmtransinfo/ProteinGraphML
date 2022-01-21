@@ -85,7 +85,7 @@ if __name__ == '__main__':
     """
     t0 = time.time()
     # DATA_DIR = os.getcwd() + '/DataForML/'
-    DEFAULT_GRAPH = "ProteinDisease_GRAPH.pkl"
+    DEFAULT_GRAPH = "ProteinDisease_GRAPH_TEST.pkl"
     DEFAULT_STATIC_FEATURES = "gtex,lincs,ccle,hpa"
     DBS = ['olegdb', 'tcrd']
 

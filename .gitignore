@@ -1,3 +1,5 @@
+logs/proteinSet.txt
+cql/cypher
 /results/
 __pycache__/
 *.pyc

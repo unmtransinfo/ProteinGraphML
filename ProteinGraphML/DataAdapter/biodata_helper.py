@@ -15,9 +15,6 @@ def runDB(db):
 def selectAsDF(sql,columns,db):
     return pd.DataFrame(fetch(sql,db),columns=columns)
 
-    
-
-
 def generateDepthMap(mpOnto):
     treeMap = {}
     depthMap = {}

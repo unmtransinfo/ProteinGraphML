@@ -21,7 +21,7 @@ XGBoost is used to generate and optimize a predictive model.
 * Also see
    * [ComparingResults (Python vs R)](doc/ComparingResults.md)
    * [Visualization](doc/Visualization.md) _(In development.)_
-
+   
 ## <a name="Dependencies"/>Dependencies
 
 * R 3.5+
@@ -31,6 +31,20 @@ XGBoost is used to generate and optimize a predictive model.
 * PostgreSQL database `metap`.
    * Edit `DBcreds.yaml` with valid db credentials. Needed throughout workflow.
 * Hardware: Some of the programs need 20+ GB RAM and Xgboost takes several minutes to train and test the data if the number of CPU cores is less than 8. So, a machine with 20+ GB RAM and 8+ CPU core is preferable for running these codes.
+
+### <a name="Dependencies"/> Install Dependencies
+
+#### Anaconda 
+
+```
+conda env create --file dependencies.yml
+```
+
+#### Python PIP 
+
+```
+pip install -r requirements.txt
+```
 
 ## <a name="Howto"/>How to run the Workflow:
 
@@ -54,6 +68,8 @@ Command line parameters:
 * `--cyjsfile`: Save KG as CYJS file. (optional).
 * `--graphmlfile` : Save KG as graphML. (optional).
 * `--tsvfile` : Save KG as TSV file. (optional).
+* `--cypher`  : Generate Neo4j cypher queries from connected MySQL database. 
+* `--load`    : Write cypher queries to Neo4j host by using Neo4j's bolt connector.
 
 Example commands:
 
@@ -62,6 +78,19 @@ BuildKG.py -h
 BuildKG.py --db olegdb --o ProteinDisease_GRAPH.pkl
 BuildKG.py --db olegdb --o ProteinDisease_GRAPH.pkl --logfile ProteinDisease_GRAPH.log --cyjsfile ProteinDisease_GRAPH.cyjs --tsvfile ProteinDisease_GRAPH.tsv
 ```
+
+To generate cypher queries in directory **cql/cypher/** use:
+
+```
+python BuildKG.py --db tcrd --cypher 
+```
+
+Load data into Neo4j by using; 
+
+```
+python BuildKG.py --load bolt://127.0.0.1:7687
+```
+
 
 ### <a name="HowtoStaticFeatures"/>Static Features
 

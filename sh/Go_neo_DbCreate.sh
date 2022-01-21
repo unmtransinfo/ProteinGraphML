@@ -15,7 +15,7 @@ cwd=$(pwd)
 NEO4J_HOST=localhost
 NEO4J_PORT=7687
 NEO4J_USERNAME=neo4j
-NEO4J_PASSWORD=assword
+NEO4J_PASSWORD=password
 #
 NEO4J_URL="bolt://${NEO4J_HOST}:${NEO4J_PORT}"
 #

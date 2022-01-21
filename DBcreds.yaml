@@ -1,10 +1,16 @@
+# TODO: this file does not affect the application configuration.
 user: "monty"
 password: "spam"
 host: "localhost"
 database: "metap"
+
+# Original
+#tcrd_user: "tcrd"
+#tcrd_password: ""
+#tcrd_host: "tcrd.kmc.io"
+#tcrd_database: "tcrd6110"
 #
-tcrd_user: "tcrd"
-tcrd_password: ""
-tcrd_host: "tcrd.kmc.io"
-tcrd_database: "tcrd6110"
-#
+tcrd_user: "root"
+tcrd_password: "tcrd"
+tcrd_host: "192.168.1.147"
+tcrd_database: "tcrd4"

@@ -2,7 +2,6 @@ import networkx as nx
 import pickle
 import logging
 
-
 # chain a list of compose functions together to build the graph
 class GraphData:
 	def test(self):
