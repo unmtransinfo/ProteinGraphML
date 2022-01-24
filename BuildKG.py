@@ -55,7 +55,7 @@ if __name__ == "__main__":
     logging.info('Total nodes: %d; edges: %d' % (pdg.graph.order(), pdg.graph.size()))
 
     ## Filter by proteins of interest; this list comes from a DB adapter, but any set will do.
-    proteins = dbad.loadTotalProteinList().protein_id
+    proteins = dbad.loadTotalProteinList()["protein_id"]
     proteinSet = set(proteins)
     logging.info('Protein set: %d' % (len(proteinSet)))
 
@@ -63,19 +63,12 @@ if __name__ == "__main__":
     # With this method create graph, which can be saved, avoiding
     # need for rebuilding for different diseases, models and analyses.
     # Also filter by proteins of interest, in this case it is our original list.
-
-    # TODO: debugging protein set.
-    with open("./logs/proteinSet.txt","w") as f:
-        for protein in proteinSet:
-            f.write(f"{protein}\n")
-        f.close()
-
-    pdg.attach(dbad.loadPPI(proteinSet))
-    pdg.attach(dbad.loadKegg(proteinSet,args.cypher))
-    pdg.attach(dbad.loadReactome(proteinSet,args.cypher))
-    pdg.attach(dbad.loadGo(proteinSet,args.cypher))
+    pdg.attach(dbad.loadPPI(proteinSet,cypherGenerate=args.cypher))
+    pdg.attach(dbad.loadKegg(proteinSet,cypherGenerate=args.cypher))
+    pdg.attach(dbad.loadReactome(proteinSet,cypherGenerate=args.cypher))
+    pdg.attach(dbad.loadGo(proteinSet,cypherGenerate=args.cypher))
     try:
-        pdg.attach(dbad.loadInterpro(proteinSet))
+        pdg.attach(dbad.loadInterpro(proteinSet,cypherGenerate=args.cypher))
     except Exception as e:
         logging.error("InterPro failed to load: {0}".format(e))
 

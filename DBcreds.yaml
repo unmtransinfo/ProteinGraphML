@@ -1,4 +1,3 @@
-# TODO: this file does not affect the application configuration.
 user: "monty"
 password: "spam"
 host: "localhost"
@@ -12,5 +11,6 @@ database: "metap"
 #
 tcrd_user: "root"
 tcrd_password: "tcrd"
-tcrd_host: "192.168.1.147"
-tcrd_database: "tcrd4"
+tcrd_host: "129.108.78.104"
+tcrd_database: "tcrd6"
+#

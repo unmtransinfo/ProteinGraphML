@@ -26,12 +26,20 @@ def saveResultsAsNodes(dataframe,nodeLabel,fullFilePath,methodName=None):
 # Create Neo4j Relationships from resulting SQL query.
 def saveResultsAsRelationships(dataframe, startNodeLabel, endNodeLabel, startNodeKey, endNodeKey, relationshipLabel, fullFilePath, methodName=None):
     records = dataframe.to_dict("records")
-    os.write(1, f"saveResultsAsRelationships: {records}".encode())
+    os.write(1, f"saveResultsAsRelationships: {records}, records: {len(records)}, unique: {records[:3]}".encode())
     with open(fullFilePath, "w") as f:
         for index, record in enumerate(records):
-            start = "(a:%s{%s:%s})" % (startNodeLabel, startNodeKey, record.get(startNodeKey))
-            end = "(b:%s{%s:%s})" % (endNodeLabel, endNodeKey, record.get(endNodeKey))
-            query = f"MATCH {start}, {end} MERGE (a) -[:{relationshipLabel}]-> (b)"
+            #start = "(a:%s{%s:%s})" % (startNodeLabel, startNodeKey, record.get(startNodeKey))
+            #end = "(b:%s{%s:%s})" % (endNodeLabel, endNodeKey, record.get(endNodeKey))
+
+            query = f"MATCH (a:%s),(b:%s) WHERE a.%s = %s AND b.%s = %s MERGE (a) -[:{relationshipLabel}]-> (b)" % (
+                startNodeLabel,
+                endNodeLabel,
+                startNodeKey,
+                record.get(startNodeKey),
+                endNodeKey,
+                record.get(endNodeKey)
+            )
             f.write(f"{query}\n")
             os.write(2,f"Creating relationship between {startNodeLabel} -> {endNodeLabel}: {index+1}/{len(records)} from method {methodName}\n".encode())
 
@@ -102,8 +110,7 @@ class Adapter:
 
 
 class OlegDB(Adapter):
-    config_file = f"{os.getcwd()}/ProteinGraphML.yaml"
-    # config_file = "/code/DBcreds.yaml"
+    config_file = f"{os.getcwd()}/DBcreds.yaml"
 
     GTD = None
     mouseToHumanAssociation = None
@@ -421,7 +428,7 @@ WHERE
 
 # Should have same methods as OlegDB.
 class TCRD(Adapter):
-    config_file = f"{os.getcwd()}/ProteinGraphML.yaml"
+    config_file = f"{os.getcwd()}/DBcreds.yaml"
     GTD = None
     mouseToHumanAssociation = None
     geneToDisease = None
@@ -439,7 +446,8 @@ class TCRD(Adapter):
         self.load()
 
     def loadTotalProteinList(self):
-        protein = selectAsDF("SELECT DISTINCT id AS protein_id FROM protein", ['protein_id'], self.db)
+        # TODO changed query
+        protein = selectAsDF("SELECT DISTINCT id AS protein_id,name,description FROM protein", ['protein_id','name','description'], self.db)
         logging.debug("(TCRD.loadTotalProteinList) Human protein IDs returned: {0}".format(protein.shape[0]))
 
         saveResultsAsNodes(
@@ -479,15 +487,25 @@ class TCRD(Adapter):
 
         return GraphEdge("protein_id", "reactome_id", data=reactome)
 
-    def loadPPI(self, proteinFilter=None):
+    def loadPPI(self, proteinFilter=None, cypherGenerate=False):
         stringDB = selectAsDF(
             "SELECT protein1_id, protein2_id, score AS combined_score FROM ppi WHERE ppitype = 'STRINGDB'",
-            ["protein_id1", "protein_id2", "combined_score"], self.db)
+            ["protein1_id", "protein2_id", "combined_score"], self.db)
         if proteinFilter is not None:
-            stringDB = stringDB[stringDB['protein_id1'].isin(proteinFilter)]
-            stringDB = stringDB[stringDB['protein_id2'].isin(proteinFilter)]
+            stringDB = stringDB[stringDB['protein1_id'].isin(proteinFilter)]
+            stringDB = stringDB[stringDB['protein2_id'].isin(proteinFilter)]
+
+        if cypherGenerate:
+            with open(f"{self.neo4jRelationshipDirectoryCQL}/STRING_REL.cql","w") as f:
+                for record in stringDB.to_dict("records"):
+                    proteinId1 = record["protein1_id"]
+                    proteinId2 = record["protein2_id"]
+                    query = f"MATCH (a:Protein),(b:Protein) WHERE a.protein_id = {proteinId1} and b.protein_id = {proteinId2} MERGE (a)-[:STRING]->(b)"
+                    f.write(f"{query}\n")
+            f.close()
+
         logging.debug("(TCRD.loadPPI) STRING rows returned: {0}".format(stringDB.shape[0]))
-        return GraphEdge("protein_id1", "protein_id2", "combined_score", stringDB)
+        return GraphEdge("protein1_id", "protein2_id", "combined_score", stringDB)
 
     def loadKegg(self, proteinFilter=None, cypherGenerate=False):
         kegg = selectAsDF(

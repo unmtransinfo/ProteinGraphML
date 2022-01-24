@@ -3,7 +3,7 @@
   <component name="WebServers">
     <option name="servers">
       <webServer id="423575fb-ee0a-41e9-bf50-faeeb9174110" name="home-RHEL8">
-        <fileTransfer rootFolder="/home/user/Downloads" accessType="SFTP" host="192.168.1.148" port="22" sshConfigId="666cd4ce-98f6-483b-b569-d726faa12e12" sshConfig="user@192.168.1.148:22 password">
+        <fileTransfer rootFolder="/home/user/Downloads" accessType="SFTP" sshConfigId="666cd4ce-98f6-483b-b569-d726faa12e12" sshConfig="user@192.168.1.148:22 password">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>
@@ -18,6 +18,13 @@
       </webServer>
       <webServer id="48893b59-7817-45de-b665-28ef966418e1" name="bunny">
         <fileTransfer rootFolder="/home/bunny/Downloads" accessType="SFTP" host="bunny1" port="22" sshConfigId="0d2a66c8-158a-4cf0-a1fc-faf667945bd5" sshConfig="bunny@bunny1:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="e2a2c479-8951-4a66-881d-fbbf915ff862" name="u18-home">
+        <fileTransfer rootFolder="/home/user/ProteinGraphML" accessType="SFTP" host="192.168.1.147" port="22" sshConfigId="d4ee464a-9519-466d-9e8b-41915f3fd8ce" sshConfig="user@192.168.1.147:22 password">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>
