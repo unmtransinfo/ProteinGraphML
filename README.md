@@ -70,6 +70,8 @@ Command line parameters:
 * `--tsvfile` : Save KG as TSV file. (optional).
 * `--cypher`  : Generate Neo4j cypher queries from connected MySQL database. 
 * `--load`    : Write cypher queries to Neo4j host by using Neo4j's bolt connector.
+* `--user`    : Username present in the Neo4j host.
+* `--password`: Password for the Neo4j host.
 
 Example commands:
 
@@ -85,10 +87,16 @@ To generate cypher queries in directory **cql/cypher/** use:
 python BuildKG.py --db tcrd --cypher 
 ```
 
-Load data into Neo4j by using; 
+Load data into Neo4j by using the following command: 
 
 ```
 python BuildKG.py --load bolt://127.0.0.1:7687
+```
+
+Load data into Neo4j with authentication by using the following command: 
+
+``` 
+python BuildKG.py --load bolt://127.0.0.1:7687 --user neo4j --password neo4j
 ```
 
 
@@ -160,15 +168,19 @@ with this program to generate training and predict data sets for ML models.
 
 Command line parameters:
 
-*  `--disease` : Mammalian Phenotype ID, e.g. MP_0000180 (Diseases without MP_TERM_ID may give error. So, use their 
+* `--disease` : Mammalian Phenotype ID, e.g. MP_0000180 (Diseases without MP_TERM_ID may give error. So, use their 
 RDS files to create sets of training and predict protein ids using `PrepTrainingAndTestSets.py`)
-*  `--trainingfile` : pickled training set, e.g. "diabetes.pkl"
-*  `--predictfile` : pickled predict set, e.g. "diabetes_test.pkl"
-*  `--outputdir` : directory where train and test data with features will be saved, e.g. "diabetes_no_lincs"
-*  `--kgfile` : input pickled KG (default: "ProteinDisease_GRAPH.pkl")
-*  `--static_data` : (default: "gtex,lincs,ccle,hpa")
-*  `--static_dir` : directory of static features files: lincs.tsv, hpa.tsv, gtex.tsv, and ccle.tsv
-*  `--db` : database (olegdb or tcrd) (default: tcrd)
+* `--trainingfile` : pickled training set, e.g. "diabetes.pkl"
+* `--predictfile` : pickled predict set, e.g. "diabetes_test.pkl"
+* `--outputdir` : directory where train and test data with features will be saved, e.g. "diabetes_no_lincs"
+* `--kgfile` : input pickled KG (default: "ProteinDisease_GRAPH.pkl")
+* `--static_data` : (default: "gtex,lincs,ccle,hpa")
+* `--static_dir` : directory of static features files: lincs.tsv, hpa.tsv, gtex.tsv, and ccle.tsv
+* `--db` : database (olegdb or tcrd) (default: tcrd)
+* `--hostname` : The bolt connector of the Neo4j host used to pull data from. 
+* `--user` :  The username to authenticate as when connecting to the Neo4j host. 
+* `--password` : The password to authenticate the username used when connecting to the Neo4j host.
+* `--featureList` : A JSON file containing the features you want to pull from the Neo4j host.
 
 Example commands:
 
@@ -177,6 +189,14 @@ GenTrainingAndTestFeatures.py -h
 GenTrainingAndTestFeatures.py --trainingfile data/ATG.pkl --predictfile data/ATG_predict.pkl --outputdir results/ATG --kgfile ProteinDisease_GRAPH.pkl --static_data "gtex" --static_dir static_olegdb --db olegdb
 GenTrainingAndTestFeatures.py --disease MP_0000180 --outputdir results/MP_0000180 --kgfile ProteinDisease_GRAPH.pkl --static_data "gtex,lincs,ccle,hpa" --static_dir static_olegdb --db olegdb
 GenTrainingAndTestFeatures.py --trainingfile data/PS118220.pkl --predictfile data/PS118220_predict.pkl --outputdir results/PS118220 --kgfile ProteinDisease_GRAPH.pkl --static_data "gtex,lincs,ccle,hpa" --static_dir static_olegdb --db olegdb
+```
+
+Example commands with Neo4j:
+
+```
+GenTrainingAndTestFeatures.py --outputdir cql/config/dataset --featureList cql/config/feature_select.json --hostname bolt://127.0.0.1:7687
+GenTrainingAndTestFeatures.py --outputdir cql/config/dataset --hostname bolt://127.0.0.1:7687 --user neo4j --password neo4j 
+GenTrainingAndTestFeatures.py --outputdir cql/config/dataset --hostname bolt://127.0.0.1:7687
 ```
 
 ### <a name="HowtoTrainML"/>Train ML Model

@@ -14,6 +14,8 @@ from ProteinGraphML.MLTools.Data import BinaryLabel
 from ProteinGraphML.MLTools.Models import XGBoostModel
 from ProteinGraphML.MLTools.Procedures import *
 
+from py2neo import Graph
+from GenFeatureUtils import runner
 
 def savePickleObject(fileName, data):
     """
@@ -105,9 +107,27 @@ if __name__ == '__main__':
     parser.add_argument('--static_dir', default=os.getcwd() + "/ProteinGraphML/MLTools/StaticFeatures", )
     parser.add_argument('--db', choices=DBS, default="tcrd", help='{0}'.format(str(DBS)))
     parser.add_argument("-v", "--verbose", action="count", default=0, help="verbosity")
+    # neo4j command-line options
+    parser.add_argument("--hostname",help="Bolt connector for neo4j.")
+    parser.add_argument("--user",help="Username to connect to neo4j.")
+    parser.add_argument("--password",help="Password to connect to neo4j.")
+    parser.add_argument("--featureList",help="JSON file containing all the features to build multiple datasets.",default="cql/config/feature_select.json")
 
     args = parser.parse_args()
     logging.basicConfig(format='%(levelname)s:%(message)s', level=(logging.DEBUG if args.verbose > 1 else logging.INFO))
+
+    # Neo4j Usage
+    if args.hostname is not None or args.featureList:
+        graph = Graph(args.hostname)
+        runner(graph=graph,featureFileName=args.featureList,outputdir=args.outputdir)
+    elif args.hostname is not None and args.featureList and args.user and args.password:
+        graph = Graph(args.hostname,auth=(args.user,args.password))
+        runner(graph=graph,featureFileName=args.feautreList,outputdir=args.outputdir)
+    else:
+        os.write(1,"Please check the command-line options relating to neo4j.".encode())
+        exit(1)
+
+
 
     # Get data from file or disease
     # disease = argData['disease']

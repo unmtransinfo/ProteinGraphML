@@ -1,13 +1,13 @@
-import pickle
 import re
 import logging
 from py2neo import Graph, Node
 import os
 from tqdm import tqdm
+import time
 
 # Send Cypher Queries to Neo4j
-def writeToNeo4j(bolt="bolt://127.0.0.1:7687"):
-    graph = Graph(bolt)
+def writeToNeo4j(graph):
+    t0 = time.time()
 
     directories = ["./cql/cypher/nodes", "./cql/cypher/relationships"]
     for directory in directories:
@@ -20,9 +20,12 @@ def writeToNeo4j(bolt="bolt://127.0.0.1:7687"):
         for file in files:
             cqlData = open(f"{os.path.join(directory, file)}", "r").readlines()
 
-            for query in tqdm(cqlData, desc=f"Processing {file} in directory {directory} to Neo4j Host ({bolt})"):
+            for query in tqdm(cqlData, desc=f"Processing {file} in directory {directory} to Neo4j Host"):
                 graph.run(query)
 
+    os.write(1, "Loading cypher directory took: {0}".format(time.strftime('%Hh:%Mm:%Ss', time.gmtime(time.time() - t0))).encode(),)
+
+# DEPRECATED: NetworkX is to be removed from this codebase.
 # Load network X graph.
 def createNeo4jCypherQueries(graphInstance):
     nodeCount = 0

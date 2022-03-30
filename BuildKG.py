@@ -10,6 +10,7 @@ from networkx.readwrite.graphml import generate_graphml
 from ProteinGraphML.DataAdapter import OlegDB, TCRD
 from ProteinGraphML.GraphTools import ProteinDiseaseAssociationGraph
 from KGutilities import writeToNeo4j
+from py2neo import Graph
 
 if __name__ == "__main__":
     """
@@ -26,8 +27,10 @@ if __name__ == "__main__":
     parser.add_argument('--tsvfile', help='Save KG as TSV.')
     # parser.add_argument('--test', help='Build KG but do not save.')
     parser.add_argument("-v", "--verbose", action="count", default=0, help="verbosity")
-    parser.add_argument("-c","--cypher",action="store_true",help="Generate cypher queries from MySQL database.")
+    parser.add_argument("-c","--cypher",action="store_true",help="Generate cypher queries from the MySQL database.")
     parser.add_argument("-l","--load",help="Load cypher queries into Neo4j by specifying the Neo4J bolt connector (bolt://127.0.0.1:7687)")
+    parser.add_argument("-u","--user",help="Username for neo4j database.")
+    parser.add_argument("-p","--password",help="Password for neo4j database.")
     args = parser.parse_args()
 
     logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s',
@@ -37,7 +40,16 @@ if __name__ == "__main__":
 
     if args.load is not None:
         logging.info(f"sending cypher queries to neo4j host: {args.load}")
-        writeToNeo4j(args.load)
+        graph = Graph(str(args.load))
+        writeToNeo4j(graph=graph)
+        exit(0)
+    elif args.load is not None and args.user and args.password:
+        logging.info(f"sending cypher queries to neo4j host: {args.load} with username {args.user}")
+        graph = Graph(str(args.load),auth=(str(args.user),str(args.password)))
+        writeToNeo4j(graph=graph)
+        exit(0)
+    else:
+        os.write(1,"Please check command-line options and set the username and password for the neo4j host.".encode())
         exit(0)
 
     ## Construct base protein-disease map from ProteinDiseaseAssociationGraph.
