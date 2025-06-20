@@ -8,6 +8,12 @@ converted to a knowledge graph, then converted to feature vectors by metapath
 matching, based on an input disease, defining a training set of proteins. Then
 XGBoost is used to generate and optimize a predictive model.
 
+## Publications
+
+  * "_Machine learning prediction and tau-based screening identifies potential Alzheimer’s disease genes relevant to immunity_ ", Jessica Binder, Oleg Ursu, Cristian Bologa, Shanya Jiang, Nicole Maphis, Somayeh Dadras, Devon Chisholm, Jason Weick, Orrin Myers, Praveen Kumar, Jeremy J. Yang, Kiran Bhaskar & Tudor I. Oprea, [Nature Communications Biology volume 5, Article number: 125 (2022)](https://www.nature.com/articles/s42003-022-03068-7).
+  * "_Autophagy dark genes: Can we find them with machine learning?_", Mohsen Ranjbar, Jeremy J. Yang, Praveen Kumar, Daniel R. Byrd, Elaine L. Bearer, Tudor I. Oprea, [Natural Sciences, Volume 3, Issue 3 (2023)](https://onlinelibrary.wiley.com/doi/10.1002/ntls.20220067).
+
+
 ## Table of Contents  
 
 * [Dependencies](#Dependencies)
